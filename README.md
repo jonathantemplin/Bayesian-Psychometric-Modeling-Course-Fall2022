@@ -1,10 +1,8 @@
 ---
-title: "PSQF 7375: Bayesian Psychometric Modeling Syllabus; Fall 2022"
 date: "Version 1: 25 July, 2022"
-output: pdf_document
 ---
 
-*_Note:_ The online syllabus at the address provided above will always have the most current information.*
+*_Note:_ Please check the class site in ICON for current assignments*
 
 
 ## Course Information
