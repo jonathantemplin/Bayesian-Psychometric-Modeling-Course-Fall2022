@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<script src="Untitled_files/libs/clipboard/clipboard.min.js"></script>
-<script src="Untitled_files/libs/quarto-html/tabby.min.js"></script>
-<script src="Untitled_files/libs/quarto-html/popper.min.js"></script>
-<script src="Untitled_files/libs/quarto-html/tippy.umd.min.js"></script>
-<link href="Untitled_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="Untitled_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
-<link href="Untitled_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+<script src="01_Introduction_to_Bayesian_files/libs/clipboard/clipboard.min.js"></script>
+<script src="01_Introduction_to_Bayesian_files/libs/quarto-html/tabby.min.js"></script>
+<script src="01_Introduction_to_Bayesian_files/libs/quarto-html/popper.min.js"></script>
+<script src="01_Introduction_to_Bayesian_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="01_Introduction_to_Bayesian_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="01_Introduction_to_Bayesian_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="01_Introduction_to_Bayesian_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.0.36">
 
-  <meta name="author" content="JonathanTemplin">
-  <title>testQuarto</title>
+  <meta name="author" content="Lecture 1">
+  <title>Introduction to Bayesian Concepts</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
-  <link rel="stylesheet" href="Untitled_files/libs/revealjs/dist/reset.css">
-  <link rel="stylesheet" href="Untitled_files/libs/revealjs/dist/reveal.css">
+  <link rel="stylesheet" href="01_Introduction_to_Bayesian_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="01_Introduction_to_Bayesian_files/libs/revealjs/dist/reveal.css">
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
@@ -24,11 +24,11 @@
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     ul.task-list{list-style: none;}
   </style>
-  <link rel="stylesheet" href="Untitled_files/libs/revealjs/dist/theme/quarto.css" id="theme">
-  <link href="Untitled_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
-  <link href="Untitled_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
-  <link href="Untitled_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
-  <link href="Untitled_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <link rel="stylesheet" href="01_Introduction_to_Bayesian_files/libs/revealjs/dist/theme/quarto.css" id="theme">
+  <link href="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
   <style type="text/css">
 
   .callout {
@@ -318,31 +318,243 @@
   <div class="reveal">
     <div class="slides">
 
-<section id="title-slide" data-background-image="img/penguin-highway.jpg" data-background-size="cover" class="center">
-  <h1 class="title">testQuarto</h1>
-  <p class="author">JonathanTemplin</p>
+<section id="title-slide" class="center">
+  <h1 class="title">Introduction to Bayesian Concepts</h1>
+  <p class="author">Lecture 1</p>
 </section>
 
-<section id="quarto" class="slide level2">
-<h2>Quarto</h2>
-<p>Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <a href="https://quarto.org/docs/presentations/" class="uri">https://quarto.org/docs/presentations/</a>.</p>
+<section id="todays-lecture-objectives" class="slide level2">
+<h2>Today’s Lecture Objectives</h2>
+<div>
+<ol type="1">
+<li>Bayesian Statistics: A Definition</li>
+<li>Posterior Distributions</li>
+<li>Bayesian Updating</li>
+</ol>
+</div>
+<p>…but, before we formally begin…</p>
 </section>
-<section id="bullets" class="slide level2">
-<h2>Bullets</h2>
-<p>When you click the <strong>Render</strong> button a document will be generated that includes:</p>
+<section id="part-of-my-summer" class="slide level2">
+<h2>Part of My Summer…</h2>
+
+<img data-src="https://raw.githubusercontent.com/jonathantemplin/Bayesian-Psychometric-Modeling-Course-Fall2022/main/lectures/01_Introduction/IMG_1533.jpeg" class="r-stretch quarto-figure-center"><p class="caption">Thomas Bayes (1701-1761)</p></section>
+<section id="class-discussion-what-is-bayesian" class="slide level2">
+<h2>Class Discussion: What is Bayesian?</h2>
+</section>
+<section id="bayesian-from-birth" class="slide level2">
+<h2>Bayesian from Birth</h2>
+<p>A brief video to start the semester… <a href="https://t.co/T9O9UzJVWT">pic.twitter.com/T9O9UzJVWT</a></p>
+</section>
+<section id="the-basics-of-bayesian-analyses" class="slide level2">
+<h2>The Basics of Bayesian Analyses</h2>
 <ul>
-<li class="fragment">Content authored with markdown</li>
-<li class="fragment">Output from executable code</li>
+<li class="fragment">Bayesian statistical analysis refers to the use of models where some or all of the parameters are treated as random components
+<ul>
+<li class="fragment">Each parameter comes from some type of distribution</li>
+</ul></li>
+<li class="fragment">The likelihood function of the data is then augmented with an additional term that represents the likelihood of the prior distribution for each parameter
+<ul>
+<li class="fragment">Think of this as saying each parameter has a certain likelihood – the height of the prior distribution</li>
+</ul></li>
+<li class="fragment">The final estimates are then considered summaries of the posterior distribution of the parameter, conditional on the data
+<ul>
+<li class="fragment">In practice, we use these estimates to make inferences, just as is done when using non-Bayesian approaches (e.g., maximum likelihood/least squares)</li>
+</ul></li>
 </ul>
 </section>
-<section id="code" class="slide level2">
-<h2>Code</h2>
-<p>When you click the <strong>Render</strong> button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:</p>
+<section id="why-are-bayesian-methods-used" class="slide level2">
+<h2>Why are Bayesian Methods Used?</h2>
+<ul>
+<li class="fragment"><p>Bayesian methods get used because of the <em>relative</em> accessibility of one method of estimation (MCMC – to be discussed shortly)</p></li>
+<li class="fragment"><p>There are four main reasons why people use MCMC:</p></li>
+</ul>
+<ol type="1">
+<li class="fragment">Missing data</li>
+<li class="fragment">Lack of software capable of handling large sized analyses</li>
+<li class="fragment">New models/generalizations of models not available in software</li>
+<li class="fragment">Philosoplyical Reasons (e.g., membership in the cult of Bayes)</li>
+</ol>
+</section>
+<section id="perceptions-and-issues-with-bayesian-methods" class="slide level2">
+<h2>Perceptions and Issues with Bayesian Methods</h2>
+<ul>
+<li class="fragment">The use of Bayesian statistics has been controversial, historically (but less so today)
+<ul>
+<li class="fragment">The use of certain prior distributions can produce results that are biased or reflect subjective judgment rather than objective science</li>
+</ul></li>
+<li class="fragment">Most MCMC estimation methods are computationally intensive
+<ul>
+<li class="fragment">Until very recently, very few methods available for those who aren’t into programming in Fortran, C, or C++</li>
+</ul></li>
+<li class="fragment">Understanding of what Bayesian methods had been very limited outside the field of mathematical statistics (but that is changing now)</li>
+<li class="fragment">Over the past 20 years, Bayesian methods have become widespread – making new models estimable and becoming standard in some social science fields (quantitative psychology and educational measurement)</li>
+</ul>
+</section>
+<section id="how-bayesian-statistics-work" class="slide level2">
+<h2>How Bayesian Statistics Work</h2>
+<!-- ::: {.nonincremental} -->
+<p>Bayesian methods rely on Bayes’ Theorem <!-- :::  --></p>
+<p><span class="math display">\[P (A \mid B) = \frac{P(B\mid A)P(A)}{P(B)} \propto P(B\mid A)P(A)\]</span></p>
+<p>Here:</p>
+<div>
+<ul>
+<li><span class="math inline">\(P(A \mid B)\)</span> is the <u>prior distribution</u> (pdf) of A (i.e., WHY THINGS ARE BAYESIAN)</li>
+<li><span class="math inline">\(P(B)\)</span> is the <u>marginal distribution</u> (pdf) of B</li>
+<li><span class="math inline">\(P(B \mid A)\)</span> is the <u>conditional distribution</u> (pdf) of B, given A</li>
+<li><span class="math inline">\(P (A \mid B)\)</span>is the <u>posterior distribution</u> (pdf) of A, given B</li>
+</ul>
+</div>
+</section>
+<section id="a-live-bayesian-example" class="slide level2">
+<h2>A Live Bayesian Example</h2>
+<ul>
+<li class="fragment"><p>Suppose we wanted to assess the probability of rolling a one on a six-sided die: <span class="math display">\[p_1 = P(D=1)\]</span></p></li>
+<li class="fragment"><p>We then collect a sample of data <span class="math inline">\(\boldsymbol{X} = \{0,1,0,1,1 \}\)</span></p>
+<ul>
+<li class="fragment">These are independent tosses of the die</li>
+</ul></li>
+<li class="fragment"><p>The posterior distribution of the probability of a one conditional on the data is: <span class="math display">\[P(p_1 \mid \boldsymbol{X})\]</span></p></li>
+<li class="fragment"><p>We can determine this via Bayes theorem: <span class="math display">\[P(p_1 \mid \boldsymbol{X}) = \frac{P(\boldsymbol{X} \mid p_1)P(p_1)}{P(\boldsymbol{X})} \propto P(\boldsymbol{X} \mid p_1)P(p_1)\]</span></p></li>
+</ul>
+</section>
+<section id="defining-the-likelihood-function-pboldsymbolx-mid-p_1" class="slide level2">
+<h2>Defining the Likelihood Function <span class="math inline">\(P(\boldsymbol{X} \mid p_1)\)</span></h2>
+<p>The likelihood of the data given the parameter:</p>
+<p><span class="math display">\[P(\boldsymbol{X} \mid p_1) = \prod_{i=1}^N p_1^{X_i} \left(1-p_1\right)^{(1-X_i)}\]</span></p>
+<ul>
+<li class="fragment">Any given roll of the dice <span class="math inline">\(X_i\)</span> is a Bernoulli variable <span class="math inline">\(X_i \sim B(p_1)\)</span>
+<ul>
+<li class="fragment">A “success” is defined by rolling a one</li>
+</ul></li>
+<li class="fragment">The product in the likelihood function comes from each roll being independent
+<ul>
+<li class="fragment">The outcome of a roll does not depend on previous or future rolls</li>
+</ul></li>
+</ul>
+</section>
+<section id="visualizing-the-likelihood-function" class="slide level2">
+<h2>Visualizing the Likelihood Function</h2>
+
+<img data-src="01_Introduction_to_Bayesian_files/figure-revealjs/likeplot-1.png" width="960" class="r-stretch"></section>
+<section id="choosing-the-prior-distribution-for-p_1" class="slide level2">
+<h2>Choosing the Prior Distribution for <span class="math inline">\(p_1\)</span></h2>
+<p>We must now pick the prior distribution of <span class="math inline">\(p_1\)</span>:</p>
+<p><span class="math display">\[P(p_1)\]</span></p>
+<div>
+<ul>
+<li>Our choice is subjective: Many distributions to choose from</li>
+<li>What we know is that for a “fair” die, the probability of rolling a one is <span class="math inline">\(\frac{1}{6}\)</span>
+<ul>
+<li>But…probability is not a distribution</li>
+</ul></li>
+<li>Instead, let’s consider a Beta distribution <span class="math inline">\(p_1 \sim Beta\left(\alpha, \beta\right)\)</span></li>
+</ul>
+</div>
+</section>
+<section id="the-beta-distribution" class="slide level2">
+<h2>The Beta Distribution</h2>
+<p>For parameters that range between zero and one (or two finite end points), the Beta distribution makes a good choice for a prior:</p>
+<p><span class="math display">\[P(p_1) = \frac{\left( p_1\right)^{\alpha-1} \left(1-p_1 \right)^{\beta1-1}}{B\left(\alpha, \beta\right)}, \]</span></p>
+<p>where:</p>
+<p><span class="math display">\[B\left(\alpha, \beta\right) = \frac{\Gamma\left(\alpha\right)\Gamma\left(\beta\right)}{\Gamma\left(\alpha+\beta\right)}, \]</span></p>
+<p>and,</p>
+<p><span class="math display">\[\Gamma\left(z \right) = \int_0^\infty t^{z-1} e^{-t}dt\]</span></p>
+</section>
+<section id="more-beta-distribution" class="slide level2">
+<h2>More Beta Distribution</h2>
+<p>The Beta distribution has a mean of <span class="math inline">\(\frac{\alpha}{\alpha+\beta}\)</span></p>
+<ul>
+<li class="fragment">The parameters <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> are called <u>hyperparameters</u>
+<ul>
+<li class="fragment">Hyperparameters are parameters of prior distributions</li>
+</ul></li>
+<li class="fragment">We can pick values of <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> to correspond to <span class="math inline">\(\frac{1}{6}\)</span>
+<ul>
+<li class="fragment">Many choices: <span class="math inline">\(\alpha=1\)</span> and <span class="math inline">\(\beta=5\)</span> have the same mean as <span class="math inline">\(\alpha=100\)</span> and <span class="math inline">\(\beta=500\)</span></li>
+</ul></li>
+<li class="fragment">What is the difference?
+<ul>
+<li class="fragment">How strongly we feel in our beliefs…as quantified by…</li>
+</ul></li>
+</ul>
+</section>
+<section id="more-more-beta-distribution" class="slide level2">
+<h2>More More Beta Distribution</h2>
+<p>The Beta distribution has a variance of <span class="math inline">\(\frac{\alpha\beta}{\left(\alpha+\beta \right)^2 \left(\alpha+\beta+1 \right))}\)</span></p>
+<ul>
+<li class="fragment">Choosing <span class="math inline">\(\alpha=1\)</span> and <span class="math inline">\(\beta=5\)</span> yields a prior with mean <span class="math inline">\(\frac{1}{6}\)</span> and variance <span class="math inline">\(0.02\)</span></li>
+<li class="fragment">Choosing <span class="math inline">\(\alpha=100\)</span> and <span class="math inline">\(\beta=500\)</span> yields a prior with mean <span class="math inline">\(\frac{1}{6}\)</span> and variance <span class="math inline">\(0.0002\)</span></li>
+<li class="fragment">The smaller prior variance means the prior is more <u>informative</u>
+<ul>
+<li class="fragment">Informative priors are those that have relatively small variances</li>
+<li class="fragment"><u>Uninformative</u> priors are those that have relatively large variances</li>
+</ul></li>
+</ul>
+</section>
+<section id="visualizing-pp_1" class="slide level2">
+<h2>Visualizing <span class="math inline">\(P(p_1)\)</span></h2>
+
+<img data-src="01_Introduction_to_Bayesian_files/figure-revealjs/priorPlot-1.png" width="960" class="r-stretch"></section>
+<section id="the-posterior-distribution" class="slide level2">
+<h2>The Posterior Distribution</h2>
+<p>Choosing a Beta distribution for a prior for <span class="math inline">\(p_1\)</span> is <em>very</em> convenient</p>
+<ul>
+<li class="fragment">When combined with Bernoulli (Binomial) data likelihood the posterior distribution can be derived analytically</li>
+<li class="fragment">The posterior distribution is also a Beta distribution
+<ul>
+<li class="fragment"><span class="math inline">\(\alpha = a + \sum_{i=1}^NX_i\)</span> (<span class="math inline">\(a\)</span> is the hyperparameter of the prior distribution)</li>
+<li class="fragment"><span class="math inline">\(\beta = b + N - \sum_{i=1}^NX_i\)</span> (<span class="math inline">\(b\)</span> is the hyperparameter of the posterior distribution)</li>
+</ul></li>
+<li class="fragment">The Beta prior is said to be a <u>conjugate prior</u>: A prior distribution that leads to a posterior distribution of the same family
+<ul>
+<li class="fragment">Here, prior == Beta and posterior == Beta</li>
+</ul></li>
+</ul>
+</section>
+<section id="visualizing-the-posterior-distribution" class="slide level2">
+<h2>Visualizing The Posterior Distribution</h2>
+
+<img data-src="01_Introduction_to_Bayesian_files/figure-revealjs/postPlot-1.png" width="960" class="r-stretch"></section>
+<section id="bayesian-estimates-are-summaries-of-the-posterior-distribution" class="slide level2">
+<h2>Bayesian Estimates are Summaries of the Posterior Distribution</h2>
+<p>To determine the estimate of <span class="math inline">\(p_1\)</span>, we use summaries of the posterior distribution:</p>
+<ul>
+<li class="fragment">With prior hyperparameters <span class="math inline">\(a=1\)</span> and <span class="math inline">\(b=5\)</span>
+<ul>
+<li class="fragment"><span class="math inline">\(\hat{p}_1 = \frac{1+3}{1+3 +5+2} = \frac{4}{11} = .36\)</span></li>
+<li class="fragment">SD = <code>0.1388659</code></li>
+</ul></li>
+<li class="fragment">With prior hyperparameters <span class="math inline">\(a=100\)</span> and <span class="math inline">\(b=500\)</span>
+<ul>
+<li class="fragment"><span class="math inline">\(\hat{p}_1 = \frac{100+3}{(100+3) + (500+2)} = \frac{103}{605} = .17\)</span></li>
+<li class="fragment">SD = <code>0.0152679</code></li>
+</ul></li>
+<li class="fragment">The standard deviation (SD) of the posterior distribution is analogous to the standard error in frequentist statistics</li>
+</ul>
+</section>
+<section id="bayesian-updating" class="slide level2">
+<h2>Bayesian Updating</h2>
+<p>We can use the posterior distribution as a prior!</p>
+<p>Let’s roll a die to find out how…</p>
 <div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
+
 </div>
-</div>
+
+<img data-src="01_Introduction_to_Bayesian_files/figure-revealjs/updating-1.png" width="960" class="r-stretch"></section>
+<section id="wrapping-up" class="slide level2">
+<h2>Wrapping Up</h2>
+<p>Today was a very quick introduction to Bayesian concepts:</p>
+<ul>
+<li class="fragment"><u>prior distribution</u>
+<ul>
+<li class="fragment"><u>hyperparameters</u></li>
+<li class="fragment"><u>informative/uninformative</u></li>
+<li class="fragment"><u>conjugate prior</u></li>
+</ul></li>
+<li class="fragment"><u>data likelihood</u></li>
+<li class="fragment"><u>posterior distribution</u></li>
+<li class="fragment">Next we will discuss psychometric models and how they fit into Bayesian methods</li>
+</ul>
 <div class="footer footer-default">
 <p><a href="https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/">https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/</a></p>
 </div>
@@ -351,21 +563,21 @@
   </div>
 
   <script>window.backupDefine = window.define; window.define = undefined;</script>
-  <script src="Untitled_files/libs/revealjs/dist/reveal.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/dist/reveal.js"></script>
   <!-- reveal.js plugins -->
-  <script src="Untitled_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
-  <script src="Untitled_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
-  <script src="Untitled_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
-  <script src="Untitled_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
-  <script src="Untitled_files/libs/revealjs/plugin/multiplex/socket.io.js"></script>
-  <script src="Untitled_files/libs/revealjs/plugin/multiplex/multiplex.js"></script>
-  <script src="Untitled_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/multiplex/socket.io.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/multiplex/multiplex.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/quarto-support/support.js"></script>
   
 
-  <script src="Untitled_files/libs/revealjs/plugin/notes/notes.js"></script>
-  <script src="Untitled_files/libs/revealjs/plugin/search/search.js"></script>
-  <script src="Untitled_files/libs/revealjs/plugin/zoom/zoom.js"></script>
-  <script src="Untitled_files/libs/revealjs/plugin/math/math.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="01_Introduction_to_Bayesian_files/libs/revealjs/plugin/math/math.js"></script>
   <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
 
   <script>
@@ -381,7 +593,7 @@
 'autoAnimateDuration': 1,
 'autoAnimateUnmatched': true,
 'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
-'multiplex': {"secret":null,"id":"643c46160ede182c","url":"https://reveal-multiplex.glitch.me/"},
+'multiplex': {"secret":"16588527205807063538","id":"c83add39cfa5dec2","url":"https://reveal-multiplex.glitch.me/"},
 'smaller': false,
  
         // Display controls in the bottom right corner
@@ -555,7 +767,7 @@
         plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
 
           RevealMath,
-          
+          RevealNotes,
           RevealSearch,
           RevealZoom
         ]
