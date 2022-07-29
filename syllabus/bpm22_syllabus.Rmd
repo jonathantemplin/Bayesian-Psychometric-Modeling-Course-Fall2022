@@ -29,42 +29,50 @@ Time permitting, multilevel models and multilevel psychometric models will be pr
 
 As class will begin promptly at 12:30pm each Wednesday and Friday, I ask that you arrive by that time so as to ensure we have enough time to cover all materials.
 
-## Tentative Course Schedule
+## Course Topic List
 
-| Date        | Topic                               | 
-|-------------|-------------------------------------|
-| 24 Aug      | Course Introduction and Foundational Bayesian Concepts  | 
-| 26 Aug      | Introduction to Psychometric Modeling  |
-| 31 Aug      | Bayesian Estimation and an introduction to MCMC | 
-| 2 Sep       | Bayesian Confirmatory Factor Analysis | 
-| 7 Sep       | Introduction to JAGS, Gibbs Sampling, and the Metropolis-Hastings Algorithm  |
-| 9 Sep       | Bayesian Confirmatory Factor Analysis | 
-| 14 Sep      | MCMC Convergence Diagnostics |  
-| 16 Sep      | Bayesian Psychometric Model Fit Assessment |  
-| 21 Sep      | Introduction to Stan and the Hamiltonian Monte Carlo Algorithm |
-| 23 Sep      | Bayesian Item Response Theory (Binary Item Models) |
-| 28 Sep      | Missing Data in MCMC Estimation | 
-| 30 Sep      | Model Fit for Categorical Item Models | 
-| 5 Oct       | Bayesian Model Comparison using Information Criteria |
-| 7 Oct       | Bayesian Item Response Theory (Graded Response Models) |
-| 12 Oct      | Class Via Video: Model fit with Graded Item Response Models |
-| 14 Oct      | Class Via Video: Model fit with Nominal Item Response Models |
-| 19 Oct      | Psychometric Models for Count Data |
-| 21 Oct      | Psychometric Models for Censored or Truncated Data |
-| 26 Oct      | Latent Class Models |
-| 28 Oct      | Diagnostic Classification Models |
-| 2 Nov       | Bayesian Structural Equation Models |
-| 4 Nov       | Bayesian Networks | 
-| 9 Nov       | Bayesian Multilevel Models |
-| 11 Nov      | Bayesian Multilevel Models Continued |
-| 16 Nov      | Bayesian Multilevel Structural Equation Modeling | 
-| 18 Nov      | Bayesian Multilevel Structural Equation Modeling Continued | 
-| 23 Nov      | No Class: Fall Break | 
-| 25 Nov      | No Class: Fall Break | 
-| 30 Nov      | Project Lab Time or Spillover Time |
-| 2 Dec       | Project Lab Time or Spillover Time |
-| 7 Dec       | Project Presentations |
-| 9 Dec       | Project Presentations |
+Please note, due to uncertainties in how long instruction will take to be delivered, a list of topics to be covered is presented in this syllabus. The precise schedule for upcoming classes will be posted on the course website. Not all topics may be covered.
+
+### Bayesian Topics
+
+* Foundational Bayesian Concepts
+* Bayesian Estimation Methods
+* MCMC Convergence Diagnostics
+* Model fit assessment with posteior predictive model checks
+* Missing Data in MCMC Estimation
+* Bayesian Software:
+  * Just Another Gibbs Sampler
+  * Stan
+  * Using Argon for estimation
+* MCMC Algorithms: 
+  * Gibbs Sampling
+  * Metropolis-Hastings 
+  * Hamiltonian Monte Carlo
+* Bayesian Model Comparison using Information Criteria
+
+### Psychometric Topics
+
+* Introduction to Psychometric Modeling
+* Bayesian Confirmatory Factor Analysis
+* Bayesian Psychometric Model Fit Assessment
+  * PPMC
+  * Model comparison methods
+* Bayesian Item Response Theory:
+  * Binary Response Models
+  * Polytomous Response Models
+    * Graded responses
+    * Partial credit models
+    * Nominal responses
+* Bayesian Models for Other Item Response Data:
+  * Psychometric Models for Count Data
+  * Psychometric Models for Censored or Truncated Data
+* Bayesian Models for Non-Continuous Latent Variables:
+  * Bayesian Latent Class Models
+  * Bayesian Diagnostic Classification Models
+* Bayesian Structural Equation Models
+* Bayesian Networks
+* Bayesian Multilevel Models
+* Bayesian Multilevel Structural Equation Modeling
 
 ## Course Website/Technology
 ICON *will* be used for grades, submission of assignments, disseminating course readings, and course communications. 
@@ -92,11 +100,18 @@ Although this software is available at the University of Iowa, I ask that you in
 Student evaluation will be made based three components: (1) homework assignments (60/% of course grade), (2) formative assessments (20/% of course grade), and (3) a course project (20/% of course grade).
 
 ### Homework Assignments
-There will be a set of homework assignments, the number to be determined. For each assignment, students will have a minimum of two weeks to complete the assignment. Homework assignments will weighted equally with respect to the 60%/ of the course grade accounted for by homework.
+There will be a set of homework assignments, the number to be determined. For each assignment, students will have a minimum of two weeks to complete the assignment. Homework assignments will weighted equally with respect to the 60%/ of the course grade accounted for by homework. The lowest homework percentage will be dropped (to allow for grace for late homework).
 
-All assignments must be completed in R, using R Markdown as a file format, and submitted via ICON. Although students are encouraged to work together on the concepts underlying homework, all answers must be from student’s own work (writing and syntax) and not be copied or paraphrased from anyone else’s answers. So long as a student attains a grade of 50/% or better on a homework assignment, students can revise and resubmit their homework for a better grade. Homework revisions will have a unique deadline for submission. Grammar and writing will be assessed by each homework and will factor into the homework grade.
+Mathematically, the homework percentage can be expressed as:
+
+$$\left[\frac{\left( \sum_{h=1}^H P_h \right)-\min_h P_h} {H-1}\right],$$
+where $P_h$ is the percent correct on homework $h$, with $H$ total homeworks.
 
 In order to be able to provide the entire class with prompt feedback, late homework assignments will not be accepted. However, extensions may be granted as needed for extenuating circumstances (e.g., conferences, family obligations) if requested at least three weeks in advance of the due date. Additionally, late homework due to emergencies will be accepted with documentation of the circumstances of the emergency.
+
+All assignments must be completed in R, using R Markdown as a file format, and submitted via ICON. Although students are encouraged to work together on the concepts underlying homework, all answers must be from student’s own work (writing and syntax) and not be copied or paraphrased from anyone else’s answers. Grammar and writing will be assessed by each homework and will factor into the homework grade.
+
+
 
 ### Formative Assessments
 Each week, students will take a short formative assessment in ICON. The purpose of the formative assessment is to help students obtain a picture of their understanding of course materials. All genuine attempts (i.e., not haphazard answers) at completion will receive full credit. All formative assessments will be weighted equally with respect to the 20%/ of the course grade.
