@@ -7,4 +7,4 @@ Please see the course website at https://jonathantemplin.com/bayesian-psychometr
 ## Course Files
 
 * [Syllabus](https://jonathantemplin.github.io/Bayesian-Psychometric-Modeling-Course-Fall2022/syllabus/index.html)
-* [Lecture 01: Introduction to Bayesian Concepts](https://jonathantemplin.github.io/Bayesian-Psychometric-Modeling-Course-Fall2022/lectures/lecture01/index.html)
+* [Lecture 01: Introduction to Bayesian Concepts](https://jonathantemplin.github.io/Bayesian-Psychometric-Modeling-Course-Fall2022/lectures/lecture01/01_Introduction_to_Bayesian.html)
