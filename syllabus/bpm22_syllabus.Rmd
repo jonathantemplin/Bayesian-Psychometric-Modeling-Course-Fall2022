@@ -1,7 +1,7 @@
 ---
 title: 'PSQF 7375: Bayesian Psychometric Modeling Syllabus; Fall 2022'
-date: 'Version 1.01: 18 August, 2022'
-output: pdf_document
+date: 'Version 1.02: 23 August, 2022'
+output: html_document
 
 ---
 
@@ -28,6 +28,10 @@ output: pdf_document
 In this course, a unified Bayesian modeling approach will be presented across what have been traditionally taught as separate families of psychometric models. Focusing more directly how to use Bayesian methods in psychometrics, this course will to cover Bayesian theory along with applied treatments of popular psychometric models, including confirmatory factor analysis (CFA), item response theory (IRT), latent class analysis, diagnostic classification models, and Bayesian networks. The focus of this course will be on model building directly in Bayesian programs (i.e., _stan_ and _JAGS_) rather than the use of packages that build such code automatically. Time permitting, multilevel models and multilevel psychometric models will be presented. 
 
 As class will begin promptly at 12:30pm each Wednesday and Friday, I ask that you arrive by that time so as to ensure we have enough time to cover all materials.
+
+## Course Readings
+
+The course will follow some of the chapters of Bayesian Psychometric Modeling (2016) by Roy Levy and Bob Mislevy. The University of Iowa Library has electronic access to the book at https://ebookcentral.proquest.com/lib/uiowa/detail.action?docID=4532358. Additional readings will be posted on our course website or via our course ICON site.
 
 ## Course Topic List
 
