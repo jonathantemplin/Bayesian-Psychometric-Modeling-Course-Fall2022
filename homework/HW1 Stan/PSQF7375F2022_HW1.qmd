@@ -1,0 +1,66 @@
+---
+title: "HW #1"
+author: "Bayesian Psychometric Models Fall 2022"
+date: "Due Thursday, September 8 at 11:59pm via ICON"
+format: docx
+---
+
+This homework is foundational in that it will get you to set up your local machine and access the campus Argon server for conducting Bayesian analyses
+
+## 1. Install stan (5 points)
+
+Using the guides at https://mc-stan.org, install the following programs/packages:
+
+1. rstan (stan and the rstan R package); see https://mc-stan.org/users/interfaces/rstan.html
+2. cmdstan r; see https://mc-stan.org/cmdstanr/
+
+Once complete, please run the put the following syntax into an R file and run it on your local machine:
+```{r stancode, echo=TRUE, eval=FALSE}
+# we recommend running this is a fresh R session or restarting your current session
+install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+
+library(cmdstanr)
+check_cmdstan_toolchain(fix = TRUE, quiet = TRUE)
+library(posterior)
+library(bayesplot)
+color_scheme_set("brightblue")
+
+check_cmdstan_toolchain()
+install_cmdstan(cores = 2)
+set_cmdstan_path()
+cmdstan_version()
+cmdstan_path()
+
+file <- file.path(cmdstan_path(), "examples", "bernoulli", "bernoulli.stan")
+mod <- cmdstan_model(file)
+mod$print()
+
+# names correspond to the data block in the Stan program
+data_list <- list(N = 10, y = c(0,1,0,0,0,0,0,0,0,1))
+
+fit <- mod$sample(
+  data = data_list, 
+  seed = 123, 
+  chains = 4, 
+  parallel_chains = 4,
+  refresh = 500 # print update every 500 iters
+)
+
+fit$summary()
+mcmc_hist(fit$draws("theta"))
+```
+
+Please take a screen shot and upload that as part of your homework results.
+
+## 2. Connect to Argon (5 points)
+
+If you have a windows machine, install an SSH client (try putty: https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html). Mac and Linux users have these clients built in. 
+
+For windows users, please start putty when the instructions below say to open a terminal window.
+
+1. Open a terminal window (in MacOS you can find this using Spotlight search---command+space)
+2. Connect to argon using the command: ```ssh [hawkID]@argon.hpc.uiowa.edu``` (replace [hawkID] with your hawkID)
+3. Once you get past the two-factor authentication, please take a screen shot of the prompt in the terminal window and upload that as part of your homework results
+
+
+
