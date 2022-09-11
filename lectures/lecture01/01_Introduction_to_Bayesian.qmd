@@ -1,0 +1,287 @@
+---
+title: "Introduction to Bayesian Concepts"
+author: "Lecture 1" 
+format: 
+  revealjs:
+    multiplex: true
+    footer: "[https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/](https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/)"
+    theme: ["pp.scss"]
+    slide-number: c/t
+    incremental: true
+editor: source
+---
+
+## Today's Lecture Objectives
+
+::: {.nonincremental} 
+1. Bayesian Statistics: A Definition
+2. Posterior Distributions
+3. Bayesian Updating
+::: 
+
+...but, before we formally begin...
+
+## Part of My Summer...
+
+![Thomas Bayes (1701-1761)](https://raw.githubusercontent.com/jonathantemplin/Bayesian-Psychometric-Modeling-Course-Fall2022/main/lectures/01_Introduction/IMG_1533.jpeg)
+
+## Class Discussion: What is Bayesian?
+
+
+## Bayesian from Birth
+
+A brief video to start the semester... <a href="https://t.co/T9O9UzJVWT">pic.twitter.com/T9O9UzJVWT</a>
+
+
+## The Basics of Bayesian Analyses
+
+* Bayesian statistical analysis refers to the use of models where some or all of the parameters are treated as random components
+  * Each parameter comes from some type of distribution
+* The likelihood function of the data is then augmented with an additional term that represents the likelihood of the prior distribution for each parameter
+  * Think of this as saying each parameter has a certain likelihood – the height of the prior distribution
+* The final estimates are then considered summaries of the posterior distribution of the parameter, conditional on the data
+  * In practice, we use these estimates to make inferences, just as is done when using non-Bayesian approaches (e.g., maximum likelihood/least squares)
+
+## Why are Bayesian Methods Used?
+
+* Bayesian methods get used because of the *relative* accessibility of one method of estimation (MCMC – to be discussed shortly)
+
+* There are four main reasons why people use MCMC:
+
+1. Missing data
+2. Lack of software capable of handling large sized analyses
+3. New models/generalizations of models not available in software
+4. Philosoplyical Reasons (e.g., membership in the cult of Bayes)
+
+## Perceptions and Issues with Bayesian Methods
+
+* The use of Bayesian statistics has been controversial, historically (but less so today)
+  * The use of certain prior distributions can produce results that are biased or reflect subjective judgment rather than objective science
+* Most MCMC estimation methods are computationally intensive
+  * Until very recently, very few methods available for those who aren’t into programming in Fortran, C, or C++
+* Understanding of what Bayesian methods had been very limited outside the field of mathematical statistics (but that is changing now)
+* Over the past 20 years, Bayesian methods have become widespread – making new models estimable and becoming standard in some social science fields (quantitative psychology and educational measurement)
+
+## How Bayesian Statistics Work
+
+<!-- ::: {.nonincremental} -->
+Bayesian methods rely on Bayes’ Theorem
+<!-- :::  -->
+
+$$P (A \mid B) = \frac{P(B\mid A)P(A)}{P(B)} \propto P(B\mid A)P(A)$$
+Here:
+
+::: {.nonincremental} 
+* $P(A)$ is the <u>prior distribution</u> (pdf) of A (i.e., WHY THINGS ARE BAYESIAN)
+* $P(B)$ is the <u>marginal distribution</u> (pdf) of B
+* $P(B \mid A)$ is the <u>conditional distribution</u> (pdf) of B, given A
+* $P (A \mid B)$is the <u>posterior distribution</u> (pdf) of A, given B
+
+:::
+
+## A Live Bayesian Example
+
+* Suppose we wanted to assess the probability of rolling a one on a six-sided die: $$p_1 = P(D=1)$$
+
+* We then collect a sample of data $\boldsymbol{X} = \{0,1,0,1,1 \}$ 
+  * These are independent tosses of the die
+
+* The posterior distribution of the probability of a one conditional on the data is: $$P(p_1 \mid \boldsymbol{X})$$
+  
+* We can determine this via Bayes theorem: $$P(p_1 \mid \boldsymbol{X}) = \frac{P(\boldsymbol{X} \mid p_1)P(p_1)}{P(\boldsymbol{X})} \propto P(\boldsymbol{X} \mid p_1)P(p_1)$$
+
+## Defining the Likelihood Function $P(\boldsymbol{X} \mid p_1)$
+
+The likelihood of the data given the parameter: 
+
+$$P(\boldsymbol{X} \mid p_1) = \prod_{i=1}^N p_1^{X_i} \left(1-p_1\right)^{(1-X_i)}$$
+
+* Any given roll of the dice $X_i$ is a Bernoulli variable $X_i \sim B(p_1)$
+  * A "success" is defined by rolling a one
+* The product in the likelihood function comes from each roll being independent
+  * The outcome of a roll does not depend on previous or future rolls
+
+## Visualizing the Likelihood Function
+
+```{r likeplot, echo=FALSE}
+
+X = c(0, 1, 0, 1, 1)
+p1 = seq(.001, .999, .001)
+logLike = NULL
+for (p in 1:length(p1)){
+  logLike = c(logLike, sum(dbinom(x = X, size = 1, prob = p1[p], log = TRUE)))
+}
+
+plot(x = p1, y = logLike, type = "l", xlab = expression("p"[1]), ylab  = expression("log( P (X |p"[1]*"))"))
+```
+
+
+## Choosing the Prior Distribution for $p_1$
+
+We must now pick the prior distribution of $p_1$: 
+
+$$P(p_1)$$
+::: {.nonincremental} 
+* Our choice is subjective: Many distributions to choose from
+* What we know is that for a "fair" die, the probability of rolling a one is $\frac{1}{6}$
+  * But...probability is not a distribution
+* Instead, let's consider a Beta distribution $p_1 \sim Beta\left(\alpha, \beta\right)$
+:::
+
+## The Beta Distribution
+
+For parameters that range between zero and one (or two finite end points), the Beta distribution makes a good choice for a prior:
+
+$$P(p_1) = \frac{\left( p_1\right)^{\alpha-1} \left(1-p_1 \right)^{\beta1-1}}{B\left(\alpha, \beta\right)}, $$
+where:
+
+$$B\left(\alpha, \beta\right) = \frac{\Gamma\left(\alpha\right)\Gamma\left(\beta\right)}{\Gamma\left(\alpha+\beta\right)}, $$
+and, 
+
+$$\Gamma\left(z \right) = \int_0^\infty t^{z-1} e^{-t}dt$$
+## More Beta Distribution
+
+The Beta distribution has a mean of $\frac{\alpha}{\alpha+\beta}$
+
+* The parameters $\alpha$ and $\beta$ are called <u>hyperparameters</u>
+  * Hyperparameters are parameters of prior distributions
+* We can pick values of $\alpha$ and $\beta$ to correspond to $\frac{1}{6}$
+  * Many choices: $\alpha=1$ and $\beta=5$ have the same mean as $\alpha=100$ and $\beta=500$ 
+* What is the difference?
+  * How strongly we feel in our beliefs...as quantified by...
+
+## More More Beta Distribution
+
+The Beta distribution has a variance of $\frac{\alpha\beta}{\left(\alpha+\beta \right)^2 \left(\alpha+\beta+1 \right))}$
+
+* Choosing $\alpha=1$ and $\beta=5$ yields a prior with mean $\frac{1}{6}$ and variance $0.02$
+* Choosing $\alpha=100$ and $\beta=500$ yields a prior with mean $\frac{1}{6}$ and variance $0.0002$
+* The smaller prior variance means the prior is more <u>informative</u>
+  * Informative priors are those that have relatively small variances
+  * <u>Uninformative</u> priors are those that have relatively large variances
+  
+## Visualizing $P(p_1)$
+
+```{r priorPlot, echo=FALSE}
+
+alpha = 1
+beta = 5
+varBeta = (alpha*beta)/(((alpha+beta)^2)*(alpha+beta+1))
+
+alpha2 = 100
+beta2 = 500
+varBeta2 = (alpha2*beta2)/(((alpha2+beta2)^2)*(alpha2+beta2+1))
+
+p1 = seq(.001, .999, .001)
+logLike = NULL
+logLike2 = NULL
+for (p in 1:length(p1)){
+  logLike = c(logLike, sum(dbeta(x = p1[p], shape = alpha, shape2 = beta, log = FALSE)))
+  logLike2 = c(logLike2, sum(dbeta(x = p1[p], shape = alpha2, shape2 = beta2, log = FALSE)))
+}
+
+matplot(x = cbind(p1, p1), y = cbind(logLike, logLike2), type = "l", xlab = expression("p"[1]), ylab  = expression("P (p"[1]*")"), lwd = 2)
+legend(x = .4, y = 20, legend = c(expression(alpha*" = 1; "*beta*" = 5"), expression(alpha*" = 100; "*beta*" = 500")), col=1:2, lty=1:2, lwd=2)
+
+```
+
+## The Posterior Distribution
+
+Choosing a Beta distribution for a prior for $p_1$ is *very* convenient
+
+* When combined with Bernoulli (Binomial) data likelihood the posterior distribution can be derived analytically
+* The posterior distribution is also a Beta distribution
+  * $\alpha = a + \sum_{i=1}^NX_i$ ($a$ is the hyperparameter of the prior distribution)
+  * $\beta = b + N - \sum_{i=1}^NX_i$ ($b$ is the hyperparameter of the posterior distribution)
+* The Beta prior is said to be a <u>conjugate prior</u>: A prior distribution that leads to a posterior distribution of the same family
+  * Here, prior == Beta and posterior == Beta
+
+## Visualizing The Posterior Distribution
+
+
+```{r postPlot, echo=FALSE}
+
+a = 1 
+b = 5
+a2 = 100
+b2 = 500
+
+X = c(0, 1, 0, 1, 1)
+
+p1 = seq(.001, .999, .001)
+postLike1 = NULL
+postLike2 = NULL
+for (p in 1:length(p1)){
+  postLike1 = c(postLike1, sum(dbeta(x = p1[p], shape = (a+sum(X)), shape2 = (b+length(X)-sum(X)), log = FALSE)))
+  postLike2 = c(postLike2, sum(dbeta(x = p1[p], shape = (a2+sum(X)), shape2 = (b2+length(X)-sum(X)), log = FALSE)))
+}
+
+matplot(x = cbind(p1, p1), y = cbind(postLike1, postLike2), type = "l", xlab = expression("p"[1]), ylab  = expression("P (p"[1]*"|X)"), lwd = 2)
+legend(x = .4, y = 20, legend = c(paste0("a = ", a, "; b = ", b), paste0("a = ", a2, "; b = ", b2)), col=1:2, lty=1:2, lwd=2)
+```
+
+## Bayesian Estimates are Summaries of the Posterior Distribution
+
+To determine the estimate of $p_1$, we use summaries of the posterior distribution:
+
+* With prior hyperparameters $a=1$ and $b=5$
+  * $\hat{p}_1 = \frac{1+3}{1+3 +5+2} = \frac{4}{11} = .36$
+  * SD = ```r sqrt(((a+3)*(b+2))/((((a+3)+(b+2))^2)*((a+3)+(b+2)+1)))```
+* With prior hyperparameters $a=100$ and $b=500$
+  * $\hat{p}_1 = \frac{100+3}{(100+3) + (500+2)} = \frac{103}{605} = .17$
+  * SD = ```r sqrt(((a2+3)*(b2+2))/((((a2+3)+(b2+2))^2)*((a2+3)+(b2+2)+1)))```
+* The standard deviation (SD) of the posterior distribution is analogous to the standard error in frequentist statistics
+
+## Bayesian Updating
+
+We can use the posterior distribution as a prior!
+
+Let's roll a die to find out how...
+
+```{r updatingInit, echo=FALSE}
+
+# define prior distribution for a and b
+priorA = 1
+priorB = 5
+```
+
+```{r updating, echo=FALSE}
+# rerun this section with new data to show what happens ======================
+
+# collect new data:
+newObs = 0
+
+posteriorA = priorA + newObs
+posteriorB = priorB + 1-newObs
+
+# show plot of posterior distribution
+p1 = seq(.001, .999, .001)
+priorLike = NULL
+postLike = NULL
+for (p in 1:length(p1)){
+  
+  priorLike = c(priorLike, sum(dbeta(x = p1[p], shape = (priorA), shape2 = (priorB), log = FALSE)))
+  postLike = c(postLike, sum(dbeta(x = p1[p], shape = (posteriorA), shape2 = (posteriorB), log = FALSE)))
+}
+matplot(x = cbind(p1, p1, p1), y = cbind(priorLike, postLike, originalPrior), type = "l", xlab = expression("p"[1]), ylab  = expression("P (p"[1]*"|X)"), lwd = 2,
+        main = "Solid Line = Prior density; Dashed Line = Posteior Density")
+
+# update prior with posterior
+priorA = posteriorA
+priorB = posteriorB
+
+# end rerunning
+
+```
+
+## Wrapping Up
+
+Today was a very quick introduction to Bayesian concepts:
+
+* <u>prior distribution</u>
+  * <u>hyperparameters</u>
+  * <u>informative/uninformative</u>
+  * <u>conjugate prior</u>
+* <u>data likelihood</u>
+* <u>posterior distribution</u>
+* Next we will discuss psychometric models and how they fit into Bayesian methods
