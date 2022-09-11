@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script src="03_MCMC_and_Stan_files/libs/clipboard/clipboard.min.js"></script>
+<script src="03_MCMC_and_Stan_files/libs/quarto-html/tabby.min.js"></script>
+<script src="03_MCMC_and_Stan_files/libs/quarto-html/popper.min.js"></script>
+<script src="03_MCMC_and_Stan_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="03_MCMC_and_Stan_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="03_MCMC_and_Stan_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="03_MCMC_and_Stan_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.0.36">
+
+  <meta name="author" content="Lecture 3">
+  <title>Markov Chain Monte Carlo and Stan</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="03_MCMC_and_Stan_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="03_MCMC_and_Stan_files/libs/revealjs/dist/reveal.css">
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      { color: #003b4f; background-color: #f1f3f5; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #003b4f; } /* Normal */
+    code span.al { color: #ad0000; } /* Alert */
+    code span.an { color: #5e5e5e; } /* Annotation */
+    code span.at { color: #657422; } /* Attribute */
+    code span.bn { color: #ad0000; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #003b4f; } /* ControlFlow */
+    code span.ch { color: #20794d; } /* Char */
+    code span.cn { color: #8f5902; } /* Constant */
+    code span.co { color: #5e5e5e; } /* Comment */
+    code span.cv { color: #5e5e5e; font-style: italic; } /* CommentVar */
+    code span.do { color: #5e5e5e; font-style: italic; } /* Documentation */
+    code span.dt { color: #ad0000; } /* DataType */
+    code span.dv { color: #ad0000; } /* DecVal */
+    code span.er { color: #ad0000; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #ad0000; } /* Float */
+    code span.fu { color: #4758ab; } /* Function */
+    code span.im { color: #00769e; } /* Import */
+    code span.in { color: #5e5e5e; } /* Information */
+    code span.kw { color: #003b4f; } /* Keyword */
+    code span.op { color: #5e5e5e; } /* Operator */
+    code span.ot { color: #003b4f; } /* Other */
+    code span.pp { color: #ad0000; } /* Preprocessor */
+    code span.sc { color: #5e5e5e; } /* SpecialChar */
+    code span.ss { color: #20794d; } /* SpecialString */
+    code span.st { color: #20794d; } /* String */
+    code span.va { color: #111111; } /* Variable */
+    code span.vs { color: #20794d; } /* VerbatimString */
+    code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="03_MCMC_and_Stan_files/libs/revealjs/dist/theme/quarto.css" id="theme">
+  <link href="03_MCMC_and_Stan_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="03_MCMC_and_Stan_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="03_MCMC_and_Stan_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="03_MCMC_and_Stan_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <style type="text/css">
+
+  .callout {
+    margin-top: 1em;
+    margin-bottom: 1em;  
+    border-radius: .25rem;
+  }
+
+  .callout.callout-style-simple { 
+    padding: 0em 0.5em;
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+    display: flex;
+  }
+
+  .callout.callout-style-default {
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+  }
+
+  .callout .callout-body-container {
+    flex-grow: 1;
+  }
+
+  .callout.callout-style-simple .callout-body {
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-style-default .callout-body {
+    font-size: 0.9rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-captioned.callout-style-simple .callout-body {
+    margin-top: 0.2em;
+  }
+
+  .callout:not(.callout-captioned) .callout-body {
+      display: flex;
+  }
+
+  .callout:not(.no-icon).callout-captioned.callout-style-simple .callout-content {
+    padding-left: 1.6em;
+  }
+
+  .callout.callout-captioned .callout-header {
+    padding-top: 0.2em;
+    margin-bottom: -0.2em;
+  }
+
+  .callout.callout-captioned .callout-caption  p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+    
+  .callout.callout-captioned.callout-style-simple .callout-content  p {
+    margin-top: 0;
+  }
+
+  .callout.callout-captioned.callout-style-default .callout-content  p {
+    margin-top: 0.7em;
+  }
+
+  .callout.callout-style-simple div.callout-caption {
+    border-bottom: none;
+    font-size: .9rem;
+    font-weight: 600;
+    opacity: 75%;
+  }
+
+  .callout.callout-style-default  div.callout-caption {
+    border-bottom: none;
+    font-weight: 600;
+    opacity: 85%;
+    font-size: 0.9rem;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-default div.callout-content {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-simple .callout-icon::before {
+    height: 1rem;
+    width: 1rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 1rem 1rem;
+  }
+
+  .callout.callout-style-default .callout-icon::before {
+    height: 0.9rem;
+    width: 0.9rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 0.9rem 0.9rem;
+  }
+
+  .callout-caption {
+    display: flex
+  }
+    
+  .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  .callout.no-icon::before {
+    display: none !important;
+  }
+
+  .callout.callout-captioned .callout-body > .callout-content > :last-child {
+    margin-bottom: 0.5rem;
+  }
+
+  .callout.callout-captioned .callout-icon::before {
+    margin-top: .5rem;
+    padding-right: .5rem;
+  }
+
+  .callout:not(.callout-captioned) .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  /* Callout Types */
+
+  div.callout-note {
+    border-left-color: #4582ec !important;
+  }
+
+  div.callout-note .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEU0lEQVRYCcVXTWhcVRQ+586kSUMMxkyaElstCto2SIhitS5Ek8xUKV2poatCcVHtUlFQk8mbaaziwpWgglJwVaquitBOfhQXFlqlzSJpFSpIYyXNjBNiTCck7x2/8/LeNDOZxDuEkgOXe++553zfefee+/OYLOXFk3+1LLrRdiO81yNqZ6K9cG0P3MeFaMIQjXssE8Z1JzLO9ls20MBZX7oG8w9GxB0goaPrW5aNMp1yOZIa7Wv6o2ykpLtmAPs/vrG14Z+6d4jpbSKuhdcSyq9wGMPXjonwmESXrriLzFGOdDBLB8Y6MNYBu0dRokSygMA/mrun8MGFN3behm6VVAwg4WR3i6FvYK1T7MHo9BK7ydH+1uurECoouk5MPRyVSBrBHMYwVobG2aOXM07sWrn5qgB60rc6mcwIDJtQrnrEr44kmy+UO9r0u9O5/YbkS9juQckLed3DyW2XV/qWBBB3ptvI8EUY3I9p/67OW+g967TNr3Sotn3IuVlfMLVnsBwH4fsnebJvyGm5GeIUA3jljERmrv49SizPYuq+z7c2H/jlGC+Ghhupn/hcapqmcudB9jwJ/3jvnvu6vu5lVzF1fXyZuZZ7U8nRmVzytvT+H3kilYvH09mLWrQdwFSsFEsxFVs5fK7A0g8gMZjbif4ACpKbjv7gNGaD8bUrlk8x+KRflttr22JEMRUbTUwwDQScyzPgedQHZT0xnx7ujw2jfVfExwYHwOsDTjLdJ2ebmeQIlJ7neo41s/DrsL3kl+W2lWvAga0tR3zueGr6GL78M3ifH0rGXrBC2aAR8uYcIA5gwV8zIE8onoh8u0Fca/ciF7j1uOzEnqcIm59sEXoGc0+z6+H45V1CvAvHcD7THztu669cnp+L0okAeIc6zjbM/24LgGM1gZk7jnRu1aQWoU9sfUOuhrmtaPIO3YY1KLLWZaEO5TKUbMY5zx8W9UJ6elpLwKXbsaZ4EFl7B4bMtDv0iRipKoDQT2sNQI9b1utXFdYisi+wzZ/ri/1m7QfDgEuvgUUEIJPq3DhX/5DWNqIXDOweC2wvIR90Oq3lDpdMIgD2r0dXvGdsEW5H6x6HLRJYU7C69VefO1x8Gde1ZFSJLfWS1jbCnhtOPxmpfv2LXOA2Xk2tvnwKKPFuZ/oRmwBwqRQDcKNeVQkYcOjtWVBuM/JuYw5b6isojIkYxyYAFn5K7ZBF10fea52y8QltAg6jnMqNHFBmGkQ1j+U43HMi2xMar1Nv0zGsf1s8nUsmUtPOOrbFIR8bHFDMB5zL13Gmr/kGlCkUzedTzzmzsaJXhYawnA3UmARpiYj5ooJZiUoxFRtK3X6pgNPv+IZVPcnwbOl6f+aBaO1CNvPW9n9LmCp01nuSaTRF2YxHqZ8DYQT6WsXT+RD6eUztwYLZ8rM+rcPxamv1VQzFUkzFXvkiVrySGQgJNvXHJAxiU3/NwiC03rSf05VBaPtu/Z7/B8Yn/w7eguloAAAAAElFTkSuQmCC');
+  }
+
+  div.callout-note.callout-style-default .callout-caption {
+    background-color: #dae6fb
+  }
+
+  div.callout-important {
+    border-left-color: #d9534f !important;
+  }
+
+  div.callout-important .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEKklEQVRYCcVXTWhcVRS+575MJym48A+hSRFr00ySRQhURRfd2HYjk2SSTokuBCkU2o0LoSKKraKIBTcuFCoidGFD08nkBzdREbpQ1EDNIv8qSGMFUboImMSZd4/f9zJv8ibJMC8xJQfO3HPPPef7zrvvvnvviIkpC9nsw0UttFunbUhpFzFtarSd6WJkStVMw5xyVqYTvkwfzuf/5FgtkVoB0729j1rjXwThS7Vio+Mo6DNnvLfahoZ+i/o32lULuJ3NNiz7q6+pyAUkJaFF6JwaM2lUJlV0MlnQn5aTRbEu0SEqHUa0A4AdiGuB1kFXRfVyg5d87+Dg4DL6m2TLAub60ilj7A1Ec4odSAc8X95sHh7+ZRPCFo6Fnp7HfU/fBng/hi10CjCnWnJjsxvDNxWw0NfV6Rv5GgP3I3jGWXumdTD/3cbEOP2ZbOZp69yniG3FQ9z1jD7bnBu9Fc2tKGC2q+uAJOQHBDRiZX1x36o7fWBs7J9ownbtO+n0/qWkvW7UPIfc37WgT6ZGR++EOJyeQDSb9UB+DZ1G6DdLDzyS+b/kBCYGsYgJbSQHuThGKRcw5xdeQf8YdNHsc6ePXrlSYMBuSIAFTGAtQo+VuALo4BX83N190NWZWbynBjhOHsmNfFWLeL6v+ynsA58zDvvAC8j5PkbOcXCMg2PZFk3q8MjI7WAG/Dp9AwP7jdGBOOQkAvlFUB+irtm16I1Zw9YBcpGTGXYmk3kQIC/Cds55l+iMI3jqhjAuaoe+am2Jw5GT3Nbz3CkE12NavmzN5+erJW7046n/CH1RO/RVa8lBLozXk9uqykkGAyRXLWlLv5jyp4RFsG5vGVzpDLnIjTWgnRy2Rr+tDKvRc7Y8AyZq10jj8DqXdnIRNtFZb+t/ZRtXcDiVnzpqx8mPcDWxgARUqx0W1QB9MeUZiNrV4qP+Ehc+BpNgATsTX8ozYKL2NtFYAHc84fG7ndxUPr+AR/iQSns7uSUufAymwDOb2+NjK27lEFocm/EE2WpyIy/Hi66MWuMKJn8RvxIcj87IM5Vh9663ziW36kR0HNenXuxmfaD8JC7tfKbrhFr7LiZCrMjrzTeGx+PmkosrkNzW94ObzwocJ7A1HokLolY+AvkTiD/q1H0cN48c5EL8Crkttsa/AXQVDmutfyku0E7jShx49XqV3MFK8IryDhYVbj7Sj2P2eBxwcXoe8T8idsKKPRcnZw1b+slFTubwUwhktrfnAt7J++jwQtLZcm3sr9LQrjRzz6cfMv9aLvgmnAGvpoaGLxM4mAEaLV7iAzQ3oU0IvD5x9ix3yF2RAAuYAOO2f7PEFWCXZ4C9Pb2UsgDeVnFSpbFK7/IWu7TPTvBqzbGdCHOJQSxiEjt6IyZmxQyEJHv6xyQsYk//moVFsN2zP6fRImjfq7/n/wFDguUQFNEwugAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-important.callout-style-default .callout-caption {
+    background-color: #f7dddc
+  }
+
+  div.callout-warning {
+    border-left-color: #f0ad4e !important;
+  }
+
+  div.callout-warning .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAETklEQVRYCeVWW2gcVRg+58yaTUnizqbipZeX4uWhBEniBaoUX1Ioze52t7sRq6APio9V9MEaoWlVsFasRq0gltaAPuxms8lu0gcviE/FFOstVbSIxgcv6SU7EZqmdc7v9+9mJtNks51NTUH84ed889/PP+cmxP+d5FIbMJmNbpREu4WUkiTtCicKny0l1pIKmBzovF2S+hIJHX8iEu3hZJ5lNZGqyRrGSIQpq15AzF28jgpeY6yk6GVdrfFqdrD6Iw+QlB8g0YS2g7dyQmXM/IDhBhT0UCiRf59lfqmmDvzRt6kByV/m4JjtzuaujMUM2c5Z2d6JdKrRb3K2q6mA+oYVz8JnDdKPmmNthzkAk/lN63sYPgevrguc72aZX/L9C6x09GYyxBgCX4NlvyGUHOKELlm5rXeR1kchuChJt4SSwyddZRXgvwMGvYo4QSlk3/zkHD8UHxwVJA6zjZZqP8v8kK8OWLnIZtLyCAJagYC4rTGW/9Pqj92N/c+LUaAj27movwbi19tk/whRCIE7Q9vyI6yvRpftAKVTdUjOW40X3h5OXsKCdmFcx0xlLJoSuQngnrJe7Kcjm4OMq9FlC7CMmScQANuNvjfP3PjGXDBaUQmbp296S5L4DrpbrHN1T87ZVEZVCzg1FF0Ft+dKrlLukI+/c9ENo+TvlTDbYFvuKPtQ9+l052rXrgKoWkDAFnvh0wTOmYn8R5f4k/jN/fZiCM1tQx9jQQ4ANhqG4hiL0qIFTGViG9DKB7GYzgubnpofgYRwO+DFjh0Zin2m4b/97EDkXkc+f6xYAPX0KK2I/7fUQuwzuwo/L3AkcjugPNixC8cHf0FyPjWlItmLxWw4Ou9YsQCr5fijMGoD/zpdRy95HRysyXA74MWOnscpO4j2y3HAVisw85hX5+AFBRSHt4ShfLFkIMXTqyKFc46xdzQM6XbAi702a7sy04J0+feReMFKp5q9esYLCqAZYw/k14E/xcLLsFElaornTuJB0svMuJINy8xkIYuL+xPAlWRceH6+HX7THJ0djLUom46zREu7tTkxwmf/FdOZ/sh6Q8qvEAiHpm4PJ4a/doJe0gH1t+aHRgCzOvBvJedEK5OFE5jpm4AGP2a8Dxe3gGJ/pAutug9Gp6he92CsSsWBaEcxGx0FHytmIpuqGkOpldqNYQK8cSoXvd+xLxXADw0kf6UkJNFtdo5MOgaLjiQOQHcn+A6h5NuL2s0qsC2LOM75PcF3yr5STuBSAcGG+meA14K/CI21HcS4LBT6tv0QAh8Dr5l93AhZzG5ZJ4VxAqdZUEl9z7WJ4aN+svMvwHHL21UKTd1mqvChH7/Za5xzXBBKrUcB0TQ+Ulgkfbi/H/YT5EptrGzsEK7tR1B7ln9BBwckYfMiuSqklSznIuoIIOM42MQO+QnduCoFCI0bpkzjCjddHPN/F+2Yu+sd9bKNpVwHhbS3LluK/0zgfwD0xYI5dXuzlQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-warning.callout-style-default .callout-caption {
+    background-color: #fcefdc
+  }
+
+  div.callout-tip {
+    border-left-color: #02b875 !important;
+  }
+
+  div.callout-tip .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAADr0lEQVRYCe1XTWgTQRj9ZjZV8a9SPIkKgj8I1bMHsUWrqYLVg4Ue6v9BwZOxSYsIerFao7UiUryIqJcqgtpimhbBXoSCVxUFe9CTiogUrUp2Pt+3aUI2u5vdNh4dmMzOzHvvezuz8xNFM0mjnbXaNu1MvFWRXkXEyE6aYOYJpdW4IXuA4r0fo8qqSMDBU0v1HJUgVieAXxzCsdE/YJTdFcVIZQNMyhruOMJKXYFoLfIfIvVIMWdsrd+Rpd86ZmyzzjJmLStqRn0v8lzkb4rVIXvnpScOJuAn2ACC65FkPzEdEy4TPWRLJ2h7z4cArXzzaOdKlbOvKKX25Wl00jSnrwVxAg3o4dRxhO13RBSdNvH0xSARv3adTXbBdTf64IWO2vH0LT+cv4GR1DJt+DUItaQogeBX/chhbTBxEiZ6gftlDNXTrvT7co4ub5A6gp9HIcHvzTa46OS5fBeP87Qm0fQkr4FsYgVQ7Qg+ZayaDg9jhg1GkWj8RG6lkeSacrrHgDaxdoBiZPg+NXV/KifMuB6//JmYH4CntVEHy/keA6x4h4CU5oFy8GzrBS18cLJMXcljAKB6INjWsRcuZBWVaS3GDrqB7rdapVIeA+isQ57Eev9eCqzqOa81CY05VLd6SamW2wA2H3SiTbnbSxmzfp7WtKZkqy4mdyAlGx7ennghYf8voqp9cLSgKdqNfa6RdRsAAkPwRuJZNbpByn+RrJi1RXTwdi8RQF6ymDwGMAtZ6TVE+4uoKh+MYkcLsT0Hk8eAienbiGdjJHZTpmNjlbFJNKDVAp2fJlYju6IreQxQ08UJDNYdoLSl6AadO+fFuCQqVMB1NJwPm69T04Wv5WhfcWyfXQB+wXRs1pt+nCknRa0LVzSA/2B+a9+zQJadb7IyyV24YAxKp2Jqs3emZTuNnKxsah+uabKbMk7CbTgJx/zIgQYErIeTKRQ9yD9wxVof5YolPHqaWo7TD6tJlh7jQnK5z2n3+fGdggIOx2kaa2YI9QWarc5Ce1ipNWMKeSG4DysFF52KBmTNMmn5HqCFkwy34rDg05gDwgH3bBi+sgFhN/e8QvRn8kbamCOhgrZ9GJhFDgfcMHzFb6BAtjKpFhzTjwv1KCVuxHvCbsSiEz4CANnj84cwHdFXAbAOJ4LTSAawGWFn5tDhLMYz6nWeU2wJfIhmIJBefcd/A5FWQWGgrWzyORZ3Q6HuV+Jf0Bj+BTX69fm1zWgK7By1YTXchFDORywnfQ7GpzOo6S+qECrsx2ifVQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-tip.callout-style-default .callout-caption {
+    background-color: #ccf1e3
+  }
+
+  div.callout-caution {
+    border-left-color: #fd7e14 !important;
+  }
+
+  div.callout-caution .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAACV0lEQVRYCdVWzWoUQRCuqp2ICBLJXgITZL1EfQDBW/bkzUMUD7klD+ATSHBEfAIfQO+iXsWDxJsHL96EHAwhgzlkg8nBg25XWb0zIb0zs9muYYWkoKeru+vn664fBqElyZNuyh167NXJ8Ut8McjbmEraKHkd7uAnAFku+VWdb3reSmRV8PKSLfZ0Gjn3a6Xlcq9YGb6tADjn+lUfTXtVmaZ1KwBIvFI11rRXlWlatwIAAv2asaa9mlB9wwygiDX26qaw1yYPzFXg2N1GgG0FMF8Oj+VIx7E/03lHx8UhvYyNZLN7BwSPgekXXLribw7w5/c8EF+DBK5idvDVYtEEwMeYefjjLAdEyQ3M9nfOkgnPTEkYU+sxMq0BxNR6jExrAI31H1rzvLEfRIdgcv1XEdj6QTQAS2wtstEALLG1yEZ3QhH6oDX7ExBSFEkFINXH98NTrme5IOaaA7kIfiu2L8A3qhH9zRbukdCqdsA98TdElyeMe5BI8Rs2xHRIsoTSSVFfCFCWGPn9XHb4cdobRIWABNf0add9jakDjQJpJ1bTXOJXnnRXHRf+dNL1ZV1MBRCXhMbaHqGI1JkKIL7+i8uffuP6wVQAzO7+qVEbF6NbS0LJureYcWXUUhH66nLR5rYmva+2tjRFtojkM2aD76HEGAD3tPtKM309FJg5j/K682ywcWJ3PASCcycH/22u+Bh7Aa0ehM2Fu4z0SAE81HF9RkB21c5bEn4Dzw+/qNOyXr3DCTQDMBOdhi4nAgiFDGCinIa2owCEChUwD8qzd03PG+qdW/4fDzjUMcE1ZpIAAAAASUVORK5CYII=');
+  }
+
+  div.callout-caution.callout-style-default .callout-caption {
+    background-color: #ffe5d0
+  }
+
+  </style>
+  <style type="text/css">
+    .reveal div.sourceCode {
+      margin: 0;
+      overflow: auto;
+    }
+    .reveal div.hanging-indent {
+      margin-left: 1em;
+      text-indent: -1em;
+    }
+    .reveal .slide:not(.center) {
+      height: 100%;
+    }
+    .reveal .slide.scrollable {
+      overflow-y: auto;
+    }
+    .reveal .footnotes {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reveal .slide .absolute {
+      position: absolute;
+      display: block;
+    }
+    .reveal .footnotes ol {
+      counter-reset: ol;
+      list-style-type: none; 
+      margin-left: 0;
+    }
+    .reveal .footnotes ol li:before {
+      counter-increment: ol;
+      content: counter(ol) ". "; 
+    }
+    .reveal .footnotes ol li > p:first-child {
+      display: inline-block;
+    }
+    .reveal .slide ul,
+    .reveal .slide ol {
+      margin-bottom: 0.5em;
+    }
+    .reveal .slide ul li,
+    .reveal .slide ol li {
+      margin-top: 0.4em;
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide ul[role="tablist"] li {
+      margin-bottom: 0;
+    }
+    .reveal .slide ul li > *:first-child,
+    .reveal .slide ol li > *:first-child {
+      margin-block-start: 0;
+    }
+    .reveal .slide ul li > *:last-child,
+    .reveal .slide ol li > *:last-child {
+      margin-block-end: 0;
+    }
+    .reveal .slide .columns:nth-child(3) {
+      margin-block-start: 0.8em;
+    }
+    .reveal blockquote {
+      box-shadow: none;
+    }
+    .reveal .tippy-content>* {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    .reveal .tippy-content>*:last-child {
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide > img.stretch.quarto-figure-center,
+    .reveal .slide > img.r-stretch.quarto-figure-center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-left,
+    .reveal .slide > img.r-stretch.quarto-figure-left  {
+      display: block;
+      margin-left: 0;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-right,
+    .reveal .slide > img.r-stretch.quarto-figure-right  {
+      display: block;
+      margin-left: auto;
+      margin-right: 0; 
+    }
+  </style>
+</head>
+<body class="quarto-light">
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide" class="center">
+  <h1 class="title">Markov Chain Monte Carlo and Stan</h1>
+  <p class="author">Lecture 3</p>
+</section>
+
+<section id="todays-lecture-objectives" class="slide level2">
+<h2>Today’s Lecture Objectives</h2>
+<div>
+<ol type="1">
+<li>An Introduction to MCMC</li>
+<li>An Introduction to Stan</li>
+<li>Both with Linear Models</li>
+</ol>
+</div>
+</section>
+<section id="the-markov-chain-timeseries" class="slide level2">
+<h2>The Markov Chain Timeseries</h2>
+
+<img data-src="posteriorPlot01.png" class="r-stretch"></section>
+<section id="the-posterior-distribution" class="slide level2">
+<h2>The Posterior Distribution</h2>
+
+<img data-src="posteriorPlot02.png" class="r-stretch"></section>
+<section id="markov-chain-monte-carlo-estimation" class="slide level2">
+<h2>Markov Chain Monte Carlo Estimation</h2>
+<p>Bayesian analysis is all about estimating the posterior distribution</p>
+<ul>
+<li class="fragment">Up until now, we have worked with posterior distributions that fairly well-known
+<ul>
+<li class="fragment">Beta-Binomial had a Beta distribution</li>
+<li class="fragment">In general, likelihood distributions from the exponential family have conjugate priors
+<ul>
+<li class="fragment">Conjugate prior: the family of the prior is equivalent to the family of the posterior</li>
+</ul></li>
+</ul></li>
+<li class="fragment">Most of the time, however, posterior distributions are not easily obtainable
+<ul>
+<li class="fragment">No longer able to use properties of the distribution to estimate parameters</li>
+</ul></li>
+<li class="fragment">It is possible to use an optimization algorithm (e.g., Newton-Raphson or Expectation-Maximization) to find maximum value of posterior distribution
+<ul>
+<li class="fragment">But, such algorithms may take a very long time for high-dimensional problems</li>
+</ul></li>
+<li class="fragment">Instead: “sketch” the posterior by sampling from it – then use that sketch to make inferences
+<ul>
+<li class="fragment">Sampling is done via MCMC</li>
+</ul></li>
+</ul>
+</section>
+<section id="markov-chain-monte-carlo-estimation-1" class="slide level2">
+<h2>Markov Chain Monte Carlo Estimation</h2>
+<ul>
+<li class="fragment">MCMC algorithms iteratively sample from the posterior distribution
+<ul>
+<li class="fragment">For fairly simplistic models, each iteration has independent samples</li>
+<li class="fragment">Most models have some layers of dependency included
+<ul>
+<li class="fragment">Can slow down sampling from the posterior</li>
+</ul></li>
+</ul></li>
+<li class="fragment">There are numerous variations of MCMC algorithms
+<ul>
+<li class="fragment">Most of these specific algorithms use one of two types of sampling:
+<ol type="1">
+<li class="fragment">Direct sampling from the posterior distribution (i.e.&nbsp;Gibbs sampling)
+<ul>
+<li class="fragment">Often used when conjugate priors are specified</li>
+</ul></li>
+<li class="fragment">Indirect (rejection-based) sampling from the posterior distribution (e.g., Metropolis-Hastings, Hamiltonian Monte Carlo)</li>
+</ol></li>
+</ul></li>
+</ul>
+</section>
+<section id="mcmc-algorithms" class="slide level2">
+<h2>MCMC Algorithms</h2>
+<ul>
+<li class="fragment">Efficiency is the main reason for so many algorithms
+<ul>
+<li class="fragment">Efficiency in this context: How quickly the algorithm converges and provides adequate coverage (“sketching”) of the posterior distribution</li>
+<li class="fragment">No one algorithm is uniformly most efficient for all models (here model = likelihood <span class="math inline">\(\times\)</span> prior)</li>
+</ul></li>
+<li class="fragment">The good news is that many software packages (stan, JAGS, MPlus, especially) don’t make you choose which specific algorithm to use</li>
+<li class="fragment">The bad news is that sometimes your model may take a large amount of time to reach convergence (think days or weeks)</li>
+<li class="fragment">You can also code your own custom algorithm to make things run smoother</li>
+</ul>
+</section>
+<section id="commonalities-across-mcmc-algorithms" class="slide level2">
+<h2>Commonalities Across MCMC Algorithms</h2>
+<ul>
+<li class="fragment">Despite having fairly broad differences regarding how algorithms sample from the posterior distribution, there are quite a few things that are similar across algorithms:
+<ol type="1">
+<li class="fragment">A period of the Markov chain where sampling is not directly from the posterior
+<ul>
+<li class="fragment">The burnin period (sometimes coupled with other tuning periods and called warmuup)</li>
+</ul></li>
+<li class="fragment">Methods used to assess convergence of the chain to the posterior distribution
+<ul>
+<li class="fragment">Often involving the need to use multiple chains with independent and differing starting values</li>
+</ul></li>
+<li class="fragment">Summaries of the posterior distribution</li>
+</ol></li>
+<li class="fragment">Further, rejection-based sampling algorithms often need a tuning period to make the sampling more efficient
+<ul>
+<li class="fragment">The tuning period comes before the algorithm begins its burnin period</li>
+</ul></li>
+</ul>
+</section>
+<section id="mcmc-demonstration" class="slide level2">
+<h2>MCMC Demonstration</h2>
+<ul>
+<li class="fragment">To demonstrate each type of algorithm, we will use a model for a normal distribution
+<ul>
+<li class="fragment">We will investigate each, briefly</li>
+<li class="fragment">We will then switch over to stan to show the syntax and let stan work</li>
+<li class="fragment">We will conclude by talking about assessing convergence and how to report parameter estimates.</li>
+</ul></li>
+</ul>
+</section>
+<section id="example-data-post-diet-weights" class="slide level2">
+<h2>Example Data: Post-Diet Weights</h2>
+<p>Example Data: <a href="https://stats.idre.ucla.edu/spss/library/spss-libraryhow-do-i-handle-interactions-of-continuous-andcategorical-variables/">https://stats.idre.ucla.edu/spss/library/spss-libraryhow-do-i-handle-interactions-of-continuous-andcategorical-variables/</a></p>
+<ul>
+<li class="fragment"><p>The file DietData.csv contains data from 30 respondents who participated in a study regarding the effectiveness of three types of diets.</p></li>
+<li class="fragment"><p>Variables in the data set are:</p>
+<ol type="1">
+<li class="fragment">Respondent: Respondent number 1-30</li>
+<li class="fragment">DietGroup: A 1, 2, or 3 representing the group to which a respondent was assigned</li>
+<li class="fragment">HeightIN: The respondent’s height in inches</li>
+<li class="fragment">WeightLB (the Dependent Variable): The respondent’s weight, in pounds, recorded following the study</li>
+</ol></li>
+<li class="fragment"><p><u>The research question:</u> Are there differences in final weights between the three diet groups, and, if so, what are the nature of the differences?</p></li>
+<li class="fragment"><p>But first, let’s look at the data</p></li>
+</ul>
+</section>
+<section id="visualizing-data-weightlb-variable" class="slide level2">
+<h2>Visualizing Data: WeightLB Variable</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>DietData <span class="ot">=</span> <span class="fu">read.csv</span>(<span class="at">file =</span> <span class="st">"DietData.csv"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">ggplot</span>(<span class="at">data =</span> DietData, <span class="fu">aes</span>(<span class="at">x =</span> WeightLB)) <span class="sc">+</span> </span>
+<span id="cb1-4"><a href="#cb1-4"></a>  <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">y =</span> ..density..), <span class="at">position =</span> <span class="st">"identity"</span>, <span class="at">binwidth =</span> <span class="dv">10</span>) <span class="sc">+</span> </span>
+<span id="cb1-5"><a href="#cb1-5"></a>  <span class="fu">geom_density</span>(<span class="at">alpha=</span>.<span class="dv">2</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="03_MCMC_and_Stan_files/figure-revealjs/weightLB-1.png" width="960" class="r-stretch"></section>
+<section id="visualizing-data-heightin-variable" class="slide level2">
+<h2>Visualizing Data: HeightIN Variable</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> DietData, <span class="fu">aes</span>(<span class="at">x =</span> HeightIN)) <span class="sc">+</span> </span>
+<span id="cb2-2"><a href="#cb2-2"></a>  <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">y =</span> ..density..), <span class="at">position =</span> <span class="st">"identity"</span>, <span class="at">binwidth =</span> <span class="dv">1</span>) <span class="sc">+</span> </span>
+<span id="cb2-3"><a href="#cb2-3"></a>  <span class="fu">geom_density</span>(<span class="at">alpha=</span>.<span class="dv">2</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="03_MCMC_and_Stan_files/figure-revealjs/heightIN-1.png" width="960" class="r-stretch"></section>
+<section id="visualizing-data-weightlb-by-group" class="slide level2">
+<h2>Visualizing Data: WeightLB by Group</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> DietData, <span class="fu">aes</span>(<span class="at">x =</span> WeightLB, <span class="at">color =</span> <span class="fu">factor</span>(DietGroup), <span class="at">fill =</span> <span class="fu">factor</span>(DietGroup))) <span class="sc">+</span> </span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">y =</span> ..density..), <span class="at">position =</span> <span class="st">"identity"</span>, <span class="at">binwidth =</span> <span class="dv">10</span>) <span class="sc">+</span> </span>
+<span id="cb3-3"><a href="#cb3-3"></a>  <span class="fu">geom_density</span>(<span class="at">alpha=</span>.<span class="dv">2</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="03_MCMC_and_Stan_files/figure-revealjs/WeightByGroup-1.png" width="960" class="r-stretch"></section>
+<section id="visualizing-data-weight-by-height-by-group" class="slide level2">
+<h2>Visualizing Data: Weight by Height by Group</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> DietData, <span class="fu">aes</span>(<span class="at">x =</span> HeightIN, <span class="at">y =</span> WeightLB, <span class="at">shape =</span> <span class="fu">factor</span>(DietGroup), <span class="at">color =</span> <span class="fu">factor</span>(DietGroup))) <span class="sc">+</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> <span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="03_MCMC_and_Stan_files/figure-revealjs/WeightLast-1.png" width="960" class="r-stretch"></section>
+<section id="class-discussion-what-do-we-do" class="slide level2">
+<h2>Class Discussion: What Do We Do?</h2>
+<p>Now, your turn to answer questions:</p>
+<div>
+<ol type="1">
+<li>What type of analysis seems most appropriate for these data?</li>
+<li>Is the dependent variable (<code>WeightLB</code>) is appropriate as-is for such analysis or does it need transformed?</li>
+</ol>
+</div>
+</section>
+<section id="linear-model-with-least-squares" class="slide level2">
+<h2>Linear Model with Least Squares</h2>
+<p>Let’s play with models for data…</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># center predictors for reasonable numbers</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a>DietData<span class="sc">$</span>HeightIN60 <span class="ot">=</span> DietData<span class="sc">$</span>HeightIN<span class="dv">-60</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="co"># full analysis model suggested by data:</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a>FullModel <span class="ot">=</span> <span class="fu">lm</span>(<span class="at">formula =</span> WeightLB <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> DietData)</span>
+<span id="cb5-6"><a href="#cb5-6"></a></span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="co"># examining assumptions and leverage of fit</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a><span class="co"># plot(FullModel)</span></span>
+<span id="cb5-9"><a href="#cb5-9"></a></span>
+<span id="cb5-10"><a href="#cb5-10"></a><span class="co"># looking at ANOVA table</span></span>
+<span id="cb5-11"><a href="#cb5-11"></a><span class="co"># anova(FullModel)</span></span>
+<span id="cb5-12"><a href="#cb5-12"></a> </span>
+<span id="cb5-13"><a href="#cb5-13"></a><span class="co"># looking at parameter summary</span></span>
+<span id="cb5-14"><a href="#cb5-14"></a> <span class="fu">summary</span>(FullModel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = WeightLB ~ 1, data = DietData)
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-62.00 -36.75 -24.00  49.00  98.00 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  171.000      9.041   18.91   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 49.52 on 29 degrees of freedom</code></pre>
+</div>
+</div>
+</section>
+<section id="path-diagram-of-our-model" class="slide level2">
+<h2>Path Diagram of Our Model</h2>
+
+<img data-src="03_MCMC_and_Stan_files/figure-revealjs/regPM-1.png" width="960" class="r-stretch"></section>
+<section id="steps-in-an-mcmc-analysis" class="slide level2">
+<h2>Steps in an MCMC Analysis</h2>
+<div>
+<ol type="1">
+<li class="fragment">Specify model</li>
+<li class="fragment">Specify prior distributions for all model parameters</li>
+<li class="fragment">Build model syntax as needed</li>
+<li class="fragment">Run Markov chains (specify warmup/burnin and sampling period lengths)</li>
+<li class="fragment">Evaluate chain convergence</li>
+<li class="fragment">Interpret/report results</li>
+</ol>
+</div>
+</section>
+<section id="specify-model" class="slide level2">
+<h2>Specify Model</h2>
+<div>
+<ul>
+<li>To begin, let’s start with an empty model and build up from there</li>
+<li>Let’s examine the linear model we seek to estimate:</li>
+</ul>
+</div>
+<p><span class="math display">\[\text{WeightLB}_p = \beta_0  + e_p,\]</span></p>
+<p>Where: <span class="math inline">\(e_p \sim N(0, \sigma^2_e)\)</span></p>
+<p>Questions:</p>
+<div>
+<ul>
+<li class="fragment">What are the <em>variables</em> in this analysis?</li>
+<li class="fragment">What are the parameters in this analysis?</li>
+</ul>
+</div>
+</section>
+<section id="introduction-to-stan" class="slide level2">
+<h2>Introduction to Stan</h2>
+<div>
+<ul>
+<li class="fragment">Stan is an MCMC estimation program
+<ul>
+<li class="fragment">Most recent; has many convenient features</li>
+<li class="fragment">Actually does severaly methods of estimation (ML, Variational Bayes)</li>
+</ul></li>
+<li class="fragment">You create a model using Stan’s syntax
+<ul>
+<li class="fragment">Stan translates your model to a custom-built C++ syntax</li>
+<li class="fragment">Stan then compiles your model into its own executable program</li>
+</ul></li>
+<li class="fragment">You then run the program to estimate your model
+<ul>
+<li class="fragment">If you use R, the interface can be seamless</li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="stan-and-rstudio" class="slide level2">
+<h2>Stan and RStudio</h2>
+<div class="columns">
+<div class="column" style="width:60%;">
+<ul>
+<li class="fragment">Stan has its own syntax which can be built in stand-alone text files
+<ul>
+<li class="fragment">Rstudio will let you create one of these files in the new file menu</li>
+<li class="fragment">Rstudio also has syntax highlighting in Stan files
+<ul>
+<li class="fragment">This is very helpful to learn the syntax</li>
+</ul></li>
+</ul></li>
+<li class="fragment">Stan syntax can also be built from R character strings
+<ul>
+<li class="fragment">Which is helpful when running more than one model per analysis</li>
+</ul></li>
+</ul>
+</div><div class="column" style="width:40%;">
+<p><img data-src="Stan_Rstudio.png"></p>
+</div>
+</div>
+</section>
+<section id="stan-syntax" class="slide level2">
+<h2>Stan Syntax</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>data {</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> N;</span>
+<span id="cb7-3"><a href="#cb7-3"></a>  vector[N] y;</span>
+<span id="cb7-4"><a href="#cb7-4"></a>}</span>
+<span id="cb7-5"><a href="#cb7-5"></a></span>
+<span id="cb7-6"><a href="#cb7-6"></a>parameters {</span>
+<span id="cb7-7"><a href="#cb7-7"></a>  real beta0;</span>
+<span id="cb7-8"><a href="#cb7-8"></a>  real<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> sigma;</span>
+<span id="cb7-9"><a href="#cb7-9"></a>}</span>
+<span id="cb7-10"><a href="#cb7-10"></a></span>
+<span id="cb7-11"><a href="#cb7-11"></a>model {</span>
+<span id="cb7-12"><a href="#cb7-12"></a>  beta0 <span class="sc">~</span> <span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1000</span>); <span class="sc">/</span><span class="er">/</span> prior <span class="cf">for</span> beta0</span>
+<span id="cb7-13"><a href="#cb7-13"></a>  sigma <span class="sc">~</span> <span class="fu">uniform</span>(<span class="dv">0</span>, <span class="dv">100000</span>); <span class="sc">/</span><span class="er">/</span> prior <span class="cf">for</span> sigma</span>
+<span id="cb7-14"><a href="#cb7-14"></a>  y <span class="sc">~</span> <span class="fu">normal</span>(beta0, sigma); <span class="sc">/</span><span class="er">/</span> model <span class="cf">for</span> observed data</span>
+<span id="cb7-15"><a href="#cb7-15"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div>
+<ul>
+<li>Above is the syntax for our model
+<ul>
+<li>Each line ends with a semi colon</li>
+<li>Comments are put in with //</li>
+</ul></li>
+<li>Three blocks of syntax needed
+<ul>
+<li>Data: What Stan expects you will send to it for the analysis (using R lists)</li>
+<li>Parameters: Where you specify what the parameters of the model are</li>
+<li>Model: Where you specify the distributions of the priors and data</li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="stan-data-and-parameter-delcaration" class="slide level2">
+<h2>Stan Data and Parameter Delcaration</h2>
+<p>Like many compiled languages, Stan expects you to declare what type of data/parameters you are defining:</p>
+<div>
+<ul>
+<li><code>int</code>: Integer values (no decimals)</li>
+<li><code>real</code>: Floating point numbers</li>
+<li><code>vector</code>: A one-dimensional set of real valued numbers</li>
+</ul>
+</div>
+<p>Sometimes, additional definitions are provided giving the range of the variable (or restricting the set of starting values):</p>
+<div>
+<ul>
+<li><code>real&lt;lower=0&gt; sigma;</code></li>
+</ul>
+</div>
+<p>See: <a href="https://mc-stan.org/docs/reference-manual/data-types.html">https://mc-stan.org/docs/reference-manual/data-types.html</a> for more information</p>
+</section>
+<section id="stan-data-and-prior-distributions" class="slide level2">
+<h2>Stan Data and Prior Distributions</h2>
+<div>
+<ul>
+<li>In the model section, you define the distributions needed for the model and the priors
+<ul>
+<li>The left-hand side is either defined in data or parameters
+<ul>
+<li><code>y ~ normal(beta0, sigma); // model for observed data</code></li>
+<li><code>sigma ~ uniform(0, 100000); // prior for sigma</code></li>
+</ul></li>
+<li>The right-hand side is a distribution included in Stan
+<ul>
+<li>You can also define your own distributions</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+<p>See: <a href="https://mc-stan.org/docs/functions-reference/index.html">https://mc-stan.org/docs/functions-reference/index.html</a> for more information</p>
+</section>
+<section id="from-stan-syntax-to-compilation" class="slide level2">
+<h2>From Stan Syntax to Compilation</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># compile model -- this method is for stand-alone stan files (uses cmdstanr)</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>model00.fromFile <span class="ot">=</span> <span class="fu">cmdstan_model</span>(<span class="at">stan_file =</span> <span class="st">"model00.stan"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3"></a></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="co"># or this method using the string text in R</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a>model00.fromString <span class="ot">=</span> <span class="fu">cmdstan_model</span>(<span class="at">stan_file =</span> <span class="fu">write_stan_file</span>(stanModel))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div>
+<ul>
+<li>Once you have your syntax, next you need to have Stan translate it into C++ and compile an executable</li>
+<li>This is where <code>cmdstanr</code> and <code>rstan</code> differ
+<ul>
+<li><code>cmdstanr</code> wants you to compile first, then run the Markov chain</li>
+<li><code>rstan</code> conducts compilation (if needed) then runs the Markov chain</li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="building-data-for-stan" class="slide level2">
+<h2>Building Data for Stan</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># build R list containing data for Stan: Must be named what "data" are listed in analysis</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a>stanData <span class="ot">=</span> <span class="fu">list</span>(</span>
+<span id="cb9-3"><a href="#cb9-3"></a>  <span class="at">N =</span> <span class="fu">nrow</span>(DietData),</span>
+<span id="cb9-4"><a href="#cb9-4"></a>  <span class="at">y =</span> DietData<span class="sc">$</span>WeightLB</span>
+<span id="cb9-5"><a href="#cb9-5"></a>)</span>
+<span id="cb9-6"><a href="#cb9-6"></a></span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="co"># snippet of Stan syntax:</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a>stanSyntaxSnippet <span class="ot">=</span> <span class="st">"</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a><span class="st">data {</span></span>
+<span id="cb9-10"><a href="#cb9-10"></a><span class="st">  int&lt;lower=0&gt; N;</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a><span class="st">  vector[N] y;</span></span>
+<span id="cb9-12"><a href="#cb9-12"></a><span class="st">}</span></span>
+<span id="cb9-13"><a href="#cb9-13"></a><span class="st">"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div>
+<ul>
+<li>Stan needs the data you declared in your syntax to be able to run</li>
+<li>Within R, we can pass this data to Stan via a list object</li>
+<li>The entries in the list should correspond to the data portion of the Stan syntax
+<ul>
+<li>In the above syntax, we told Stan to expect a single integer named <code>N</code> and a vector named <code>y</code></li>
+</ul></li>
+<li>The R list object is the same for <code>cmdstanr</code> and <code>rstan</code></li>
+</ul>
+</div>
+</section>
+<section id="running-markov-chains-in-cmdstanr" class="slide level2">
+<h2>Running Markov Chains in <code>cmdstanr</code></h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="co"># run MCMC chain (sample from posterior)</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a>model00.samples <span class="ot">=</span> model00.fromFile<span class="sc">$</span><span class="fu">sample</span>(</span>
+<span id="cb10-3"><a href="#cb10-3"></a>  <span class="at">data =</span> stanData,</span>
+<span id="cb10-4"><a href="#cb10-4"></a>  <span class="at">seed =</span> <span class="dv">1</span>,</span>
+<span id="cb10-5"><a href="#cb10-5"></a>  <span class="at">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb10-6"><a href="#cb10-6"></a>  <span class="at">parallel_chains =</span> <span class="dv">4</span>,</span>
+<span id="cb10-7"><a href="#cb10-7"></a>  <span class="at">iter_warmup =</span> <span class="dv">10000</span>,</span>
+<span id="cb10-8"><a href="#cb10-8"></a>  <span class="at">iter_sampling =</span> <span class="dv">10000</span></span>
+<span id="cb10-9"><a href="#cb10-9"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div>
+<ul>
+<li>With the compiled program and the data, the next step is to run the Markov Chain (a process sometimes called sampling as you are sampling from a posterior distribution)</li>
+<li>In <code>cmdstanr</code>, running the chain comes from the <code>$sample()</code> function that is a part of the compiled program object</li>
+<li>You must specify:
+<ul>
+<li>The data</li>
+<li>The random number seed</li>
+<li>The number of chains (and parallel chains)</li>
+<li>The number of warmup iterations (more detail shortly)</li>
+<li>The number of sampling iterations</li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="running-markov-chains-in-rstan" class="slide level2">
+<h2>Running Markov Chains in <code>rstan</code></h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="fu">rstan_options</span>(<span class="at">auto_write =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="fu">options</span>(<span class="at">mc.cores =</span> parallel<span class="sc">::</span><span class="fu">detectCores</span>())</span>
+<span id="cb11-3"><a href="#cb11-3"></a></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="co"># example MCMC analysis in rstan</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a>model00.rstan <span class="ot">=</span> <span class="fu">stan</span>(</span>
+<span id="cb11-6"><a href="#cb11-6"></a>  <span class="at">model_code =</span> stanModel,</span>
+<span id="cb11-7"><a href="#cb11-7"></a>  <span class="at">model_name =</span> <span class="st">"Empty model"</span>,</span>
+<span id="cb11-8"><a href="#cb11-8"></a>  <span class="at">data =</span> stanData,</span>
+<span id="cb11-9"><a href="#cb11-9"></a>  <span class="at">warmup =</span> <span class="dv">10000</span>,</span>
+<span id="cb11-10"><a href="#cb11-10"></a>  <span class="at">iter =</span> <span class="dv">20000</span>,</span>
+<span id="cb11-11"><a href="#cb11-11"></a>  <span class="at">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb11-12"><a href="#cb11-12"></a>  <span class="at">verbose =</span> <span class="cn">TRUE</span></span>
+<span id="cb11-13"><a href="#cb11-13"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div>
+<ul>
+<li>Rstan takes the model syntax directly, then compiles and runs the chains</li>
+<li>The first two lines of syntax enable running one chain per thread (parallel processing)
+<ul>
+<li>As chains are independent, running them simultaneously (parallel) shortens wait time considerably</li>
+</ul></li>
+<li>The <code>verbose</code> option is helpful for detecting when things break</li>
+<li>The same R list supplies the data to Stan</li>
+</ul>
+</div>
+</section>
+<section id="mcmc-process" class="slide level2">
+<h2>MCMC Process</h2>
+<div>
+<ul>
+<li>The MCMC algorithm runs as a series of discrete iterations
+<ul>
+<li>Within each iteration, each parameter of a model has an opportunity to change its value</li>
+</ul></li>
+<li>For each parameter, a new parameter is sampled at random from the current belief of posterior distribution
+<ul>
+<li>The specifics of the sampling process differ by algorithm type (we’ll have a lecture on this later)</li>
+</ul></li>
+<li>In Stan (Hamiltonian Monte Carlo), for a given iteration, a proposed parameter is generated
+<ul>
+<li>The posterior likelihood “values” (more than just density; includes likelihood of proposal) are calculated for the current and proposed values of the parameter</li>
+<li>The proposed values are accepted based on the draw of a uniform number compared to a transition probability<br>
+</li>
+</ul></li>
+<li>If all models are specified correctly, then regardless of starting location, each chain will converge to the posterior if run long enough
+<ul>
+<li>But, the chains must be checked for convergence when the algorithm stops</li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="example-of-bad-convergence" class="slide level2">
+<h2>Example of Bad Convergence</h2>
+
+<img data-src="badPosteriors.png" class="r-stretch"></section>
+<section id="examining-chain-convergence" class="slide level2">
+<h2>Examining Chain Convergence</h2>
+<div>
+<ul>
+<li>Once Stan stops, the next step is to determine if the chains converged to their posterior distribution
+<ul>
+<li>Called convergence diagnosis</li>
+</ul></li>
+<li>Many methods have been developed for diagnosing if Markov chains have converged
+<ul>
+<li>Two most common: visual in spection and Gelman-Rubin Potential Scale Reduction Factor (PSRF; <a href="https://support.sas.com/documentation/cdl/en/statug/63962/HTML/default/viewer.htm#statug_introbayes_sect008.htm#statug.introbayes.bayesgelman">quick reference</a>)</li>
+</ul></li>
+<li>Visual inspection
+<ul>
+<li>Want no trends in timeseries – should look like a catapillar</li>
+<li>Shape of posterior density should be mostly smooth</li>
+</ul></li>
+<li>Gelman-Rubin PSRF (denoted with <span class="math inline">\(\hat{R}\)</span>)
+<ul>
+<li>For analyses with multiple chains</li>
+<li>Ratio of between-chain variance to within-chain variance</li>
+<li>Should be near 1 (maximum somewhere under 1.1)</li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="setting-mcmc-options" class="slide level2">
+<h2>Setting MCMC Options</h2>
+<div>
+<ul>
+<li>As convergence is assessed using multiple chains, more than one should be run
+<ul>
+<li>Between-chain variance estimates improve with the number of chains, so I typically use four</li>
+<li>Others have two; more than one should work</li>
+</ul></li>
+<li>Warmup/burnin period should be long enough to ensure chains move to center of posterior distribution
+<ul>
+<li>Difficult to determine ahead of time</li>
+<li>More complex models need more warmup/burnin to converge</li>
+</ul></li>
+<li>Sampling iterations should be long enough to thoroughly sample posterior distribution
+<ul>
+<li>Difficulty to determine ahead of time</li>
+<li>Need smooth densities across bulk of posterior</li>
+</ul></li>
+<li>Often, multiple analyses (with different settings) is what is needed</li>
+</ul>
+</div>
+</section>
+<section id="the-markov-chain-timeseries-1" class="slide level2">
+<h2>The Markov Chain Timeseries</h2>
+
+<img data-src="posteriorPlot01.png" class="r-stretch"></section>
+<section id="the-posterior-distribution-1" class="slide level2">
+<h2>The Posterior Distribution</h2>
+
+<img data-src="posteriorPlot02.png" class="r-stretch"></section>
+<section id="assessing-our-chains" class="slide level2">
+<h2>Assessing Our Chains</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>model00.samples<span class="sc">$</span><span class="fu">summary</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 10
+  variable   mean median    sd   mad     q5    q95  rhat ess_bulk ess_tail
+  &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+1 lp__     -129.  -128.   1.03 0.737 -131.  -128.   1.00   17204.   21369.
+2 beta0     171.   171.   9.52 9.40   155.   187.   1.00   26136.   23619.
+3 sigma      51.8   51.0  7.25 6.89    41.5   64.9  1.00   25343.   23597.</code></pre>
+</div>
+</div>
+<div>
+<ul>
+<li>The summary function reports the PSRF (rhat)</li>
+<li>Here we look at our two parameters: <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\sigma\)</span></li>
+<li>Both have <span class="math inline">\(\hat{R}=1.00\)</span>, so both would be considered converged</li>
+<li><code>lp__</code> is posterior log likelihood–does not necessarily need examined</li>
+<li><code>ess_</code> columns show effect sample size for chain (factoring in autocorrelation between correlations)
+<ul>
+<li>More is better</li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="results-interpretation" class="slide level2">
+<h2>Results Interpretation</h2>
+<div>
+<ul>
+<li>At long last, with a set of converged Markov chains, we can now interpret the results
+<ul>
+<li>Here, we disregard which chain samples came from and pool all sampled values to use for results</li>
+</ul></li>
+<li>We use summaries of posterior distributions when describing model parameters
+<ul>
+<li>Typical summary: the posterior mean
+<ul>
+<li>The mean of the sampled values in the chain</li>
+</ul></li>
+<li>Called EAP (Expected a Posteriori) estimates</li>
+<li>Less common: posterior median</li>
+</ul></li>
+<li>Important point:
+<ul>
+<li>Posterior means are different than what characterizes the ML estimates
+<ul>
+<li>Analogous to ML estimates would be the mode of the posterior distribution</li>
+</ul></li>
+<li>Especially important if looking at non-symmetric posterior distributions
+<ul>
+<li>Look at posterior for variances</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="results-interpretation-1" class="slide level2">
+<h2>Results Interpretation</h2>
+<div>
+<ul>
+<li>To summarize the uncertainty in parameters, the posterior standard deviation is used
+<ul>
+<li>The standard deviation of the sampled values in the chain</li>
+<li>This is the analogous to the standard error from ML</li>
+</ul></li>
+<li>Bayesian credible intervals are formed by taking quantiles of the posterior distribution
+<ul>
+<li>Analogous to confidence intervals</li>
+<li>Interpretation slightly different – the probability the parameter lies within the interval</li>
+<li>95% credible interval notes that parameter is within interval with 95% confidence</li>
+</ul></li>
+<li>Additionally, highest density posterior intervals can be formed
+<ul>
+<li>The narrowest range for an interval (for unimodal posterior distributions)</li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="our-results" class="slide level2">
+<h2>Our Results</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>model00.samples<span class="sc">$</span><span class="fu">summary</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 10
+  variable   mean median    sd   mad     q5    q95  rhat ess_bulk ess_tail
+  &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+1 lp__     -129.  -128.   1.03 0.737 -131.  -128.   1.00   17204.   21369.
+2 beta0     171.   171.   9.52 9.40   155.   187.   1.00   26136.   23619.
+3 sigma      51.8   51.0  7.25 6.89    41.5   64.9  1.00   25343.   23597.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="fu">hdi</span>(model00.samples<span class="sc">$</span><span class="fu">draws</span>(<span class="st">"beta0"</span>), <span class="at">credMass =</span> .<span class="dv">9</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  lower   upper 
+154.917 186.013 
+attr(,"credMass")
+[1] 0.9</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="fu">hdi</span>(model00.samples<span class="sc">$</span><span class="fu">draws</span>(<span class="st">"sigma"</span>), <span class="at">credMass =</span> .<span class="dv">9</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  lower   upper 
+40.3082 63.1433 
+attr(,"credMass")
+[1] 0.9</code></pre>
+</div>
+</div>
+</section>
+<section id="the-posterior-distribution-2" class="slide level2">
+<h2>The Posterior Distribution</h2>
+
+<img data-src="posteriorPlot02.png" class="r-stretch"></section>
+<section id="wrapping-up" class="slide level2">
+<h2>Wrapping Up</h2>
+<div>
+<ul>
+<li>This lecture covered the basics of MCMC estimation with Stan</li>
+<li>Next we will use an example to show a full analysis of the data problem we started with today</li>
+<li>The details today are the same for all MCMC analyses, regardless of which algorithm is used</li>
+</ul>
+</div>
+<div class="footer footer-default">
+<p><a href="https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/">https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/</a></p>
+</div>
+</section>
+    </div>
+  </div>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script>
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/dist/reveal.js"></script>
+  <!-- reveal.js plugins -->
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/plugin/multiplex/socket.io.js"></script>
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/plugin/multiplex/multiplex.js"></script>
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  
+
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="03_MCMC_and_Stan_files/libs/revealjs/plugin/math/math.js"></script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+'controlsAuto': true,
+'previewLinksAuto': false,
+'smaller': false,
+'pdfSeparateFragments': false,
+'autoAnimateEasing': "ease",
+'autoAnimateDuration': 1,
+'autoAnimateUnmatched': true,
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'multiplex': {"secret":null,"id":"26212d00ce0c7fc4","url":"https://reveal-multiplex.glitch.me/"},
+'smaller': false,
+ 
+        // Display controls in the bottom right corner
+        controls: false,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: false,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'edges',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: 'c/t',
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: true,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: false,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'linear',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: false,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'none',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'none',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: 1050,
+
+        height: 700,
+
+        // Factor of the display size that should remain empty around the content
+        margin: 0.1,
+
+        math: {
+          mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
+
+          RevealMath,
+          
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    
+    <script>
+      // htmlwidgets need to know to resize themselves when slides are shown/hidden.
+      // Fire the "slideenter" event (handled by htmlwidgets.js) when the current
+      // slide changes (different for each slide format).
+      (function () {
+        function fireSlideChanged(previousSlide, currentSlide) {
+
+          // dispatch for htmlwidgets
+          const event = window.document.createEvent("Event");
+          event.initEvent("slideenter", true, true);
+          window.document.dispatchEvent(event);
+
+          // dispatch for shiny
+          if (window.jQuery) {
+            if (previousSlide) {
+              window.jQuery(previousSlide).trigger("hidden");
+            }
+            if (currentSlide) {
+              window.jQuery(currentSlide).trigger("shown");
+            }
+          }
+        }
+
+        // hookup for reveal
+        if (window.Reveal) {
+          window.Reveal.addEventListener("slidechanged", function(event) {
+            fireSlideChanged(event.previousSlide, event.currentSlide);
+          });
+        }
+
+        // hookup for slidy
+        if (window.w3c_slidy) {
+          window.w3c_slidy.add_observer(function (slide_num) {
+            // slide_num starts at position 1
+            fireSlideChanged(null, w3c_slidy.slides[slide_num - 1]);
+          });
+        }
+
+      })();
+    </script>
+
+    <script id="quarto-html-after-body" type="application/javascript">
+    window.document.addEventListener("DOMContentLoaded", function (event) {
+      const toggleBodyColorMode = (bsSheetEl) => {
+        const mode = bsSheetEl.getAttribute("data-mode");
+        const bodyEl = window.document.querySelector("body");
+        if (mode === "dark") {
+          bodyEl.classList.add("quarto-dark");
+          bodyEl.classList.remove("quarto-light");
+        } else {
+          bodyEl.classList.add("quarto-light");
+          bodyEl.classList.remove("quarto-dark");
+        }
+      }
+      const toggleBodyColorPrimary = () => {
+        const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+        if (bsSheetEl) {
+          toggleBodyColorMode(bsSheetEl);
+        }
+      }
+      toggleBodyColorPrimary();  
+      const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+      tabsets.forEach(function(tabset) {
+        const tabby = new Tabby('#' + tabset.id);
+      });
+      const clipboard = new window.ClipboardJS('.code-copy-button', {
+        target: function(trigger) {
+          return trigger.previousElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        // button target
+        const button = e.trigger;
+        // don't keep focus
+        button.blur();
+        // flash "checked"
+        button.classList.add('code-copy-button-checked');
+        var currentTitle = button.getAttribute("title");
+        button.setAttribute("title", "Copied!");
+        setTimeout(function() {
+          button.setAttribute("title", currentTitle);
+          button.classList.remove('code-copy-button-checked');
+        }, 1000);
+        // clear code selection
+        e.clearSelection();
+      });
+      function tippyHover(el, contentFn) {
+        const config = {
+          allowHTML: true,
+          content: contentFn,
+          maxWidth: 500,
+          delay: 100,
+          arrow: false,
+          appendTo: function(el) {
+              return el.closest('section.slide') || el.parentElement;
+          },
+          interactive: true,
+          interactiveBorder: 10,
+          theme: 'quarto-reveal',
+          placement: 'bottom-start'
+        };
+          config['offset'] = [0,0];
+          config['maxWidth'] = 700;
+        window.tippy(el, config); 
+      }
+      const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+      for (var i=0; i<noterefs.length; i++) {
+        const ref = noterefs[i];
+        tippyHover(ref, function() {
+          let href = ref.getAttribute('href');
+          try { href = new URL(href).hash; } catch {}
+          const id = href.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          return note.innerHTML;
+        });
+      }
+      var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+      for (var i=0; i<bibliorefs.length; i++) {
+        const ref = bibliorefs[i];
+        const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+        tippyHover(ref, function() {
+          var popup = window.document.createElement('div');
+          cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    });
+    </script>
+    
+
+</body></html>
