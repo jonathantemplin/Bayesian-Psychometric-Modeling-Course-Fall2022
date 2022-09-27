@@ -1,0 +1,473 @@
+---
+title: "Efficent Stan Code and Generated Quantities"
+author: "Lecture 3b" 
+format: 
+  revealjs:
+    multiplex: false
+    footer: "[https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/](https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/)"
+    theme: ["pp.scss"]
+    slide-number: c/t
+    incremental: false
+editor: source
+---
+
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+load("03b.RData")
+
+# Package installation ======================================================================
+needed_packages = c("invgamma", "ggplot2", "cmdstanr", "HDInterval", "bayesplot", "pathdiagram")
+for(i in 1:length(needed_packages)){
+  haspackage = require(needed_packages[i], character.only = TRUE)
+  if(haspackage == FALSE){
+    install.packages(needed_packages[i])
+  }
+  library(needed_packages[i], character.only = TRUE)
+}
+
+# Data import ==================================================================
+DietData = read.csv(file = "DietData.csv")
+
+# Centering variables ==========================================================
+DietData$Height60IN = DietData$HeightIN-60
+
+# full analysis model suggested by data: =======================================
+FullModelFormula = formula(WeightLB ~ Height60IN + factor(DietGroup) + Height60IN:factor(DietGroup), data = DietData)
+```
+
+
+## Today's Lecture Objectives
+
+1. Making Stan Syntax Shorter
+2. Computing Functions of Model Parameters
+
+## Making Stan Code Shorter
+
+The Stan syntax from our previous model was lengthy:
+
+- A declared variable for each parameter
+- The linear combination of coefficients multiplying predictors
+
+Stan has built-in features to shorten syntax:
+
+- Matrices/Vectors
+- Matrix products
+- Multivariate distributions (initially for prior distributions)
+
+## Linear Models without Matrices
+
+The linear model from our example was:
+
+$$\text{WeightLB}_p  = \beta_0 + \beta_1\text{HeightIN}_p + \beta_2 \text{Group2}_p + \beta_3 \text{Group3}_p + \beta_4\text{HeightIN}_p\text{Group2}_p + $$
+$$\beta_5\text{HeightIN}_p\text{Group3}_p + e_p$$
+with:
+
+* $\text{Group2}_p$ the binary indicator of person $p$ being in group 2
+* $\text{Group3}_p$ the binary indicator of person $p$ being in group 3
+* $e_p \sim N(0,\sigma_e)$
+
+## Path Diagram of Model
+
+
+```{r regPM, echo=FALSE}
+if (!require(pathdiagram)) install.packages("pathdiagram")
+wall(ylim=c(.2,1))
+
+weightLB = manifest("WeightLB", x = .8, y = .5)
+heightIN60 = manifest("HeightIN60", x = .2, y = .7)
+dietGroup = manifest("DietGroup", x = .2, y = .5)
+dietXheight = manifest("DietGroup_X_HeightIN60", x = .2, y = .3)
+
+draw(weightLB)
+draw(dietGroup)
+arrow(from=dietGroup, to = weightLB, start = "east", end="west")
+draw(heightIN60)
+arrow(from=heightIN60, to = weightLB, start = "east", end="west")
+draw(dietXheight)
+arrow(from=dietXheight, to = weightLB, start = "east", end="west")
+
+
+```
+
+## Linear Models with Matrices
+
+:::: {.columns}
+
+::: {.column width="50%"}
+Model (predictor) matrix:
+
+$$\textbf{X} = \left[
+\begin{array}{cccccc}
+1 & -4 & 0 & 0 & 0 & 0 \\
+  &    &  \vdots &   &   &   \\
+1 & 12 & 0 & 1 & 0 & 12 \\
+\end{array}
+\right] $$
+
+:::
+
+
+::: {.column width="50%"}
+Coefficients vector:
+
+$\boldsymbol{\beta} = \left[
+\begin{array}{c}
+\beta_0 \\
+\beta_1 \\
+\beta_2 \\
+\beta_3 \\
+\beta_4 \\
+\beta_5 \\
+\end{array}
+\right]$
+
+:::
+
+::::
+
+```{r, echo=TRUE}
+head(model.matrix(FullModelFormula, data = DietData))
+```
+
+## Linear Models with Matrices
+
+Using matrices, we can rewrite our regression equation from 
+
+$$\text{WeightLB}_p  = \beta_0 + \beta_1\text{HeightIN}_p + \beta_2 \text{Group2}_p + \beta_3 \text{Group3}_p + \beta_4\text{HeightIN}_p\text{Group2}_p + $$
+$$\beta_5\text{HeightIN}_p\text{Group3}_p + e_p$$
+
+To:
+
+$$\textbf{WeightLB} = \textbf{X}\boldsymbol{\beta} + \textbf{e}$$
+
+Where:
+
+* $\textbf{WeightLB}$ is the vector of outcomes (size $N \times 1$)
+* $\textbf{X}$ is the model (predictor) matrix (size $N \times P$ for $P-1$ predictors)
+* $\boldsymbol{\beta}$ is the coefficents vector (size $P \times 1$)
+* $\textbf{e}$ is the vector of residuals (size $N \times 1$)
+
+
+## Example: Predicted Values
+
+```{r, echo=TRUE}
+P=6
+beta = matrix(data = runif(n = 6, min = 0, max = 10), nrow = P, ncol = 1)
+X = model.matrix(FullModelFormula, data=DietData)
+X %*% beta # R uses %*% for matrix products
+```
+
+
+## Syntax Changes: Data Section
+
+**Old Syntax Without Matrices**
+
+```{r, eval=FALSE, echo=TRUE}
+data {
+  int<lower=0> N;
+  vector[N] weightLB;
+  vector[N] height60IN;
+  vector[N] group2;
+  vector[N] group3;
+  vector[N] heightXgroup2;
+  vector[N] heightXgroup3;
+}
+```
+
+
+**New Syntax With Matrices**
+
+```{r, eval=FALSE, echo=TRUE}
+data {
+  int<lower=0> N;         // number of observations
+  int<lower=0> P;         // number of predictors (plus column for intercept)
+  matrix[N, P] X;         // model.matrix() from R 
+  vector[N] y;            // outcome
+  
+  vector[P] meanBeta;       // prior mean vector for coefficients
+  matrix[P, P] covBeta; // prior covariance matrix for coefficients
+  
+  real sigmaRate;         // prior rate parameter for residual standard deviation
+}
+```
+
+## Syntax Changes: Parameters Section
+
+**Old Syntax Without Matrices**
+
+```{r, eval=FALSE, echo=TRUE}
+parameters {
+  real beta0;
+  real betaHeight;
+  real betaGroup2;
+  real betaGroup3;
+  real betaHxG2;
+  real betaHxG3;
+  real<lower=0> sigma;
+}
+```
+
+**New Syntax With Matrices**
+
+```{r, eval=FALSE, echo=TRUE}
+parameters {
+  vector[P] beta;         // vector of coefficients for Beta
+  real<lower=0> sigma;    // residual standard deviation
+}
+```
+
+## Defining Prior Distributions
+
+Previously, we defined a normal prior distribution for each regression coefficient
+
+* Univariate priors -- univariate normal distribution
+* Each parameter had a prior that was independent of the other parameters
+
+When combining all parameters into a vector, a natural extension is a multivariate normal distribution
+
+* [https://en.wikipedia.org/wiki/Multivariate_normal_distribution](https://en.wikipedia.org/wiki/Multivariate_normal_distribution)
+* Mean vector (```meanBeta```; size $P \times 1$)
+  * Put all prior means for these coefficients into a vector from R
+* Covariance matrix (```covBeta```; size $P \times P$)
+  * Put all prior variances (prior $SD^2$) into the diagonal
+  * With zeros for off diagonal, the MVN prior is equivalent to the set of independent univariate normal priors
+
+## Syntax Changes: Model Section
+
+**Old Syntax Without Matrices**
+
+```{r, eval=FALSE, echo=TRUE}
+model {
+  beta0 ~ normal(0,1);
+  betaHeight ~ normal(0,1);
+  betaGroup2 ~ normal(0,1);
+  betaGroup3 ~ normal(0,1);
+  betaHxG2 ~ normal(0,1);
+  betaHxG3 ~ normal(0,1);
+  
+  sigma ~ exponential(.1); // prior for sigma
+  weightLB ~ normal(
+    beta0 + betaHeight * height60IN + betaGroup2 * group2 + 
+    betaGroup3 * group3 + betaHxG2 *heightXgroup2 +
+    betaHxG3 * heightXgroup3, sigma);
+}
+
+```
+
+**New Syntax With Matrices**
+
+```{r, eval=FALSE, echo=TRUE}
+model {
+  beta ~ multi_normal(meanBeta, covBeta); // prior for coefficients
+  sigma ~ exponential(sigmaRate);         // prior for sigma
+  y ~ normal(X*beta, sigma);              // linear model
+}
+```
+
+See: Example Syntax in R File
+
+## Summary of Changes
+
+* With matrices, there is less syntax to write 
+  * Model is equivalent
+* Output, however, is not labeled with respect to parameters
+  * May have to label output
+  
+
+```{r}
+model05_Samples$summary()
+```
+## Computing Functions of Parameters
+
+## Computing Functions of Parameters
+
+* Often, we need to compute some linear or non-linear function of parameters in a linear model
+  * Missing effects (i.e., slope for Diet Group 2)
+  * Simple slopes
+  * $R^2$
+* In non-Bayesian analyses, these are often formed with the point estimates of parameters
+* For Bayesian analyses, however, we will seek to build the posterior distribution for any function of the parameters
+  * This means applying the function to all posterior samples
+
+## Example: Need Slope for Diet Group 2
+
+Recall our model:
+
+$$\text{WeightLB}_p  = \beta_0 + \beta_1\text{HeightIN}_p + \beta_2 \text{Group2}_p + \beta_3 \text{Group3}_p + \beta_4\text{HeightIN}_p\text{Group2}_p + $$
+
+$$\beta_5\text{HeightIN}_p\text{Group3}_p + e_p$$
+
+Here, $\beta_1$ is the change in $\text{WeightLB}_p$ per one-unit change in $\text{HeightIN}_p$ for a person in Diet Group 1 (i.e. \text{Group2}_p and $\text{Group3}_p=0$)
+
+Question: What is the slope for Diet Group 2?
+
+:::{.incremental}
+- To answer, we need to first form the model when $\text{Group2}_p = 1$:
+  $$\text{WeightLB}_p  = \beta_0 + \beta_1\text{HeightIN}_p + \beta_2  + \beta_4\text{HeightIN}_p + e_p$$
+- Next, we rearrange terms that involve $\text{HeightIN}_p$: 
+  $$\text{WeightLB}_p  = (\beta_0 + \beta_2)  + (\beta_1 + \beta_4)\text{HeightIN}_p  + e_p$$
+- From here, we can see the slope for Diet Group 2 is $(\beta_1 + \beta_4)$
+  - Also, the intercept for Diet Group 2 is $(\beta_0 + \beta_2)$
+
+:::
+
+## Computing Slope for Diet Group 2
+
+Our task: Create posterior distribution for Diet Group 2
+
+- We must do so for each iteration we've kept from our MCMC chain
+- A somewhat tedious way to do this is after using Stan
+
+```{r, echo=TRUE}
+model05_Samples$summary()
+slopeG2 = model05_Samples$draws("beta[2]") + model05_Samples$draws("beta[5]")
+summary(slopeG2)
+
+```
+
+## Computing the Slope Within Stan
+
+Stan can compute these values for us--with the "generated quantities" section of the syntax
+
+```{r, eval=FALSE, echo=TRUE}
+generated quantities{
+  real slopeG2;
+  slopeG2 = betaHeight + betaHxG2;
+}
+```
+
+The generated quantities block computes values that do not affect the posterior distributions of the parameters--they are computed after the sampling from each iteration
+
+- The values are then added to the Stan object and can be seen in the summary
+  - They can also be plotted using the ```bayesplot``` package
+
+```{r, echo=TRUE}
+model04b_Samples$summary()
+```
+
+
+## Computing the Slope with Matrices
+
+To put this same method to use with our matrix syntax, we can form a contrast matrix
+
+- Contrasts are linear combinations of parameters
+  - You may have used these in R using the ```glht``` package 
+
+For us, we form a contrast matrix that is size $C \times P$ where C are the number of contrasts
+
+- The entries of this matrix are the values that multiply the coefficients
+  - For $(\beta_1 + \beta_4)$ this would be 
+      - A one in the corresponding entry for $\beta_1$
+      - A one in the corresponding entry for $\beta_4$
+      - Zeros elsewhere
+      
+- $\textbf{C} = \left[
+\begin{array}{cccccc}
+0 & 1 & 0 & 0 & 1 & 0 \\
+\end{array}
+\right]$
+
+The contract matrix then multipies the coefficents vector to form the values:
+
+$$\textbf{C} \boldsymbol{\beta}$$
+
+## Contrasts in Stan
+
+We can change our Stan code to import a contrast matrix and use it in generated quantities:
+
+```{r eval = FALSE, echo = TRUE}
+data {
+  int<lower=0> N;         // number of observations
+  int<lower=0> P;         // number of predictors (plus column for intercept)
+  matrix[N, P] X;         // model.matrix() from R 
+  vector[N] y;            // outcome
+  
+  vector[P] meanBeta;     // prior mean vector for coefficients
+  matrix[P, P] covBeta;   // prior covariance matrix for coefficients
+  
+  real sigmaRate;         // prior rate parameter for residual standard deviation
+  
+  int<lower=0> nContrasts; 
+  matrix[nContrasts,P] contrast;   // contrast matrix for additional effects
+}
+```
+
+The generated quantities would then become:
+
+```{r eval = FALSE, echo = TRUE}
+generated quantities {
+  vector[nContrasts] contrasts;
+  contrasts = contrastMatrix*beta;
+}
+```
+
+
+See example syntax for a full demonstration
+
+## Computing $R^2$
+
+We can use the generated quantities section to build a posterior distribution for $R^2$
+
+There are several formulas for $R^2$, we will use the following:
+
+$$R^2 = 1 - \frac{RSS}{TSS} = 1 - \frac{\sum_{p=1}^{N}\left(y_p - \hat{y}_p\right)^2}{\sum_{p=1}^{N}\left(y_p - \bar{y}_p\right)^2}$$
+
+Where:
+
+- RSS is the regression sum of squares 
+- TSS is the total sum of squares
+- $\hat{y} = \textbf{X}\boldsymbol{\beta}$
+- $\bar{y} = \sum_{p=1}^{N}\frac{y_p}{N}$ 
+
+Notice: RSS depends on sampled parameters--so we will use this to build our posterior distribution for $R^2$
+
+## Computing $R^2$ in Stan
+
+The generated quantities block can do everything we need to compute $R^2$
+
+```{r eval = FALSE, echo = TRUE}
+generated quantities {
+  vector[nContrasts] heightSlopeG2;
+  real rss;
+  real totalrss;
+    
+  heightSlopeG2 = contrast*beta;
+  
+  { // anything in these brackets will not appear in summary
+    vector[N] pred;
+    pred = X*beta;
+    rss = dot_self(y-pred); // dot_self is a stan function
+    totalrss = dot_self(y-mean(y));
+  }
+  
+  real R2;
+  
+  R2 = 1-rss/totalrss;
+  
+}
+```
+
+See the example syntax for a demonstration
+
+## Wrapping Up
+
+Today we further added to our Bayesian toolset:
+
+- How to make Stan use less syntax using matrices
+- How to form posterior distributions for functions of parameters
+
+We will use both of these features in psychometric models
+
+## Up Next
+
+We have one more lecture on linear models that will introduce
+
+- Methods for relative model comparisons
+- Methods for checking the absolute fit of a model
+
+Then all things we have discussed to this point will be used in our psychometric models
+
+
+
+
