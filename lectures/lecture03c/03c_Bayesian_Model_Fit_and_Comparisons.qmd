@@ -1,0 +1,424 @@
+---
+title: "Bayesian Model Fit and Comparisons"
+author: "Lecture 3c" 
+format: 
+  revealjs:
+    multiplex: false
+    footer: "[https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/](https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/)"
+    theme: ["pp.scss"]
+    slide-number: c/t
+    incremental: false
+editor: source
+---
+
+
+```{r, include=FALSE}
+set.seed(10032022)
+options(tinytex.verbose = TRUE)
+
+
+# Package installation ======================================================================
+needed_packages = c("ggplot2", "cmdstanr", "HDInterval", "bayesplot", "loo")
+for(i in 1:length(needed_packages)){
+  haspackage = require(needed_packages[i], character.only = TRUE)
+  if(haspackage == FALSE){
+    install.packages(needed_packages[i])
+  }
+  library(needed_packages[i], character.only = TRUE)
+}
+
+# Data import ==================================================================
+DietData = read.csv(file = "DietData.csv")
+
+# Centering variables ==========================================================
+DietData$Height60IN = DietData$HeightIN-60
+
+# full analysis model suggested by data: =======================================
+FullModelFormula = formula(WeightLB ~ Height60IN + factor(DietGroup) + Height60IN:factor(DietGroup), data = DietData)
+```
+
+
+## Today's Lecture Objectives
+
+1. Bayesian methods for determining how well a model fits the data (absolute fit: Posterior Predictive Model Checks)
+2. Bayesian methods for determining which model fits better (relative model fit: Widely Available Information Criterion and Leave One Out methods)
+
+## Absolute Model Fit: PPMC
+
+Posterior predictive model checking (PPMC) is a Bayesian method for determining if a model fits the data
+
+* Absolute model fit: "Does my model fit my data well?"
+* Overall idea: If a model fits the data well, then simulated data based on the model will resemble the observed data
+* Ingredients in PPMC:
+  * Original data
+    * Typically characterized by some set of statistics (i.e, sample mean, standard deviation, covariance) applied to data
+  * Data simulated from posterior draws in the Markov Chain
+    * Summarized by the same set of statistics 
+
+## PPMC Example: Linear Models
+
+Recall our linear model example with the Diet Data: 
+
+$$\text{WeightLB}_p  = \beta_0 + \beta_1\text{HeightIN}_p + \beta_2 \text{Group2}_p + \beta_3 \text{Group3}_p + \beta_4\text{HeightIN}_p\text{Group2}_p + $$
+$$\beta_5\text{HeightIN}_p\text{Group3}_p + e_p$$
+  
+We last used matrices to estimate this model, with the following results:
+```{r, eval=TRUE, echo=TRUE}
+model06_Samples$summary(variables = c("beta", "sigma"))
+
+```
+
+## PPMC Process 
+
+The PPMC process is as follows
+
+1. Select parameters from a single (sampling) iteration of the Markov chain
+2. Using the selected parameters and the model, simulate a data set with the same size (number of observations/variables)
+3. From the simulated data set, calculate selected summary statistics (e.g. mean)
+4. Repeat steps 1-3 for a fixed number of iterations (perhaps across the whole chain)
+5. When done, compare position of observed summary statistics to that of the distribution of summary statitsics from simulated data sets (predictive distribution)
+
+## Example PPMC
+
+For our model, we have one observed variable that is in the model ($Y_p$)
+
+- Note, the observations in $\textbf{X}$ are not modeled, so we do not examine these
+
+
+First, let's assemble the posterior draws:
+
+```{r, echo=TRUE, eval=TRUE}
+# here, we use format = "draws_matrix" to remove the draws from the array format they default to
+posteriorSample = model06_Samples$draws(variables = c("beta", "sigma"), format = "draws_matrix")
+posteriorSample
+```
+
+## Example PPMC
+
+Next, we take one draw at random:
+
+```{r, echo=TRUE, eval=TRUE}
+sampleIteration = sample(x = 1:nrow(posteriorSample), size = 1, replace = TRUE)
+sampleIteration
+
+posteriorSample[sampleIteration, ]
+```
+
+## Example PPMC
+
+We then generate data based on this sampled iteration and our model distributional assumptions:
+
+```{r, echo=TRUE, eval=TRUE}
+betaVector = matrix(data = posteriorSample[sampleIteration, 1:6], ncol = 1)
+betaVector
+sigma = posteriorSample[sampleIteration, 7]
+
+conditionalMeans = model06_predictorMatrix %*% betaVector
+
+simData = rnorm(n = N, mean = conditionalMeans, sd = sigma)
+
+
+```
+
+Next, let's take the mean and standard deviation of the simulated data:
+
+```{r, echo=TRUE, eval=TRUE}
+simMean = mean(simData)
+simMean
+
+simSD = sd(simData)
+simSD
+```
+
+
+## Looping Across All Posterior Samples
+
+We then repeat this process for a set number of samples (here, we'll use each posterior draw)
+
+```{r, echo=TRUE, eval=TRUE}
+simMean = rep(NA, nrow(posteriorSample))
+simSD = rep(NA, nrow(posteriorSample))
+for (iteration in 1:nrow(posteriorSample)){
+  betaVector = matrix(data = posteriorSample[iteration, 1:6], ncol = 1)
+  sigma = posteriorSample[iteration, 7]
+
+  conditionalMeans = model06_predictorMatrix %*% betaVector
+
+  simData = rnorm(n = N, mean = conditionalMeans, sd = sigma)
+  simMean[iteration] = mean(simData)
+  simSD[iteration] = sd(simData)
+}
+par(mfrow = c(1,2))
+hist(simMean)
+hist(simSD)
+```
+
+##Comparison with Observed Mean
+
+We can now compare our observed mean and standard deviation with that of the sampled values
+
+```{r, echo=TRUE, eval=TRUE}
+ggplotData = data.frame(simMean = simMean, simSD = simSD)
+ggplot(data = ggplotData, aes(x = simMean)) + geom_histogram() + geom_vline(xintercept = mean(DietData$WeightLB), color = "orange")
+
+```
+
+
+## Comparison with Observed SD
+
+We can now compare our observed mean and standard deviation with that of the sampled values
+
+```{r, echo=TRUE, eval=TRUE}
+ggplot(data = ggplotData, aes(x = simSD)) + geom_histogram() + geom_vline(xintercept = sd(DietData$WeightLB), color = "orange")
+
+```
+
+## PPMC Charactaristics 
+
+PPMC methods are very useful
+
+* They provide a visual way to determine if the model fits the observed data
+* They are the main method of assessing absolute fit in Bayesian models
+* Absolute fit assesses if a model fits the data
+
+But, there are some drawbacks to PPMC methods
+
+* Almost any statistic can be used
+  * Some are better than others
+* No standard determining how much misfit is too much
+* May be overwhelming to compute depending on your model
+
+## Posterior Predictive P-Values
+
+We can quantify misfit from PPMC using a type of "p-value"
+
+* The Posterior Predictive P-Value: The proportion of times the statistic from the simulated data exceeds that of the real data
+* Useful to determine how far off a statistic is from its posterior predictive distribution
+
+For the mean:
+
+```{r, echo=TRUE, eval=TRUE}
+# PPP-value for mean
+length(which(simMean > mean(DietData$WeightLB)))/length(simMean)
+```
+
+For the standard deviation:
+```{r, echo=TRUE, eval=TRUE}
+# PPP-value for mean
+length(which(simSD > sd(DietData$WeightLB)))/length(simSD)
+```
+
+If these p-values were either (a) near zero or (b) near one then this indicates how far off your data are from their predictive distribution
+
+See the example file for comparing between two sets of priors
+
+## PPMC and PPP in Stan
+
+We can use the generated quantities section of Stan syntax to compute these for us:
+```{r, echo=TRUE, eval=FALSE}
+
+generated quantities{
+
+  // general quantities used below:
+  vector[N] y_pred;
+  y_pred = X*beta; // predicted value (conditional mean)
+
+  // posterior predictive model checking
+  array[N] real y_rep;
+  y_rep = normal_rng(y_pred, sigma);
+  
+  real mean_y = mean(y);
+  real sd_y = sd(y);
+  real mean_y_rep = mean(to_vector(y_rep));
+  real<lower=0> sd_y_rep = sd(to_vector(y_rep));
+  int<lower=0, upper=1> mean_gte = (mean_y_rep >= mean_y);
+  int<lower=0, upper=1> sd_gte = (sd_y_rep >= sd(y));
+  
+}
+
+```
+
+Which gives us:
+```{r, echo=TRUE, eval=TRUE}
+model06_Samples$summary(variables = c("mean_y_rep", "sd_y_rep", "mean_gte", "sd_gte"))
+```
+## Relative Model Fit
+
+## Relative Model Fit
+
+Relative model fit: Used to compare two (or more) competing models
+
+* In non-Bayesian models, Information Criteria are often used to make comparisons
+  * AIC, BIC, etc.
+  * The model with the lowest index is the model that fits best
+* Bayesian model fit is similar
+  * Uses an index value
+  * The model with the lowest index is the model that fits best
+* Recent advances in Bayesian model fit use indices that are tied to making cross-validation predictions:
+  * Fit model leaving one observation out
+  * Calculate statistics related to prediction (for instance, log-likelihood of that observation conditional on model parameters)
+  * Do for all observations
+* Newer Bayesian indices try to mirror these leave-one-out predictions (but approximate these due to time constraints)
+  
+## Bayesian Model Fit Indices
+
+Way back when (late 1990s and early 2000s), the Deviance Information Criterion was used for relative Bayesian model fit comparisons
+
+$$\text{DIC} = p_D + \overline{D\left(\theta\right)},$$
+where the estimated number of parameters is:
+
+$$p_D = \overline{D\left(\theta\right)} - D\left(\bar{\theta}\right), $$
+and where
+
+$$ D\left( \theta\right) = -2 \log \left(p\left(y|\theta\right)\right)+C$$
+C is a constant that cancels out when model comparisons are made
+
+Here,
+
+* $\overline{D\left(\theta\right)}$ is the average log likelihood of the data ($y$) given the parameters ($\theta$) computed across all samples
+* $D\left(\bar{\theta}\right)$ is the log likelihood of the data ($y$) computed at the average of the parameters ($\bar{\theta}$) computed across all samples
+
+## Newer Methods
+
+The DIC has fallen out of favor recently
+
+* Has issues when parameters are discrete
+* Not fully Bayesian (point estimate of average of parameter values)
+* Can give negative values for estimated numbers of parameters in a model
+
+WAIC (Widely applicable or Watanabe-Akaike information criterion, Watanabe, 2010) corrects some of the problems with DIC:
+
+* Fully Bayesian (uses entire posterior distribution)
+* Asymptotically equal to Bayesian cross-validation
+* Invariant to parameterization
+
+## LOO: Leave One Out via Pareto Smoothed Importance Sampling
+
+More recently, approximations to LOO have gained popularity
+
+* LOO via Pareto Smoothed Importance Sampling attempts to approximate the process of leave-one-out cross-validation using a sampling based-approach
+  * Gives a finite-sample approximation
+  * Implemented in Stan
+  * Can quickly compare models
+  * Gives warnings when it may be less reliable to use
+* The details are very technical, but are nicely compiled in Vehtari, Gelman, and Gabry (2017) (see preprint on arXiv at [https://arxiv.org/pdf/1507.04544.pdf](https://arxiv.org/pdf/1507.04544.pdf))
+* Big picture:
+  * Can compute WAIC and/or LOO via Stan's ```loo``` package
+  * LOO also gives variability for model comparisons
+  
+## Model Comparisons via Stan
+
+The core of WAIC and LOO is the log-likelihood of the data conditional on the model parameters, as calculated for each observation in the sample of the model:
+
+* We can calculate this using the generated quantities block in Stan:
+```{r, eval=FALSE, echo=TRUE}
+generated quantities{
+
+  // general quantities used below:
+  vector[N] y_pred;
+  y_pred = X*beta; // predicted value (conditional mean)
+
+  // WAIC and LOO for model comparison
+  
+  array[N] real log_lik;
+  for (person in 1:N){
+    log_lik[person] = normal_lpdf(y[person] | y_pred[person], sigma);
+  }
+}  
+```
+  
+
+## WAIC in Stan
+
+* Using the ```loo``` package, we can calculate WAIC with the ```waic()``` function
+```{r, eval=TRUE, echo=TRUE}
+waic(model06_Samples$draws("log_lik"))
+```
+
+* Here:
+  * ```elpd_waic``` is the expected log pointwise predictive density for WAIC
+  * ```p_waic``` is the WAIC calculation of number of model parameters (a penalty to the likelihood for more parameters)
+  * ```waic``` is the WAIC index used for model comparisons (lowest value is best fitting; -2*```elpd_waic```)
+
+Note: WAIC needs a "log_lik" variable in the model analysis to be calculated correctly
+  * That is up to you to provide!!
+
+## LOO in Stan
+
+* Using the ```loo``` package, we can calculate the PSIS-LOO using ```cmdstanr``` objects with the ```$loo()``` function:
+```{r eval=TRUE, echo=TRUE}
+model06_Samples$loo()
+```
+
+Note: LOO needs a "log_lik" variable in the model analysis to be calculated correctly
+
+  * That is up to you to provide!!
+  * If named "log_lik" then you don't need to provide the function an argument
+
+## Notes about LOO
+
+```{r eval=TRUE, echo=TRUE}
+model06_Samples$loo()
+```
+
+Here:
+
+  * ```elpd_loo``` is the expected log pointwise predictive density for LOO
+  * ```p_loo``` is the LOO calculation of number of model parameters (a penalty to the likelihood for more parameters)
+  * ```looic``` is the LOO index used for model comparisons (lowest value is best fitting; -2*```elpd_loo```)
+  
+Also, you get a warning if to many of your sampled values have bad diagnostic values
+  
+  * See [https://mc-stan.org/loo/articles/online-only/faq.html#high_khat](https://mc-stan.org/loo/articles/online-only/faq.html#high_khat)
+
+## Comparing Models with WAIC
+
+To compare models with WAIC, take the one with the lowest value:
+
+```{r, eval=TRUE, echo=TRUE}
+waic(model06_Samples$draws("log_lik"))
+waic(model06b_Samples$draws("log_lik"))
+```
+
+## Comparing Models with LOO
+
+To compare models with LOO, the ```loo``` package has a built-in comparison function:
+
+```{r, eval=TRUE, echo=TRUE}
+# comparing two models with loo:
+loo_compare(list(uniformative = model06_Samples$loo(), informative = model06b_Samples$loo()))
+```
+
+This function calculates the standard error of the difference in ELPD between models
+
+* The SE gives an indication of the standard error in the estimate (relative to the size)
+* Can use this to downweight the choice of models when the standard error is high
+* Note: ```elpd_diff``` is ```looic``` divided by -2 (on the log-likelihood scale, not the deviance scale)
+  * Here, we interpret the result as the model with uninformative priors is preferred to the model with informative priors
+  * The size of the ```elpd_diff``` is much larger than the standard error, indicating we can be fairly certain of this result
+
+
+## General Points about Bayesian Model Comparison
+
+* Note, WAIC and LOO will converge as sample size increases (WAIC is asymptotic value of LOO)
+* Latent variable models present challenges
+  * Need log likelihood with latent variable integrated out
+* Missing data models present challenges
+  * Need log likelihood with missing data integrated out
+* Generally, using LOO is recommended (but providing both is appropriate)
+  
+  
+## Wrapping Up
+
+The three-part lecture (plus example) using linear models was built to show nearly all parts needed in a Bayesian analysis
+
+* MCMC specifications
+* Prior specifications
+* Assessing MCMC convergence
+* Reporting MCMC results
+* Determining if a model fits the data (absolute fit)
+* Determining which model fits the data better (relative fit)
+
+All of these topics will be with us when we start psychometric models in our next lecture
+
+
