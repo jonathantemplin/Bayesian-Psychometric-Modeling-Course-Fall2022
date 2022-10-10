@@ -87,6 +87,8 @@ model06_Stan = cmdstan_model(stan_file = write_stan_file(model06_Syntax))
 # start with model formula
 model06_formula = formula(WeightLB ~ Height60IN + factor(DietGroup) + Height60IN:factor(DietGroup), data = DietData)
 
+temp = lm(model06_formula, data=DietData)
+plot(temp)
 # grab model matrix
 model06_predictorMatrix = model.matrix(model06_formula, data=DietData)
 
@@ -120,6 +122,49 @@ model06_Samples = model06_Stan$sample(
   iter_sampling = 2000
 )
 
+
+# here, we use format = "draws_matrix" to remove the draws from the array format they default to
+posteriorSample = model06_Samples$draws(variables = c("beta", "sigma"), format = "draws_matrix")
+View(posteriorSample)
+
+sampleIteration = sample(x = 1:nrow(posteriorSample), size = 1, replace = TRUE)
+sampleIteration
+
+posteriorSample[sampleIteration, ]
+
+betaVector = matrix(data = posteriorSample[sampleIteration, 1:6], ncol = 1)
+betaVector
+
+sigma = posteriorSample[sampleIteration, 7]
+
+conditionalMeans = model06_predictorMatrix %*% betaVector
+
+simData = rnorm(n = N, mean = conditionalMeans, sd = sigma)
+hist(simData)
+
+simMean = mean(simData)
+simMean
+
+simSD = sd(simData)
+simSD
+
+mean(DietData$WeightLB)
+sd(DietData$WeightLB)
+
+simMean = rep(NA, nrow(posteriorSample))
+simSD = rep(NA, nrow(posteriorSample))
+for (iteration in 1:nrow(posteriorSample)){
+  betaVector = matrix(data = posteriorSample[iteration, 1:6], ncol = 1)
+  sigma = posteriorSample[iteration, 7]
+  
+  conditionalMeans = model06_predictorMatrix %*% betaVector
+  
+  simData = rnorm(n = N, mean = conditionalMeans, sd = sigma)
+  simMean[iteration] = mean(simData)
+  simSD[iteration] = sd(simData)
+}
+
+hist(simMean)
 
 # maximum R-hat
 max(model06_Samples$summary()$rhat, na.rm = TRUE)
@@ -176,13 +221,14 @@ max(model06b_Samples$summary()$rhat, na.rm=TRUE)
 View(model06b_Samples$summary())
 
 # calculate WAIC for model comparisons
+waic(x = model06_Samples$draws("log_lik"))
 waic(x = model06b_Samples$draws("log_lik"))
 
 # calculate LOO for model comparisons
 model06b_Samples$loo()
 
 # comparing two models with loo:
-loo_compare(list(model06_Samples$loo(), model06b_Samples$loo()))
+loo_compare(list(uniformative=model06_Samples$loo(), informative=model06b_Samples$loo()))
 
 # final comparison: investigating homogeneity of variance assumption
 
