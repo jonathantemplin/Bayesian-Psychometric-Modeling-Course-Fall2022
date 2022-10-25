@@ -1,0 +1,784 @@
+---
+title: "Generalized Measurement Models: Modeling Observed Data"
+author: "Lecture 4b" 
+format: 
+  revealjs:
+    multiplex: false
+    footer: "[https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/](https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/)"
+    theme: ["pp.scss"]
+    slide-number: c/t
+    incremental: false
+editor: source
+---
+
+
+```{r, include=FALSE}
+load("lecture04b.RData")
+needed_packages = c("ggplot2", "cmdstanr", "HDInterval", "bayesplot", "loo", "reshape2", "pathdiagram")
+for(i in 1:length(needed_packages)){
+  haspackage = require(needed_packages[i], character.only = TRUE)
+  if(haspackage == FALSE){
+    install.packages(needed_packages[i])
+  }
+  library(needed_packages[i], character.only = TRUE)
+}
+
+conspiracyData = read.csv("conspiracies.csv")
+conspiracyItems = conspiracyData[,1:10]
+
+```
+
+
+## Today's Lecture Objectives
+
+1. Show different modeling specifications for different types of item response data
+2. Show how parameterization differs for standardized latent variables vs. marker item scale identification
+
+
+## Example Data: Conspiracy Theories
+
+Today's example is from a bootstrap resample of 177 undergraduate students at a large state university in the Midwest. The
+survey was a measure of 10 questions about their beliefs in various conspiracy theories that were being passed around
+the internet in the early 2010s. Additionally, gender was included in the survey. All items responses were on a 5-
+point Likert scale with:
+
+1. Strongly Disagree
+2. Disagree
+3. Neither Agree or Disagree
+4. Agree 
+5. Strongly Agree
+
+#### Please note, the purpose of this survey was to study individual beliefs regarding conspiracies. The questions can provoke some strong emotions given the world we live in currently. All questions were approved by university IRB prior to their use. 
+
+Our purpose in using this instrument is to provide a context that we all may find relevant as many of these conspiracy theories are still prevalent today. 
+
+## Conspiracy Theory Questions 1-5
+
+Questions:
+
+1. The U.S. invasion of Iraq was not part of a campaign to fight terrorism, but was driven by oil companies and Jews in the U.S. and Israel.
+2. Certain U.S. government officials planned the attacks of September 11, 2001 because they wanted the United States to go to war in the Middle East.
+3. President Barack Obama was not really born in the United States and does not have an authentic Hawaiian birth certificate.
+4. The current financial crisis was secretly orchestrated by a small group of Wall Street bankers to extend the power of the Federal Reserve and further their control of the world's economy.
+5. Vapor trails left by aircraft are actually chemical agents deliberately sprayed in a clandestine program directed by government officials.
+
+## Conspiracy Theory Questions 6-10
+
+Questions: 
+
+6. Billionaire George Soros is behind a hidden plot to destabilize the American government, take control of the media, and put the world under his control.
+7. The U.S. government is mandating the switch to compact fluorescent light bulbs because such lights make people more obedient and easier to control.
+8. Government officials are covertly Building a 12-lane \"NAFTA superhighway\" that runs from Mexico to Canada through America's heartland.
+9. Government officials purposely developed and spread drugs like crack-cocaine and diseases like AIDS in order to destroy the African American community. 
+10. God sent Hurricane Katrina to punish America for its sins.
+
+## Data Visualization: Q1-Q5
+
+```{r}
+
+names(conspiracyItems) = paste0("item", 1:10)
+
+ggplot(melt(conspiracyItems[,1:5]), aes(x=as.factor(value), fill=as.factor(value))) + 
+  geom_bar() + facet_grid (variable ~ 1) + xlab("") + coord_flip() + 
+  scale_fill_discrete("Response")
+```
+## Data Visualization: Q6-Q10
+
+```{r}
+
+ggplot(melt(conspiracyItems[,6:10]), aes(x=as.factor(value), fill=as.factor(value))) + 
+  geom_bar() + facet_grid (variable ~ 1) + xlab("") + coord_flip() + 
+  scale_fill_discrete("Response")
+```
+
+## Conspiracy Theories: Assumed Latent Variable
+
+For today's lecture, we will assume each of the 10 items measures a single latent variable 
+representing a **person's tendency to believe in conspiracy theories**
+
+* We will denote this latent variable as $\theta_p$ for each person 
+  * $p$ is the index for person (with $p=1, \ldots, P$)
+* We will assume this latent variable is:
+  * Continuous
+  * Normally distributed: $\theta_p \sim N\left(\mu_\theta, \sigma_\theta \right)$
+    * We will make differing assumptions about the scale (the latent variable mean and standard deviation)
+      to show how syntax works for either
+
+* Across all people, we will denote the set of vector of latent variables as 
+
+$$\boldsymbol{\Theta} = \left[\theta_1, \ldots, \theta_P \right]^T $$
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Building Measurement Models
+:::
+
+## Measurement Model Analysis Steps 
+
+1. Specify model
+2. Specify scale identification method for latent variables
+3. Estimate model
+4. Examine model-data fit
+5. Iterate between steps 1-4 until adequate fit is achieved
+
+#### Measurement Model Auxiliary Components
+
+6. Score estimation (and secondary analyses with scores)
+7. Item evaluation
+8. Scale construction
+9. Equating
+10. Measurement invariance/differential item functioning
+
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Modeling Observed Variables with Normal Distributions
+:::
+
+## Observed Variables with Normal Distributions
+
+
+A psychometric model posits that one or more hypothesized latent variables
+predict a person's response to observed items
+
+* Our hypothesized latent variable: Tendency to Believe in Conspiracies ($\theta_p$)
+  * One variable: Unidimensional
+* Each observed variable (item response) is included in the model
+* Today, we will assume each response follows a normal distribution
+  * This is the assumption underlying confirmatory factor analysis (CFA) models 
+  * This assumption is tenuous at best
+
+:::{.incremental}
+* ![](https://res.cloudinary.com/teepublic/image/private/s--59x8z1rj--/t_Preview/b_rgb:191919,c_limit,f_auto,h_630,q_90,w_630/v1605371346/production/designs/16103859_0.jpg){width="200"}
+:::
+
+## Normal Distribution: Linear Regression
+
+As we saw in linear models, when an outcome variable (here $Y_p$) is assumed to follow a (conditional) normal distribution,
+this places a linear regression-style model on the outcome:
+
+For example, take the following linear regression:
+$$Y_p = \beta_0 + \beta_1 X_p + e_p,$$
+with $e_p \sim N\left(0, \sigma_e \right)$
+
+This implies:
+
+$$ Y_p \sim N\left(\beta_0 + \beta_1 X_p, \sigma_e \right)$$
+
+Where:
+
+* The (conditional) mean of $Y_p$ is $\beta_0 + \beta_1 X_p$ 
+* The (residual) standard deviation of $Y_p$ is $\sigma_e$
+
+## The Psychometric Model
+
+For the psychometric model:
+
+* We replace the observed variable $X_p$ with the latent variable $\theta_p$ (for all observed variables)
+
+$$
+\begin{array}{cc}
+Y_{p1} = \mu_1 + \lambda_1 \theta_p  + e_{p, 1}; & e_{p,1} \sim N\left(0, \psi_1^2 \right) \\ 
+Y_{p2} = \mu_2 + \lambda_2 \theta_p  + e_{p, 2}; & e_{p,2} \sim N\left(0, \psi_2^2 \right) \\ 
+Y_{p3} = \mu_3 + \lambda_3 \theta_p  + e_{p, 3}; & e_{p,3} \sim N\left(0, \psi_3^2 \right)  \\ 
+Y_{p4} = \mu_4 + \lambda_4 \theta_p  + e_{p, 4}; & e_{p,4} \sim N\left(0, \psi_4^2 \right) \\ 
+Y_{p5} = \mu_5 + \lambda_5 \theta_p  + e_{p, 5}; & e_{p,5} \sim N\left(0, \psi_5^2 \right) \\ 
+Y_{p6} = \mu_6 + \lambda_6 \theta_p +  e_{p, 6}; & e_{p,6} \sim N\left(0, \psi_6^2 \right) \\ 
+Y_{p7} = \mu_7 + \lambda_7 \theta_p  + e_{p, 7}; & e_{p,7} \sim N\left(0, \psi_7^2 \right) \\ 
+Y_{p8} = \mu_8 + \lambda_8 \theta_p  + e_{p, 8}; & e_{p,8} \sim N\left(0, \psi_8^2 \right) \\ 
+Y_{p9} = \mu_9 + \lambda_9 \theta_p  + e_{p, 9}; & e_{p,9} \sim N\left(0, \psi_9^2 \right) \\ 
+Y_{p10} = \mu_{10} + \lambda_{10} \theta_p  + e_{p, 10}; & e_{p,10} \sim N\left(0, \psi_{10}^2 \right) \\ 
+\end{array}
+$$
+## Measurement Model Parameters
+
+For an item $i$ the model is:
+
+$$ 
+\begin{array}{cc}
+Y_{pi} = \mu_i + \lambda_i \theta_p  + e_{p,i}; & e_{p,i} \sim N\left(0, \psi_i^2 \right) \\ 
+\end{array}
+$$
+The parameters of the model use different notation from typical linear regression models and have different names (they are called item parameters)
+
+* $\mu_i$: Item intercept
+  * The expected score on the item when $\theta_p = 0$ 
+  * Similar to $\beta_0$
+* $\lambda_i$: Factor loading or item discrimination
+  * The change in the expected score of an item for a one-unit increase in $\theta_p$ 
+  * Similar to $\beta_1$
+* $\psi^2_i$: Unique variance (Note: In Stan, we will have to specify $\psi_e$; the unique standard deviation)
+  * The variance of the residuals (the expected score minus observed score)
+  * Similar to residual variance $\sigma^2_e$
+
+
+
+## Model Specification
+
+The set of equations on the previous slide formed step #1 of the Measurement Model Analysis Steps:
+
+1. Specify Model
+
+The next step is:
+
+2. Specify scale identification method for latent variables
+
+We will initially assume $\theta_p \sim N(0,1)$, which allows us to estimate all item parameters of the model
+
+* This is what we call a standardized latent variable 
+  * They are like Z-scores
+  
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Implementing Normal Outcomes in Stan
+:::
+
+## Implementing Normal Outcomes in Stan
+
+There are a few changes needed to make Stan estimate psychometric models with normal outcomes:
+
+* The model (predictor) matrix cannot be used
+  * This is because the latent variable will be sampled--so the model matrix cannot be formed as a constant
+* The data will be imported as a matrix 
+  * More than one outcome means more than one column vector of data
+* The parameters will be specified as vectors of each type
+  * Each item will have its own set of parameters
+  * Implications for the use of prior distributions
+  
+## Stan's ```data {}``` Block
+
+```{r, eval=FALSE, echo=TRUE}
+data {
+  int<lower=0> nObs;                 // number of observations
+  int<lower=0> nItems;               // number of items
+  matrix[nObs, nItems] Y;            // item responses in a matrix
+
+  vector[nItems] meanMu;
+  matrix[nItems, nItems] covMu;      // prior covariance matrix for coefficients
+  
+  vector[nItems] meanLambda;         // prior mean vector for coefficients
+  matrix[nItems, nItems] covLambda;  // prior covariance matrix for coefficients
+  
+  vector[nItems] psiRate;            // prior rate parameter for unique standard deviations
+}
+```
+
+## Stan's ```parameters {}``` Block
+
+```{r, eval=FALSE, echo=TRUE}
+parameters {
+  vector[nObs] theta;                // the latent variables (one for each person)
+  vector[nItems] mu;                 // the item intercepts (one for each item)
+  vector[nItems] lambda;             // the factor loadings/item discriminations (one for each item)
+  vector<lower=0>[nItems] psi;       // the unique standard deviations (one for each item)   
+}
+```
+
+Here, the parameterization of $\lambda$ (factor loadings/discrimination parameters) can lead to problems in estimation
+
+* The issue: $\lambda_i \theta_p = (-\lambda_i)(-\theta_p)$
+  * Depending on the random starting values of each of these parameters (per chain), a given chain may converge to a different region
+* To demonstrate (later), we will start with a different random number seed
+  * Currently using 09102022: works fine
+  * Change to 25102022: big problems
+
+## Stan's ```model``` Block
+
+```{r, echo=TRUE, eval=FALSE}
+model {
+  
+  lambda ~ multi_normal(meanLambda, covLambda); // Prior for item discrimination/factor loadings
+  mu ~ multi_normal(meanMu, covMu);             // Prior for item intercepts
+  psi ~ exponential(psiRate);                   // Prior for unique standard deviations
+  
+  theta ~ normal(0, 1);                         // Prior for latent variable (with mean/sd specified)
+  
+  for (item in 1:nItems){
+    Y[,item] ~ normal(mu[item] + lambda[item]*theta, psi[item]);
+  }
+  
+}
+```
+
+The loop here conducts the model, separately, for each item
+
+* Assumption of conditional independence enables this
+  * Non-independence would need multivariate normal model 
+* The item mean is set by the conditional mean of the model
+  * The item SD is set by the unique variance parameter
+* The loop puts each item's parameters into the equation
+
+## Choosing Prior Distributions for Parameters
+
+There is not uniform agreement about the choices of prior distributions for item parameters
+
+* We will use uninformative priors on each to begin
+  * After first model analysis, we will discuss these choices and why they were made
+
+* For now:
+  * Item intercepts: $\mu_i \sim N\left(0, \sigma^2_{\mu_i} = 1000\right)$
+  * Factor loadings/item discriminations: $\lambda_i \sim N(0, \sigma^2_{\lambda_i} = 1000)$
+  * Unique standard deviations: $\psi_i \sim \text{exponential}\left(.01\right)$
+
+## Prior Density Function Plots
+
+```{r}
+par(mfrow = c(1,2))
+plot(x = seq(0,5, .01), y=dnorm(x = seq(0,5,.01), mean = 0, sd = sqrt(1000)), type = "l", main="N(0,100)")
+plot(x = seq(0,2, .01), y=dexp(x = seq(0,2,.01), rate=.01), type = "l", main="exponential(.1)")
+```
+
+
+## R's Data List Object
+
+```{r, eval=FALSE, echo=TRUE}
+# data dimensions
+nObs = nrow(conspiracyItems)
+nItems = ncol(conspiracyItems)
+
+# item intercept hyperparameters
+muMeanHyperParameter = 0
+muMeanVecHP = rep(muMeanHyperParameter, nItems)
+
+muVarianceHyperParameter = 1000
+muCovarianceMatrixHP = diag(x = muVarianceMatrixHP, nrow = nItems)
+
+# item discrimination/factor loading hyperparameters
+lambdaMeanHyperParameter = 0
+lambdaMeanVecHP = rep(lambdaMeanHyperParameter, nItems)
+
+lambdaVarianceHyperParameter = 1000
+lambdaCovarianceMatrixHP = diag(x = lambdaVarianceHyperParameter, nrow = nItems)
+
+# unique standard deviation hyperparameters
+psiRateHyperParameter = .01
+psiRateVecHP = rep(.1, nItems)
+
+modelCFA_data = list(
+  nObs = nObs,
+  nItems = nItems,
+  Y = conspiracyItems, 
+  meanMu = muMeanVecHP,
+  covMu = muCovarianceMatrixHP,
+  meanLambda = lambdaMeanVecHP,
+  covLambda = lambdaCovarianceMatrixHP,
+  psiRate = psiRateVecHP
+)
+```
+
+## Running the Model In Stan
+
+The Stan program takes longer to run than in linear models:
+
+* Number of parameters = 207
+  * 10 observed variables (with three item parameters each: $\mu_i$, $\lambda_i$, and $\psi_i$)
+  * 177 latent variables (one for each person: 177 parameters)
+
+* Key syntax block is the observed variable definition:
+
+```{r, eval=FALSE, echo=TRUE}
+Y[,item] ~ normal(mu[item] + lambda[item]*theta, psi[item]);
+```
+
+* cmdstanr samples call:
+
+```{r, eval=FALSE, echo=TRUE}
+modelCFA_samples = modelCFA_stan$sample(
+  data = modelCFA_data,
+  seed = 09102022,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 1000,
+  iter_sampling = 2000
+)
+```
+
+* Note: Typically, longer chains are needed for larger models like this
+  * These will become even longer when we use non-normal distributions for observed data
+
+## Model Results
+
+```{r, echo=FALSE, cache=TRUE, eval=FALSE}
+rebuild_cmdstan()
+```
+
+
+```{r, echo=FALSE, cache=TRUE, eval=FALSE}
+
+modelCFA_syntax = "
+
+data {
+  int<lower=0> nObs;                 // number of observations
+  int<lower=0> nItems;               // number of items
+  matrix[nObs, nItems] Y;            // item responses in a matrix
+
+  vector[nItems] meanMu;
+  matrix[nItems, nItems] covMu;      // prior covariance matrix for coefficients
+  
+  vector[nItems] meanLambda;         // prior mean vector for coefficients
+  matrix[nItems, nItems] covLambda;  // prior covariance matrix for coefficients
+  
+  vector[nItems] psiRate;            // prior rate parameter for unique standard deviations
+}
+
+parameters {
+  vector[nObs] theta;                // the latent variables (one for each person)
+  vector[nItems] mu;                 // the item intercepts (one for each item)
+  vector[nItems] lambda;             // the factor loadings/item discriminations (one for each item)
+  vector<lower=0>[nItems] psi;       // the unique standard deviations (one for each item)   
+}
+
+model {
+  
+  lambda ~ multi_normal(meanLambda, covLambda); // Prior for item discrimination/factor loadings
+  mu ~ multi_normal(meanMu, covMu);             // Prior for item intercepts
+  psi ~ exponential(psiRate);                   // Prior for unique standard deviations
+  
+  theta ~ normal(0, 1);                         // Prior for latent variable (with mean/sd specified)
+  
+  for (item in 1:nItems){
+    Y[,item] ~ normal(mu[item] + lambda[item]*theta, psi[item]);
+  }
+  
+}
+
+"
+
+modelCFA_stan = cmdstan_model(stan_file = write_stan_file(modelCFA_syntax))
+
+# data dimensions
+nObs = nrow(conspiracyItems)
+nItems = ncol(conspiracyItems)
+
+# item intercept hyperparameters
+muMeanHyperParameter = 0
+muMeanVecHP = rep(muMeanHyperParameter, nItems)
+
+muVarianceHyperParameter = 1000
+muCovarianceMatrixHP = diag(x = muVarianceHyperParameter, nrow = nItems)
+
+# item discrimination/factor loading hyperparameters
+lambdaMeanHyperParameter = 0
+lambdaMeanVecHP = rep(lambdaMeanHyperParameter, nItems)
+
+lambdaVarianceHyperParameter = 1000
+lambdaCovarianceMatrixHP = diag(x = lambdaVarianceHyperParameter, nrow = nItems)
+
+# unique standard deviation hyperparameters
+psiRateHyperParameter = .01
+psiRateVecHP = rep(.1, nItems)
+
+modelCFA_data = list(
+  nObs = nObs,
+  nItems = nItems,
+  Y = conspiracyItems, 
+  meanMu = muMeanVecHP,
+  covMu = muCovarianceMatrixHP,
+  meanLambda = lambdaMeanVecHP,
+  covLambda = lambdaCovarianceMatrixHP,
+  psiRate = psiRateVecHP
+)
+
+
+modelCFA_samples = modelCFA_stan$sample(
+  data = modelCFA_data,
+  seed = 09102022,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 1000,
+  iter_sampling = 2000
+)
+
+```
+
+* Checking convergence with $\hat{R}$ (PSRF):
+```{r}
+max(modelCFA_samples$summary()$rhat, na.rm = TRUE)
+```
+
+* Item Parameter Results:
+
+```{r}
+print(modelCFA_samples$summary(variables = c("mu", "lambda", "psi")) ,n=Inf)
+```
+
+## Modeling Strategy vs. Didactic Strategy
+
+At this point, one should investigate model fit of the model we just ran
+
+* If the model does not fit, then all model parameters could be biased
+  * Both item parameters and person parameters ($\theta_p$)
+* Moreover, the uncertainty accompanying each parameter (the posterior standard deviation) may also be biased
+  * Especially bad for psychometric models as we quantify reliaiblity with these numbers
+
+But, to teach generalized measurement models, we will first talk about differing models for observed data
+
+* Different distributions
+* Different parameterizations across the different distributions
+
+Then we will discuss model fit methods
+
+## Investigating Item Parameters
+
+One plot that can help provide information about the item parameters is the item characteristic curve (ICC)
+
+* Not called this in CFA (but equivalent)
+* The ICC is the plot of the expected value of the response conditional on the value of the latent traits, for a range of latent trait values
+
+$$E \left(Y_{pi} \mid \theta_p \right) = \mu_{i} +\lambda_{i}\theta_p $$
+
+* Because we have sampled values for each parameter, we can plot one ICC for each posterior draw
+
+## Posterior ICC Plots
+```{r}
+itemNumber = 10
+
+labelMu = paste0("mu[", itemNumber, "]")
+labelLambda = paste0("lambda[", itemNumber, "]")
+labelPsi = paste0("psi[", itemNumber, "]")
+itemParameters = modelCFA_samples$draws(variables = c(labelMu, labelLambda, labelPsi), format = "draws_matrix")
+itemSummary = modelCFA_samples$summary(variables = c(labelMu, labelLambda, labelPsi))
+
+# item plot
+theta = seq(-3,3,.1) # for plotting analysis lines--x axis values
+
+# drawing item characteristic curves for item
+y = as.numeric(itemParameters[1,labelMu]) + as.numeric(itemParameters[1,labelLambda])*theta
+plot(x = theta, y = y, type = "l", main = paste("Item", itemNumber, "ICC"), 
+     ylim=c(-2,8), xlab = expression(theta), ylab=paste("Item", itemNumber,"Predicted Value"))
+for (draw in 2:nrow(itemParameters)){
+  y = as.numeric(itemParameters[draw,labelMu]) + as.numeric(itemParameters[draw,labelLambda])*theta
+  lines(x = theta, y = y)
+}
+
+# drawing limits
+lines(x = c(-3,3), y = c(5,5), type = "l", col = 4, lwd=5, lty=2)
+lines(x = c(-3,3), y = c(1,1), type = "l", col = 4, lwd=5, lty=2)
+
+# drawing EAP line
+y = itemSummary$mean[which(itemSummary$variable==labelMu)] + 
+  itemSummary$mean[which(itemSummary$variable==labelLambda)]*theta
+lines(x = theta, y = y, lwd = 5, lty=3, col=2)
+
+# legend
+legend(x = -3, y = 7, legend = c("Posterior Draw", "Item Limits", "EAP"), col = c(1,4,2), lty = c(1,2,3), lwd=5)
+
+```
+
+## Posterior Distribution for Item Parameters
+
+Before moving onto the latent variables, let's note the posterior distribution of the item parameters (for a single item):
+
+$$f(\mu_i, \lambda_i, \psi_i \mid \boldsymbol{Y}) \propto f\left(\boldsymbol{Y} \mid \mu_i, \lambda_i, \psi_i \right) 
+f\left(\mu_i, \lambda_i, \psi_i \right) 
+$$ 
+
+$f(\mu_i, \lambda_i, \psi_i \mid \boldsymbol{Y})$ is the (joint) posterior distribution of the parameters for item $i$
+
+  * The distribution of the parameters conditional on the data
+
+$f\left(\boldsymbol{Y} \mid \mu_i, \lambda_i, \psi_i \right)$ is the distribution we defined for our observed data:
+
+$$ f\left(\boldsymbol{Y} \mid \mu_i, \lambda_i, \psi_i \right) \sim N \left(\mu_i+\lambda_i\theta_p, \psi_i \right)$$
+
+$f\left(\mu_i, \lambda_i, \psi_i \right)$ is the (joint) prior distribution for each of the parameters, which, are independent:
+
+$$ f\left(\mu_i, \lambda_i, \psi_i \right) = f(\mu_i)f(\lambda_i)f(\psi_i)$$
+
+## Investigating the Latent Variables
+
+The estimated latent variables are then:
+
+```{r}
+print(modelCFA_samples$summary(variables = c("theta")) ,n=Inf)
+```
+
+## EAP Estimates of Latent Variables
+
+```{r}
+hist(modelCFA_samples$summary(variables = c("theta"))$mean, main="EAP Estimates of Theta", 
+     xlab = expression(theta))
+```
+
+## Density of EAP Estimates
+
+```{r}
+plot(density(modelCFA_samples$summary(variables = c("theta"))$mean), main="EAP Estimates of Theta", 
+     xlab = expression(theta))
+```
+
+## Density of All Posterior Draws
+
+```{r}
+allThetas = modelCFA_samples$draws(variables = c("theta"), format="draws_matrix")
+allThetasVec = c(allThetas)
+hist(allThetasVec)
+```
+
+## Comparing Two Posterior Distributions
+
+```{r}
+theta1 = "theta[1]"
+theta2 = "theta[2]"
+thetaSamples = modelCFA_samples$draws(variables = c(theta1, theta2), format = "draws_matrix")
+thetaVec = rbind(thetaSamples[,1], thetaSamples[,2])
+thetaDF = data.frame(observation = c(rep(theta1,nrow(thetaSamples)), rep(theta2, nrow(thetaSamples))), 
+                     sample = thetaVec)
+names(thetaDF) = c("observation", "sample")
+ggplot(thetaDF, aes(x=sample, fill=observation)) +geom_density(alpha=.25)
+```
+
+## Comparing EAP Estimate with Posterior SD
+
+```{r}
+plot(y = modelCFA_samples$summary(variables = c("theta"))$sd, x = modelCFA_samples$summary(variables = c("theta"))$mean,
+     xlab = "E(theta|Y)", ylab = "SD(theta|Y)", main="Mean vs SD of Theta")
+```
+
+## Comparing EAP Estimate with Sum Score
+
+```{r}
+plot(x = rowSums(conspiracyItems), y = modelCFA_samples$summary(variables = c("theta"))$mean,
+     xlab = "Sum Score", ylab = expression(theta))
+```
+
+
+## Posterior Distribution for Person Parameters
+
+
+The posterior distribution of the person parameters (the latent variable; for a single person):
+$$
+f(\theta_p \mid \boldsymbol{Y}) \propto f\left(\boldsymbol{Y} \mid \theta_p \right) 
+f\left(\theta_p \right) 
+$$ 
+
+Here:
+
+* $f(\theta_p \mid \boldsymbol{Y})$ is the posterior distribution of the latent variable conditional on the observed data
+* $f\left(\boldsymbol{Y} \mid \theta_p \right) $ is the model (data) likelihood
+
+$$ f\left(\boldsymbol{Y} \mid \theta_p \right)  = \prod_{i=1}^I f(Y_i \mid \theta_p)$$
+
+* $f(Y_i \mid \theta_p)$ is the observed data likelihood: $f(Y_i \mid \theta_p) ~ N(\mu_i + \lambda_i\theta_p, \psi_i)$
+* $f\left(\theta_p \right) \sim N(0,1)$ is the prior likelihood for the latent variable $\theta_p$
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Measurement Model Estimation Fails
+:::
+
+## Recall: Stan's ```parameters {}``` Block
+
+```{r, eval=FALSE, echo=TRUE}
+parameters {
+  vector[nObs] theta;                // the latent variables (one for each person)
+  vector[nItems] mu;                 // the item intercepts (one for each item)
+  vector[nItems] lambda;             // the factor loadings/item discriminations (one for each item)
+  vector<lower=0>[nItems] psi;       // the unique standard deviations (one for each item)   
+}
+```
+
+Here, the parameterization of $\lambda$ (factor loadings/discrimination parameters) can lead to problems in estimation
+
+* The issue: $\lambda_i \theta_p = (-\lambda_i)(-\theta_p)$
+  * Depending on the random starting values of each of these parameters (per chain), a given chain may converge to a different region
+* To demonstrate (later), we will start with a different random number seed
+  * Currently using 09102022: works fine
+  * Change to 25102022: big problems
+
+## New Samples Syntax
+
+Trying the same model with a different random number seed:
+
+```{r, eval=FALSE, echo=TRUE}
+modelCFA_samplesFail = modelCFA_stan$sample(
+  data = modelCFA_data,
+  seed = 25102022,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 2000,
+  iter_sampling = 2000
+)
+```
+
+Convergence: FAIL
+```{r}
+# checking convergence
+max(modelCFA_samples$summary()$rhat, na.rm = TRUE)
+```
+
+## Why Convergence Failed
+
+The issue: $\lambda_i \theta_p = (-\lambda_i)(-\theta_p)$
+
+```{r}
+# item parameter results
+print(modelCFA_samples$summary(variables = c("mu", "lambda", "psi")) ,n=Inf)
+
+```
+
+## Posterior Trace Plots of $\lambda$
+
+```{r}
+mcmc_trace(modelCFA_samplesFail$draws(variables = "lambda"))
+```
+
+## Posterior Density Plots of $\lambda$
+
+```{r}
+mcmc_dens(modelCFA_samplesFail$draws(variables = "lambda"))
+```
+
+## The Fix? Restrict $\lambda$ or Change Prior
+
+Stan allows starting values to be set via ```cmdstanr```, but often this may not be enough
+
+Instead:
+
+* Restrict $\lambda$ to be positive
+  * Truncates prior distribution with MVN
+* Can also choose prior that has strictly positive range (like log-normal)
+
+```{r, eval=FALSE, echo=TRUE}
+parameters {
+  vector[nObs] theta;                // the latent variables (one for each person)
+  vector[nItems] mu;                 // the item intercepts (one for each item)
+  vector<lower=0>[nItems] lambda;             // the factor loadings/item discriminations (one for each item)
+  vector<lower=0>[nItems] psi;       // the unique standard deviations (one for each item)   
+}
+
+```
+
+## New Results
+
+```{r}
+max(modelCFA_samplesfixed$summary()$rhat, na.rm = TRUE)
+```
+
+```{r}
+print(modelCFA_samplesfixed$summary(variables = c("mu", "lambda", "psi")) ,n=Inf)
+```
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Wrapping Up
+:::
+
+## Wrapping Up
+
+Today, we showed how to model observed data using a normal distribution
+
+* Assumptions of Confirmatory Factor Analysis
+  * Not appropriate for our data
+  * May not be appropriate for many data sets
+* We will have to keep our loading/discrimination parameters positive to ensure each chain converges to the same posterior mode
+  * This will continue through the next types of data
+* Next up, categorical distributions for observed data
+  * More appropriate for these data as they are discrete categorical responses
