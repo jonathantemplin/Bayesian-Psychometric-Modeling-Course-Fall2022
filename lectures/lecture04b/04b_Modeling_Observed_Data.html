@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script src="04b_Modeling_Observed_Data_files/libs/clipboard/clipboard.min.js"></script>
+<script src="04b_Modeling_Observed_Data_files/libs/quarto-html/tabby.min.js"></script>
+<script src="04b_Modeling_Observed_Data_files/libs/quarto-html/popper.min.js"></script>
+<script src="04b_Modeling_Observed_Data_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="04b_Modeling_Observed_Data_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="04b_Modeling_Observed_Data_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="04b_Modeling_Observed_Data_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.0.36">
+
+  <meta name="author" content="Lecture 4b">
+  <title>Generalized Measurement Models: Modeling Observed Data</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="04b_Modeling_Observed_Data_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="04b_Modeling_Observed_Data_files/libs/revealjs/dist/reveal.css">
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      { color: #003b4f; background-color: #f1f3f5; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #003b4f; } /* Normal */
+    code span.al { color: #ad0000; } /* Alert */
+    code span.an { color: #5e5e5e; } /* Annotation */
+    code span.at { color: #657422; } /* Attribute */
+    code span.bn { color: #ad0000; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #003b4f; } /* ControlFlow */
+    code span.ch { color: #20794d; } /* Char */
+    code span.cn { color: #8f5902; } /* Constant */
+    code span.co { color: #5e5e5e; } /* Comment */
+    code span.cv { color: #5e5e5e; font-style: italic; } /* CommentVar */
+    code span.do { color: #5e5e5e; font-style: italic; } /* Documentation */
+    code span.dt { color: #ad0000; } /* DataType */
+    code span.dv { color: #ad0000; } /* DecVal */
+    code span.er { color: #ad0000; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #ad0000; } /* Float */
+    code span.fu { color: #4758ab; } /* Function */
+    code span.im { color: #00769e; } /* Import */
+    code span.in { color: #5e5e5e; } /* Information */
+    code span.kw { color: #003b4f; } /* Keyword */
+    code span.op { color: #5e5e5e; } /* Operator */
+    code span.ot { color: #003b4f; } /* Other */
+    code span.pp { color: #ad0000; } /* Preprocessor */
+    code span.sc { color: #5e5e5e; } /* SpecialChar */
+    code span.ss { color: #20794d; } /* SpecialString */
+    code span.st { color: #20794d; } /* String */
+    code span.va { color: #111111; } /* Variable */
+    code span.vs { color: #20794d; } /* VerbatimString */
+    code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="04b_Modeling_Observed_Data_files/libs/revealjs/dist/theme/quarto.css" id="theme">
+  <link href="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <style type="text/css">
+
+  .callout {
+    margin-top: 1em;
+    margin-bottom: 1em;  
+    border-radius: .25rem;
+  }
+
+  .callout.callout-style-simple { 
+    padding: 0em 0.5em;
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+    display: flex;
+  }
+
+  .callout.callout-style-default {
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+  }
+
+  .callout .callout-body-container {
+    flex-grow: 1;
+  }
+
+  .callout.callout-style-simple .callout-body {
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-style-default .callout-body {
+    font-size: 0.9rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-captioned.callout-style-simple .callout-body {
+    margin-top: 0.2em;
+  }
+
+  .callout:not(.callout-captioned) .callout-body {
+      display: flex;
+  }
+
+  .callout:not(.no-icon).callout-captioned.callout-style-simple .callout-content {
+    padding-left: 1.6em;
+  }
+
+  .callout.callout-captioned .callout-header {
+    padding-top: 0.2em;
+    margin-bottom: -0.2em;
+  }
+
+  .callout.callout-captioned .callout-caption  p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+    
+  .callout.callout-captioned.callout-style-simple .callout-content  p {
+    margin-top: 0;
+  }
+
+  .callout.callout-captioned.callout-style-default .callout-content  p {
+    margin-top: 0.7em;
+  }
+
+  .callout.callout-style-simple div.callout-caption {
+    border-bottom: none;
+    font-size: .9rem;
+    font-weight: 600;
+    opacity: 75%;
+  }
+
+  .callout.callout-style-default  div.callout-caption {
+    border-bottom: none;
+    font-weight: 600;
+    opacity: 85%;
+    font-size: 0.9rem;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-default div.callout-content {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-simple .callout-icon::before {
+    height: 1rem;
+    width: 1rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 1rem 1rem;
+  }
+
+  .callout.callout-style-default .callout-icon::before {
+    height: 0.9rem;
+    width: 0.9rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 0.9rem 0.9rem;
+  }
+
+  .callout-caption {
+    display: flex
+  }
+    
+  .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  .callout.no-icon::before {
+    display: none !important;
+  }
+
+  .callout.callout-captioned .callout-body > .callout-content > :last-child {
+    margin-bottom: 0.5rem;
+  }
+
+  .callout.callout-captioned .callout-icon::before {
+    margin-top: .5rem;
+    padding-right: .5rem;
+  }
+
+  .callout:not(.callout-captioned) .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  /* Callout Types */
+
+  div.callout-note {
+    border-left-color: #4582ec !important;
+  }
+
+  div.callout-note .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEU0lEQVRYCcVXTWhcVRQ+586kSUMMxkyaElstCto2SIhitS5Ek8xUKV2poatCcVHtUlFQk8mbaaziwpWgglJwVaquitBOfhQXFlqlzSJpFSpIYyXNjBNiTCck7x2/8/LeNDOZxDuEkgOXe++553zfefee+/OYLOXFk3+1LLrRdiO81yNqZ6K9cG0P3MeFaMIQjXssE8Z1JzLO9ls20MBZX7oG8w9GxB0goaPrW5aNMp1yOZIa7Wv6o2ykpLtmAPs/vrG14Z+6d4jpbSKuhdcSyq9wGMPXjonwmESXrriLzFGOdDBLB8Y6MNYBu0dRokSygMA/mrun8MGFN3behm6VVAwg4WR3i6FvYK1T7MHo9BK7ydH+1uurECoouk5MPRyVSBrBHMYwVobG2aOXM07sWrn5qgB60rc6mcwIDJtQrnrEr44kmy+UO9r0u9O5/YbkS9juQckLed3DyW2XV/qWBBB3ptvI8EUY3I9p/67OW+g967TNr3Sotn3IuVlfMLVnsBwH4fsnebJvyGm5GeIUA3jljERmrv49SizPYuq+z7c2H/jlGC+Ghhupn/hcapqmcudB9jwJ/3jvnvu6vu5lVzF1fXyZuZZ7U8nRmVzytvT+H3kilYvH09mLWrQdwFSsFEsxFVs5fK7A0g8gMZjbif4ACpKbjv7gNGaD8bUrlk8x+KRflttr22JEMRUbTUwwDQScyzPgedQHZT0xnx7ujw2jfVfExwYHwOsDTjLdJ2ebmeQIlJ7neo41s/DrsL3kl+W2lWvAga0tR3zueGr6GL78M3ifH0rGXrBC2aAR8uYcIA5gwV8zIE8onoh8u0Fca/ciF7j1uOzEnqcIm59sEXoGc0+z6+H45V1CvAvHcD7THztu669cnp+L0okAeIc6zjbM/24LgGM1gZk7jnRu1aQWoU9sfUOuhrmtaPIO3YY1KLLWZaEO5TKUbMY5zx8W9UJ6elpLwKXbsaZ4EFl7B4bMtDv0iRipKoDQT2sNQI9b1utXFdYisi+wzZ/ri/1m7QfDgEuvgUUEIJPq3DhX/5DWNqIXDOweC2wvIR90Oq3lDpdMIgD2r0dXvGdsEW5H6x6HLRJYU7C69VefO1x8Gde1ZFSJLfWS1jbCnhtOPxmpfv2LXOA2Xk2tvnwKKPFuZ/oRmwBwqRQDcKNeVQkYcOjtWVBuM/JuYw5b6isojIkYxyYAFn5K7ZBF10fea52y8QltAg6jnMqNHFBmGkQ1j+U43HMi2xMar1Nv0zGsf1s8nUsmUtPOOrbFIR8bHFDMB5zL13Gmr/kGlCkUzedTzzmzsaJXhYawnA3UmARpiYj5ooJZiUoxFRtK3X6pgNPv+IZVPcnwbOl6f+aBaO1CNvPW9n9LmCp01nuSaTRF2YxHqZ8DYQT6WsXT+RD6eUztwYLZ8rM+rcPxamv1VQzFUkzFXvkiVrySGQgJNvXHJAxiU3/NwiC03rSf05VBaPtu/Z7/B8Yn/w7eguloAAAAAElFTkSuQmCC');
+  }
+
+  div.callout-note.callout-style-default .callout-caption {
+    background-color: #dae6fb
+  }
+
+  div.callout-important {
+    border-left-color: #d9534f !important;
+  }
+
+  div.callout-important .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEKklEQVRYCcVXTWhcVRS+575MJym48A+hSRFr00ySRQhURRfd2HYjk2SSTokuBCkU2o0LoSKKraKIBTcuFCoidGFD08nkBzdREbpQ1EDNIv8qSGMFUboImMSZd4/f9zJv8ibJMC8xJQfO3HPPPef7zrvvvnvviIkpC9nsw0UttFunbUhpFzFtarSd6WJkStVMw5xyVqYTvkwfzuf/5FgtkVoB0729j1rjXwThS7Vio+Mo6DNnvLfahoZ+i/o32lULuJ3NNiz7q6+pyAUkJaFF6JwaM2lUJlV0MlnQn5aTRbEu0SEqHUa0A4AdiGuB1kFXRfVyg5d87+Dg4DL6m2TLAub60ilj7A1Ec4odSAc8X95sHh7+ZRPCFo6Fnp7HfU/fBng/hi10CjCnWnJjsxvDNxWw0NfV6Rv5GgP3I3jGWXumdTD/3cbEOP2ZbOZp69yniG3FQ9z1jD7bnBu9Fc2tKGC2q+uAJOQHBDRiZX1x36o7fWBs7J9ownbtO+n0/qWkvW7UPIfc37WgT6ZGR++EOJyeQDSb9UB+DZ1G6DdLDzyS+b/kBCYGsYgJbSQHuThGKRcw5xdeQf8YdNHsc6ePXrlSYMBuSIAFTGAtQo+VuALo4BX83N190NWZWbynBjhOHsmNfFWLeL6v+ynsA58zDvvAC8j5PkbOcXCMg2PZFk3q8MjI7WAG/Dp9AwP7jdGBOOQkAvlFUB+irtm16I1Zw9YBcpGTGXYmk3kQIC/Cds55l+iMI3jqhjAuaoe+am2Jw5GT3Nbz3CkE12NavmzN5+erJW7046n/CH1RO/RVa8lBLozXk9uqykkGAyRXLWlLv5jyp4RFsG5vGVzpDLnIjTWgnRy2Rr+tDKvRc7Y8AyZq10jj8DqXdnIRNtFZb+t/ZRtXcDiVnzpqx8mPcDWxgARUqx0W1QB9MeUZiNrV4qP+Ehc+BpNgATsTX8ozYKL2NtFYAHc84fG7ndxUPr+AR/iQSns7uSUufAymwDOb2+NjK27lEFocm/EE2WpyIy/Hi66MWuMKJn8RvxIcj87IM5Vh9663ziW36kR0HNenXuxmfaD8JC7tfKbrhFr7LiZCrMjrzTeGx+PmkosrkNzW94ObzwocJ7A1HokLolY+AvkTiD/q1H0cN48c5EL8Crkttsa/AXQVDmutfyku0E7jShx49XqV3MFK8IryDhYVbj7Sj2P2eBxwcXoe8T8idsKKPRcnZw1b+slFTubwUwhktrfnAt7J++jwQtLZcm3sr9LQrjRzz6cfMv9aLvgmnAGvpoaGLxM4mAEaLV7iAzQ3oU0IvD5x9ix3yF2RAAuYAOO2f7PEFWCXZ4C9Pb2UsgDeVnFSpbFK7/IWu7TPTvBqzbGdCHOJQSxiEjt6IyZmxQyEJHv6xyQsYk//moVFsN2zP6fRImjfq7/n/wFDguUQFNEwugAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-important.callout-style-default .callout-caption {
+    background-color: #f7dddc
+  }
+
+  div.callout-warning {
+    border-left-color: #f0ad4e !important;
+  }
+
+  div.callout-warning .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAETklEQVRYCeVWW2gcVRg+58yaTUnizqbipZeX4uWhBEniBaoUX1Ioze52t7sRq6APio9V9MEaoWlVsFasRq0gltaAPuxms8lu0gcviE/FFOstVbSIxgcv6SU7EZqmdc7v9+9mJtNks51NTUH84ed889/PP+cmxP+d5FIbMJmNbpREu4WUkiTtCicKny0l1pIKmBzovF2S+hIJHX8iEu3hZJ5lNZGqyRrGSIQpq15AzF28jgpeY6yk6GVdrfFqdrD6Iw+QlB8g0YS2g7dyQmXM/IDhBhT0UCiRf59lfqmmDvzRt6kByV/m4JjtzuaujMUM2c5Z2d6JdKrRb3K2q6mA+oYVz8JnDdKPmmNthzkAk/lN63sYPgevrguc72aZX/L9C6x09GYyxBgCX4NlvyGUHOKELlm5rXeR1kchuChJt4SSwyddZRXgvwMGvYo4QSlk3/zkHD8UHxwVJA6zjZZqP8v8kK8OWLnIZtLyCAJagYC4rTGW/9Pqj92N/c+LUaAj27movwbi19tk/whRCIE7Q9vyI6yvRpftAKVTdUjOW40X3h5OXsKCdmFcx0xlLJoSuQngnrJe7Kcjm4OMq9FlC7CMmScQANuNvjfP3PjGXDBaUQmbp296S5L4DrpbrHN1T87ZVEZVCzg1FF0Ft+dKrlLukI+/c9ENo+TvlTDbYFvuKPtQ9+l052rXrgKoWkDAFnvh0wTOmYn8R5f4k/jN/fZiCM1tQx9jQQ4ANhqG4hiL0qIFTGViG9DKB7GYzgubnpofgYRwO+DFjh0Zin2m4b/97EDkXkc+f6xYAPX0KK2I/7fUQuwzuwo/L3AkcjugPNixC8cHf0FyPjWlItmLxWw4Ou9YsQCr5fijMGoD/zpdRy95HRysyXA74MWOnscpO4j2y3HAVisw85hX5+AFBRSHt4ShfLFkIMXTqyKFc46xdzQM6XbAi702a7sy04J0+feReMFKp5q9esYLCqAZYw/k14E/xcLLsFElaornTuJB0svMuJINy8xkIYuL+xPAlWRceH6+HX7THJ0djLUom46zREu7tTkxwmf/FdOZ/sh6Q8qvEAiHpm4PJ4a/doJe0gH1t+aHRgCzOvBvJedEK5OFE5jpm4AGP2a8Dxe3gGJ/pAutug9Gp6he92CsSsWBaEcxGx0FHytmIpuqGkOpldqNYQK8cSoXvd+xLxXADw0kf6UkJNFtdo5MOgaLjiQOQHcn+A6h5NuL2s0qsC2LOM75PcF3yr5STuBSAcGG+meA14K/CI21HcS4LBT6tv0QAh8Dr5l93AhZzG5ZJ4VxAqdZUEl9z7WJ4aN+svMvwHHL21UKTd1mqvChH7/Za5xzXBBKrUcB0TQ+Ulgkfbi/H/YT5EptrGzsEK7tR1B7ln9BBwckYfMiuSqklSznIuoIIOM42MQO+QnduCoFCI0bpkzjCjddHPN/F+2Yu+sd9bKNpVwHhbS3LluK/0zgfwD0xYI5dXuzlQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-warning.callout-style-default .callout-caption {
+    background-color: #fcefdc
+  }
+
+  div.callout-tip {
+    border-left-color: #02b875 !important;
+  }
+
+  div.callout-tip .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAADr0lEQVRYCe1XTWgTQRj9ZjZV8a9SPIkKgj8I1bMHsUWrqYLVg4Ue6v9BwZOxSYsIerFao7UiUryIqJcqgtpimhbBXoSCVxUFe9CTiogUrUp2Pt+3aUI2u5vdNh4dmMzOzHvvezuz8xNFM0mjnbXaNu1MvFWRXkXEyE6aYOYJpdW4IXuA4r0fo8qqSMDBU0v1HJUgVieAXxzCsdE/YJTdFcVIZQNMyhruOMJKXYFoLfIfIvVIMWdsrd+Rpd86ZmyzzjJmLStqRn0v8lzkb4rVIXvnpScOJuAn2ACC65FkPzEdEy4TPWRLJ2h7z4cArXzzaOdKlbOvKKX25Wl00jSnrwVxAg3o4dRxhO13RBSdNvH0xSARv3adTXbBdTf64IWO2vH0LT+cv4GR1DJt+DUItaQogeBX/chhbTBxEiZ6gftlDNXTrvT7co4ub5A6gp9HIcHvzTa46OS5fBeP87Qm0fQkr4FsYgVQ7Qg+ZayaDg9jhg1GkWj8RG6lkeSacrrHgDaxdoBiZPg+NXV/KifMuB6//JmYH4CntVEHy/keA6x4h4CU5oFy8GzrBS18cLJMXcljAKB6INjWsRcuZBWVaS3GDrqB7rdapVIeA+isQ57Eev9eCqzqOa81CY05VLd6SamW2wA2H3SiTbnbSxmzfp7WtKZkqy4mdyAlGx7ennghYf8voqp9cLSgKdqNfa6RdRsAAkPwRuJZNbpByn+RrJi1RXTwdi8RQF6ymDwGMAtZ6TVE+4uoKh+MYkcLsT0Hk8eAienbiGdjJHZTpmNjlbFJNKDVAp2fJlYju6IreQxQ08UJDNYdoLSl6AadO+fFuCQqVMB1NJwPm69T04Wv5WhfcWyfXQB+wXRs1pt+nCknRa0LVzSA/2B+a9+zQJadb7IyyV24YAxKp2Jqs3emZTuNnKxsah+uabKbMk7CbTgJx/zIgQYErIeTKRQ9yD9wxVof5YolPHqaWo7TD6tJlh7jQnK5z2n3+fGdggIOx2kaa2YI9QWarc5Ce1ipNWMKeSG4DysFF52KBmTNMmn5HqCFkwy34rDg05gDwgH3bBi+sgFhN/e8QvRn8kbamCOhgrZ9GJhFDgfcMHzFb6BAtjKpFhzTjwv1KCVuxHvCbsSiEz4CANnj84cwHdFXAbAOJ4LTSAawGWFn5tDhLMYz6nWeU2wJfIhmIJBefcd/A5FWQWGgrWzyORZ3Q6HuV+Jf0Bj+BTX69fm1zWgK7By1YTXchFDORywnfQ7GpzOo6S+qECrsx2ifVQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-tip.callout-style-default .callout-caption {
+    background-color: #ccf1e3
+  }
+
+  div.callout-caution {
+    border-left-color: #fd7e14 !important;
+  }
+
+  div.callout-caution .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAACV0lEQVRYCdVWzWoUQRCuqp2ICBLJXgITZL1EfQDBW/bkzUMUD7klD+ATSHBEfAIfQO+iXsWDxJsHL96EHAwhgzlkg8nBg25XWb0zIb0zs9muYYWkoKeru+vn664fBqElyZNuyh167NXJ8Ut8McjbmEraKHkd7uAnAFku+VWdb3reSmRV8PKSLfZ0Gjn3a6Xlcq9YGb6tADjn+lUfTXtVmaZ1KwBIvFI11rRXlWlatwIAAv2asaa9mlB9wwygiDX26qaw1yYPzFXg2N1GgG0FMF8Oj+VIx7E/03lHx8UhvYyNZLN7BwSPgekXXLribw7w5/c8EF+DBK5idvDVYtEEwMeYefjjLAdEyQ3M9nfOkgnPTEkYU+sxMq0BxNR6jExrAI31H1rzvLEfRIdgcv1XEdj6QTQAS2wtstEALLG1yEZ3QhH6oDX7ExBSFEkFINXH98NTrme5IOaaA7kIfiu2L8A3qhH9zRbukdCqdsA98TdElyeMe5BI8Rs2xHRIsoTSSVFfCFCWGPn9XHb4cdobRIWABNf0add9jakDjQJpJ1bTXOJXnnRXHRf+dNL1ZV1MBRCXhMbaHqGI1JkKIL7+i8uffuP6wVQAzO7+qVEbF6NbS0LJureYcWXUUhH66nLR5rYmva+2tjRFtojkM2aD76HEGAD3tPtKM309FJg5j/K682ywcWJ3PASCcycH/22u+Bh7Aa0ehM2Fu4z0SAE81HF9RkB21c5bEn4Dzw+/qNOyXr3DCTQDMBOdhi4nAgiFDGCinIa2owCEChUwD8qzd03PG+qdW/4fDzjUMcE1ZpIAAAAASUVORK5CYII=');
+  }
+
+  div.callout-caution.callout-style-default .callout-caption {
+    background-color: #ffe5d0
+  }
+
+  </style>
+  <style type="text/css">
+    .reveal div.sourceCode {
+      margin: 0;
+      overflow: auto;
+    }
+    .reveal div.hanging-indent {
+      margin-left: 1em;
+      text-indent: -1em;
+    }
+    .reveal .slide:not(.center) {
+      height: 100%;
+    }
+    .reveal .slide.scrollable {
+      overflow-y: auto;
+    }
+    .reveal .footnotes {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reveal .slide .absolute {
+      position: absolute;
+      display: block;
+    }
+    .reveal .footnotes ol {
+      counter-reset: ol;
+      list-style-type: none; 
+      margin-left: 0;
+    }
+    .reveal .footnotes ol li:before {
+      counter-increment: ol;
+      content: counter(ol) ". "; 
+    }
+    .reveal .footnotes ol li > p:first-child {
+      display: inline-block;
+    }
+    .reveal .slide ul,
+    .reveal .slide ol {
+      margin-bottom: 0.5em;
+    }
+    .reveal .slide ul li,
+    .reveal .slide ol li {
+      margin-top: 0.4em;
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide ul[role="tablist"] li {
+      margin-bottom: 0;
+    }
+    .reveal .slide ul li > *:first-child,
+    .reveal .slide ol li > *:first-child {
+      margin-block-start: 0;
+    }
+    .reveal .slide ul li > *:last-child,
+    .reveal .slide ol li > *:last-child {
+      margin-block-end: 0;
+    }
+    .reveal .slide .columns:nth-child(3) {
+      margin-block-start: 0.8em;
+    }
+    .reveal blockquote {
+      box-shadow: none;
+    }
+    .reveal .tippy-content>* {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    .reveal .tippy-content>*:last-child {
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide > img.stretch.quarto-figure-center,
+    .reveal .slide > img.r-stretch.quarto-figure-center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-left,
+    .reveal .slide > img.r-stretch.quarto-figure-left  {
+      display: block;
+      margin-left: 0;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-right,
+    .reveal .slide > img.r-stretch.quarto-figure-right  {
+      display: block;
+      margin-left: auto;
+      margin-right: 0; 
+    }
+  </style>
+</head>
+<body class="quarto-light">
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide" class="center">
+  <h1 class="title">Generalized Measurement Models: Modeling Observed Data</h1>
+  <p class="author">Lecture 4b</p>
+</section>
+
+<section id="todays-lecture-objectives" class="slide level2">
+<h2>Today’s Lecture Objectives</h2>
+<ol type="1">
+<li>Show different modeling specifications for different types of item response data</li>
+<li>Show how parameterization differs for standardized latent variables vs.&nbsp;marker item scale identification</li>
+</ol>
+</section>
+<section id="example-data-conspiracy-theories" class="slide level2">
+<h2>Example Data: Conspiracy Theories</h2>
+<p>Today’s example is from a bootstrap resample of 177 undergraduate students at a large state university in the Midwest. The survey was a measure of 10 questions about their beliefs in various conspiracy theories that were being passed around the internet in the early 2010s. Additionally, gender was included in the survey. All items responses were on a 5- point Likert scale with:</p>
+<ol type="1">
+<li>Strongly Disagree</li>
+<li>Disagree</li>
+<li>Neither Agree or Disagree</li>
+<li>Agree</li>
+<li>Strongly Agree</li>
+</ol>
+<h4 id="please-note-the-purpose-of-this-survey-was-to-study-individual-beliefs-regarding-conspiracies.-the-questions-can-provoke-some-strong-emotions-given-the-world-we-live-in-currently.-all-questions-were-approved-by-university-irb-prior-to-their-use.">Please note, the purpose of this survey was to study individual beliefs regarding conspiracies. The questions can provoke some strong emotions given the world we live in currently. All questions were approved by university IRB prior to their use.</h4>
+<p>Our purpose in using this instrument is to provide a context that we all may find relevant as many of these conspiracy theories are still prevalent today.</p>
+</section>
+<section id="conspiracy-theory-questions-1-5" class="slide level2">
+<h2>Conspiracy Theory Questions 1-5</h2>
+<p>Questions:</p>
+<ol type="1">
+<li>The U.S. invasion of Iraq was not part of a campaign to fight terrorism, but was driven by oil companies and Jews in the U.S. and Israel.</li>
+<li>Certain U.S. government officials planned the attacks of September 11, 2001 because they wanted the United States to go to war in the Middle East.</li>
+<li>President Barack Obama was not really born in the United States and does not have an authentic Hawaiian birth certificate.</li>
+<li>The current financial crisis was secretly orchestrated by a small group of Wall Street bankers to extend the power of the Federal Reserve and further their control of the world’s economy.</li>
+<li>Vapor trails left by aircraft are actually chemical agents deliberately sprayed in a clandestine program directed by government officials.</li>
+</ol>
+</section>
+<section id="conspiracy-theory-questions-6-10" class="slide level2">
+<h2>Conspiracy Theory Questions 6-10</h2>
+<p>Questions:</p>
+<ol start="6" type="1">
+<li>Billionaire George Soros is behind a hidden plot to destabilize the American government, take control of the media, and put the world under his control.</li>
+<li>The U.S. government is mandating the switch to compact fluorescent light bulbs because such lights make people more obedient and easier to control.</li>
+<li>Government officials are covertly Building a 12-lane "NAFTA superhighway" that runs from Mexico to Canada through America’s heartland.</li>
+<li>Government officials purposely developed and spread drugs like crack-cocaine and diseases like AIDS in order to destroy the African American community.</li>
+<li>God sent Hurricane Katrina to punish America for its sins.</li>
+</ol>
+</section>
+<section id="data-visualization-q1-q5" class="slide level2">
+<h2>Data Visualization: Q1-Q5</h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-2-1.png" width="960" class="r-stretch"></section>
+<section id="data-visualization-q6-q10" class="slide level2">
+<h2>Data Visualization: Q6-Q10</h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-3-1.png" width="960" class="r-stretch"></section>
+<section id="conspiracy-theories-assumed-latent-variable" class="slide level2">
+<h2>Conspiracy Theories: Assumed Latent Variable</h2>
+<p>For today’s lecture, we will assume each of the 10 items measures a single latent variable representing a <strong>person’s tendency to believe in conspiracy theories</strong></p>
+<ul>
+<li>We will denote this latent variable as <span class="math inline">\(\theta_p\)</span> for each person
+<ul>
+<li><span class="math inline">\(p\)</span> is the index for person (with <span class="math inline">\(p=1, \ldots, P\)</span>)</li>
+</ul></li>
+<li>We will assume this latent variable is:
+<ul>
+<li>Continuous</li>
+<li>Normally distributed: <span class="math inline">\(\theta_p \sim N\left(\mu_\theta, \sigma_\theta \right)\)</span>
+<ul>
+<li>We will make differing assumptions about the scale (the latent variable mean and standard deviation) to show how syntax works for either</li>
+</ul></li>
+</ul></li>
+<li>Across all people, we will denote the set of vector of latent variables as</li>
+</ul>
+<p><span class="math display">\[\boldsymbol{\Theta} = \left[\theta_1, \ldots, \theta_P \right]^T \]</span></p>
+</section>
+<section id="section" class="slide level2" data-auto-animate="true," data-visibility="uncounted">
+<h2 data-id="quarto-animate-title"></h2>
+<div style="margin-top: 200px; font-size: 3em; color: red;">
+<p>Building Measurement Models</p>
+</div>
+</section>
+<section id="measurement-model-analysis-steps" class="slide level2">
+<h2>Measurement Model Analysis Steps</h2>
+<ol type="1">
+<li>Specify model</li>
+<li>Specify scale identification method for latent variables</li>
+<li>Estimate model</li>
+<li>Examine model-data fit</li>
+<li>Iterate between steps 1-4 until adequate fit is achieved</li>
+</ol>
+<h4 id="measurement-model-auxiliary-components">Measurement Model Auxiliary Components</h4>
+<ol start="6" type="1">
+<li>Score estimation (and secondary analyses with scores)</li>
+<li>Item evaluation</li>
+<li>Scale construction</li>
+<li>Equating</li>
+<li>Measurement invariance/differential item functioning</li>
+</ol>
+</section>
+<section id="section-1" class="slide level2" data-auto-animate="true," data-visibility="uncounted">
+<h2 data-id="quarto-animate-title"></h2>
+<div style="margin-top: 200px; font-size: 3em; color: red;">
+<p>Modeling Observed Variables with Normal Distributions</p>
+</div>
+</section>
+<section id="observed-variables-with-normal-distributions" class="slide level2">
+<h2>Observed Variables with Normal Distributions</h2>
+<p>A psychometric model posits that one or more hypothesized latent variables predict a person’s response to observed items</p>
+<ul>
+<li>Our hypothesized latent variable: Tendency to Believe in Conspiracies (<span class="math inline">\(\theta_p\)</span>)
+<ul>
+<li>One variable: Unidimensional</li>
+</ul></li>
+<li>Each observed variable (item response) is included in the model</li>
+<li>Today, we will assume each response follows a normal distribution
+<ul>
+<li>This is the assumption underlying confirmatory factor analysis (CFA) models</li>
+<li>This assumption is tenuous at best</li>
+</ul></li>
+</ul>
+<div>
+<ul>
+<li class="fragment"><img data-src="https://res.cloudinary.com/teepublic/image/private/s--59x8z1rj--/t_Preview/b_rgb:191919,c_limit,f_auto,h_630,q_90,w_630/v1605371346/production/designs/16103859_0.jpg" width="200"></li>
+</ul>
+</div>
+</section>
+<section id="normal-distribution-linear-regression" class="slide level2">
+<h2>Normal Distribution: Linear Regression</h2>
+<p>As we saw in linear models, when an outcome variable (here <span class="math inline">\(Y_p\)</span>) is assumed to follow a (conditional) normal distribution, this places a linear regression-style model on the outcome:</p>
+<p>For example, take the following linear regression:</p>
+<p><span class="math display">\[Y_p = \beta_0 + \beta_1 X_p + e_p,\]</span></p>
+<p>with <span class="math inline">\(e_p \sim N\left(0, \sigma_e \right)\)</span></p>
+<p>This implies:</p>
+<p><span class="math display">\[ Y_p \sim N\left(\beta_0 + \beta_1 X_p, \sigma_e \right)\]</span></p>
+<p>Where:</p>
+<ul>
+<li>The (conditional) mean of <span class="math inline">\(Y_p\)</span> is <span class="math inline">\(\beta_0 + \beta_1 X_p\)</span></li>
+<li>The (residual) standard deviation of <span class="math inline">\(Y_p\)</span> is <span class="math inline">\(\sigma_e\)</span></li>
+</ul>
+</section>
+<section id="the-psychometric-model" class="slide level2">
+<h2>The Psychometric Model</h2>
+<p>For the psychometric model:</p>
+<ul>
+<li>We replace the observed variable <span class="math inline">\(X_p\)</span> with the latent variable <span class="math inline">\(\theta_p\)</span> (for all observed variables)</li>
+</ul>
+<p><span class="math display">\[
+\begin{array}{cc}
+Y_{p1} = \mu_1 + \lambda_1 \theta_p  + e_{p, 1}; &amp; e_{p,1} \sim N\left(0, \psi_1^2 \right) \\
+Y_{p2} = \mu_2 + \lambda_2 \theta_p  + e_{p, 2}; &amp; e_{p,2} \sim N\left(0, \psi_2^2 \right) \\
+Y_{p3} = \mu_3 + \lambda_3 \theta_p  + e_{p, 3}; &amp; e_{p,3} \sim N\left(0, \psi_3^2 \right)  \\
+Y_{p4} = \mu_4 + \lambda_4 \theta_p  + e_{p, 4}; &amp; e_{p,4} \sim N\left(0, \psi_4^2 \right) \\
+Y_{p5} = \mu_5 + \lambda_5 \theta_p  + e_{p, 5}; &amp; e_{p,5} \sim N\left(0, \psi_5^2 \right) \\
+Y_{p6} = \mu_6 + \lambda_6 \theta_p +  e_{p, 6}; &amp; e_{p,6} \sim N\left(0, \psi_6^2 \right) \\
+Y_{p7} = \mu_7 + \lambda_7 \theta_p  + e_{p, 7}; &amp; e_{p,7} \sim N\left(0, \psi_7^2 \right) \\
+Y_{p8} = \mu_8 + \lambda_8 \theta_p  + e_{p, 8}; &amp; e_{p,8} \sim N\left(0, \psi_8^2 \right) \\
+Y_{p9} = \mu_9 + \lambda_9 \theta_p  + e_{p, 9}; &amp; e_{p,9} \sim N\left(0, \psi_9^2 \right) \\
+Y_{p10} = \mu_{10} + \lambda_{10} \theta_p  + e_{p, 10}; &amp; e_{p,10} \sim N\left(0, \psi_{10}^2 \right) \\
+\end{array}
+\]</span></p>
+</section>
+<section id="measurement-model-parameters" class="slide level2">
+<h2>Measurement Model Parameters</h2>
+<p>For an item <span class="math inline">\(i\)</span> the model is:</p>
+<p><span class="math display">\[
+\begin{array}{cc}
+Y_{pi} = \mu_i + \lambda_i \theta_p  + e_{p,i}; &amp; e_{p,i} \sim N\left(0, \psi_i^2 \right) \\
+\end{array}
+\]</span></p>
+<p>The parameters of the model use different notation from typical linear regression models and have different names (they are called item parameters)</p>
+<ul>
+<li><span class="math inline">\(\mu_i\)</span>: Item intercept
+<ul>
+<li>The expected score on the item when <span class="math inline">\(\theta_p = 0\)</span></li>
+<li>Similar to <span class="math inline">\(\beta_0\)</span></li>
+</ul></li>
+<li><span class="math inline">\(\lambda_i\)</span>: Factor loading or item discrimination
+<ul>
+<li>The change in the expected score of an item for a one-unit increase in <span class="math inline">\(\theta_p\)</span></li>
+<li>Similar to <span class="math inline">\(\beta_1\)</span></li>
+</ul></li>
+<li><span class="math inline">\(\psi^2_i\)</span>: Unique variance (Note: In Stan, we will have to specify <span class="math inline">\(\psi_e\)</span>; the unique standard deviation)
+<ul>
+<li>The variance of the residuals (the expected score minus observed score)</li>
+<li>Similar to residual variance <span class="math inline">\(\sigma^2_e\)</span></li>
+</ul></li>
+</ul>
+</section>
+<section id="model-specification" class="slide level2">
+<h2>Model Specification</h2>
+<p>The set of equations on the previous slide formed step #1 of the Measurement Model Analysis Steps:</p>
+<ol type="1">
+<li>Specify Model</li>
+</ol>
+<p>The next step is:</p>
+<ol start="2" type="1">
+<li>Specify scale identification method for latent variables</li>
+</ol>
+<p>We will initially assume <span class="math inline">\(\theta_p \sim N(0,1)\)</span>, which allows us to estimate all item parameters of the model</p>
+<ul>
+<li>This is what we call a standardized latent variable
+<ul>
+<li>They are like Z-scores</li>
+</ul></li>
+</ul>
+</section>
+<section id="section-2" class="slide level2" data-auto-animate="true," data-visibility="uncounted">
+<h2 data-id="quarto-animate-title"></h2>
+<div style="margin-top: 200px; font-size: 3em; color: red;">
+<p>Implementing Normal Outcomes in Stan</p>
+</div>
+</section>
+<section id="implementing-normal-outcomes-in-stan" class="slide level2">
+<h2>Implementing Normal Outcomes in Stan</h2>
+<p>There are a few changes needed to make Stan estimate psychometric models with normal outcomes:</p>
+<ul>
+<li>The model (predictor) matrix cannot be used
+<ul>
+<li>This is because the latent variable will be sampled–so the model matrix cannot be formed as a constant</li>
+</ul></li>
+<li>The data will be imported as a matrix
+<ul>
+<li>More than one outcome means more than one column vector of data</li>
+</ul></li>
+<li>The parameters will be specified as vectors of each type
+<ul>
+<li>Each item will have its own set of parameters</li>
+<li>Implications for the use of prior distributions</li>
+</ul></li>
+</ul>
+</section>
+<section id="stans-data-block" class="slide level2">
+<h2>Stan’s <code>data {}</code> Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>data {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> nObs;                 <span class="sc">/</span><span class="er">/</span> number of observations</span>
+<span id="cb1-3"><a href="#cb1-3"></a>  int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> nItems;               <span class="sc">/</span><span class="er">/</span> number of items</span>
+<span id="cb1-4"><a href="#cb1-4"></a>  matrix[nObs, nItems] Y;            <span class="sc">/</span><span class="er">/</span> item responses <span class="cf">in</span> a matrix</span>
+<span id="cb1-5"><a href="#cb1-5"></a></span>
+<span id="cb1-6"><a href="#cb1-6"></a>  vector[nItems] meanMu;</span>
+<span id="cb1-7"><a href="#cb1-7"></a>  matrix[nItems, nItems] covMu;      <span class="sc">/</span><span class="er">/</span> prior covariance matrix <span class="cf">for</span> coefficients</span>
+<span id="cb1-8"><a href="#cb1-8"></a>  </span>
+<span id="cb1-9"><a href="#cb1-9"></a>  vector[nItems] meanLambda;         <span class="sc">/</span><span class="er">/</span> prior mean vector <span class="cf">for</span> coefficients</span>
+<span id="cb1-10"><a href="#cb1-10"></a>  matrix[nItems, nItems] covLambda;  <span class="sc">/</span><span class="er">/</span> prior covariance matrix <span class="cf">for</span> coefficients</span>
+<span id="cb1-11"><a href="#cb1-11"></a>  </span>
+<span id="cb1-12"><a href="#cb1-12"></a>  vector[nItems] psiRate;            <span class="sc">/</span><span class="er">/</span> prior rate parameter <span class="cf">for</span> unique standard deviations</span>
+<span id="cb1-13"><a href="#cb1-13"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="stans-parameters-block" class="slide level2">
+<h2>Stan’s <code>parameters {}</code> Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>parameters {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>  vector[nObs] theta;                <span class="sc">/</span><span class="er">/</span> the latent <span class="fu">variables</span> (one <span class="cf">for</span> each person)</span>
+<span id="cb2-3"><a href="#cb2-3"></a>  vector[nItems] mu;                 <span class="sc">/</span><span class="er">/</span> the item <span class="fu">intercepts</span> (one <span class="cf">for</span> each item)</span>
+<span id="cb2-4"><a href="#cb2-4"></a>  vector[nItems] lambda;             <span class="sc">/</span><span class="er">/</span> the factor loadings<span class="sc">/</span>item <span class="fu">discriminations</span> (one <span class="cf">for</span> each item)</span>
+<span id="cb2-5"><a href="#cb2-5"></a>  vector<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span>[nItems] psi;       <span class="sc">/</span><span class="er">/</span> the unique standard <span class="fu">deviations</span> (one <span class="cf">for</span> each item)   </span>
+<span id="cb2-6"><a href="#cb2-6"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here, the parameterization of <span class="math inline">\(\lambda\)</span> (factor loadings/discrimination parameters) can lead to problems in estimation</p>
+<ul>
+<li>The issue: <span class="math inline">\(\lambda_i \theta_p = (-\lambda_i)(-\theta_p)\)</span>
+<ul>
+<li>Depending on the random starting values of each of these parameters (per chain), a given chain may converge to a different region</li>
+</ul></li>
+<li>To demonstrate (later), we will start with a different random number seed
+<ul>
+<li>Currently using 09102022: works fine</li>
+<li>Change to 25102022: big problems</li>
+</ul></li>
+</ul>
+</section>
+<section id="stans-model-block" class="slide level2">
+<h2>Stan’s <code>model</code> Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>model {</span>
+<span id="cb3-2"><a href="#cb3-2"></a>  </span>
+<span id="cb3-3"><a href="#cb3-3"></a>  lambda <span class="sc">~</span> <span class="fu">multi_normal</span>(meanLambda, covLambda); <span class="sc">/</span><span class="er">/</span> Prior <span class="cf">for</span> item discrimination<span class="sc">/</span>factor loadings</span>
+<span id="cb3-4"><a href="#cb3-4"></a>  mu <span class="sc">~</span> <span class="fu">multi_normal</span>(meanMu, covMu);             <span class="sc">/</span><span class="er">/</span> Prior <span class="cf">for</span> item intercepts</span>
+<span id="cb3-5"><a href="#cb3-5"></a>  psi <span class="sc">~</span> <span class="fu">exponential</span>(psiRate);                   <span class="sc">/</span><span class="er">/</span> Prior <span class="cf">for</span> unique standard deviations</span>
+<span id="cb3-6"><a href="#cb3-6"></a>  </span>
+<span id="cb3-7"><a href="#cb3-7"></a>  theta <span class="sc">~</span> <span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>);                         <span class="sc">/</span><span class="er">/</span> Prior <span class="cf">for</span> latent <span class="fu">variable</span> (with mean<span class="sc">/</span>sd specified)</span>
+<span id="cb3-8"><a href="#cb3-8"></a>  </span>
+<span id="cb3-9"><a href="#cb3-9"></a>  <span class="cf">for</span> (item <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nItems){</span>
+<span id="cb3-10"><a href="#cb3-10"></a>    Y[,item] <span class="sc">~</span> <span class="fu">normal</span>(mu[item] <span class="sc">+</span> lambda[item]<span class="sc">*</span>theta, psi[item]);</span>
+<span id="cb3-11"><a href="#cb3-11"></a>  }</span>
+<span id="cb3-12"><a href="#cb3-12"></a>  </span>
+<span id="cb3-13"><a href="#cb3-13"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The loop here conducts the model, separately, for each item</p>
+<ul>
+<li>Assumption of conditional independence enables this
+<ul>
+<li>Non-independence would need multivariate normal model</li>
+</ul></li>
+<li>The item mean is set by the conditional mean of the model
+<ul>
+<li>The item SD is set by the unique variance parameter</li>
+</ul></li>
+<li>The loop puts each item’s parameters into the equation</li>
+</ul>
+</section>
+<section id="choosing-prior-distributions-for-parameters" class="slide level2">
+<h2>Choosing Prior Distributions for Parameters</h2>
+<p>There is not uniform agreement about the choices of prior distributions for item parameters</p>
+<ul>
+<li>We will use uninformative priors on each to begin
+<ul>
+<li>After first model analysis, we will discuss these choices and why they were made</li>
+</ul></li>
+<li>For now:
+<ul>
+<li>Item intercepts: <span class="math inline">\(\mu_i \sim N\left(0, \sigma^2_{\mu_i} = 1000\right)\)</span></li>
+<li>Factor loadings/item discriminations: <span class="math inline">\(\lambda_i \sim N(0, \sigma^2_{\lambda_i} = 1000)\)</span></li>
+<li>Unique standard deviations: <span class="math inline">\(\psi_i \sim \text{exponential}\left(.01\right)\)</span></li>
+</ul></li>
+</ul>
+</section>
+<section id="prior-density-function-plots" class="slide level2">
+<h2>Prior Density Function Plots</h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-7-1.png" width="960" class="r-stretch"></section>
+<section id="rs-data-list-object" class="slide level2">
+<h2>R’s Data List Object</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># data dimensions</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>nObs <span class="ot">=</span> <span class="fu">nrow</span>(conspiracyItems)</span>
+<span id="cb4-3"><a href="#cb4-3"></a>nItems <span class="ot">=</span> <span class="fu">ncol</span>(conspiracyItems)</span>
+<span id="cb4-4"><a href="#cb4-4"></a></span>
+<span id="cb4-5"><a href="#cb4-5"></a><span class="co"># item intercept hyperparameters</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a>muMeanHyperParameter <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a>muMeanVecHP <span class="ot">=</span> <span class="fu">rep</span>(muMeanHyperParameter, nItems)</span>
+<span id="cb4-8"><a href="#cb4-8"></a></span>
+<span id="cb4-9"><a href="#cb4-9"></a>muVarianceHyperParameter <span class="ot">=</span> <span class="dv">1000</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a>muCovarianceMatrixHP <span class="ot">=</span> <span class="fu">diag</span>(<span class="at">x =</span> muVarianceMatrixHP, <span class="at">nrow =</span> nItems)</span>
+<span id="cb4-11"><a href="#cb4-11"></a></span>
+<span id="cb4-12"><a href="#cb4-12"></a><span class="co"># item discrimination/factor loading hyperparameters</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a>lambdaMeanHyperParameter <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb4-14"><a href="#cb4-14"></a>lambdaMeanVecHP <span class="ot">=</span> <span class="fu">rep</span>(lambdaMeanHyperParameter, nItems)</span>
+<span id="cb4-15"><a href="#cb4-15"></a></span>
+<span id="cb4-16"><a href="#cb4-16"></a>lambdaVarianceHyperParameter <span class="ot">=</span> <span class="dv">1000</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a>lambdaCovarianceMatrixHP <span class="ot">=</span> <span class="fu">diag</span>(<span class="at">x =</span> lambdaVarianceHyperParameter, <span class="at">nrow =</span> nItems)</span>
+<span id="cb4-18"><a href="#cb4-18"></a></span>
+<span id="cb4-19"><a href="#cb4-19"></a><span class="co"># unique standard deviation hyperparameters</span></span>
+<span id="cb4-20"><a href="#cb4-20"></a>psiRateHyperParameter <span class="ot">=</span> .<span class="dv">01</span></span>
+<span id="cb4-21"><a href="#cb4-21"></a>psiRateVecHP <span class="ot">=</span> <span class="fu">rep</span>(.<span class="dv">1</span>, nItems)</span>
+<span id="cb4-22"><a href="#cb4-22"></a></span>
+<span id="cb4-23"><a href="#cb4-23"></a>modelCFA_data <span class="ot">=</span> <span class="fu">list</span>(</span>
+<span id="cb4-24"><a href="#cb4-24"></a>  <span class="at">nObs =</span> nObs,</span>
+<span id="cb4-25"><a href="#cb4-25"></a>  <span class="at">nItems =</span> nItems,</span>
+<span id="cb4-26"><a href="#cb4-26"></a>  <span class="at">Y =</span> conspiracyItems, </span>
+<span id="cb4-27"><a href="#cb4-27"></a>  <span class="at">meanMu =</span> muMeanVecHP,</span>
+<span id="cb4-28"><a href="#cb4-28"></a>  <span class="at">covMu =</span> muCovarianceMatrixHP,</span>
+<span id="cb4-29"><a href="#cb4-29"></a>  <span class="at">meanLambda =</span> lambdaMeanVecHP,</span>
+<span id="cb4-30"><a href="#cb4-30"></a>  <span class="at">covLambda =</span> lambdaCovarianceMatrixHP,</span>
+<span id="cb4-31"><a href="#cb4-31"></a>  <span class="at">psiRate =</span> psiRateVecHP</span>
+<span id="cb4-32"><a href="#cb4-32"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="running-the-model-in-stan" class="slide level2">
+<h2>Running the Model In Stan</h2>
+<p>The Stan program takes longer to run than in linear models:</p>
+<ul>
+<li>Number of parameters = 207
+<ul>
+<li>10 observed variables (with three item parameters each: <span class="math inline">\(\mu_i\)</span>, <span class="math inline">\(\lambda_i\)</span>, and <span class="math inline">\(\psi_i\)</span>)</li>
+<li>177 latent variables (one for each person: 177 parameters)</li>
+</ul></li>
+<li>Key syntax block is the observed variable definition:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>Y[,item] <span class="sc">~</span> <span class="fu">normal</span>(mu[item] <span class="sc">+</span> lambda[item]<span class="sc">*</span>theta, psi[item]);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>cmdstanr samples call:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>modelCFA_samples <span class="ot">=</span> modelCFA_stan<span class="sc">$</span><span class="fu">sample</span>(</span>
+<span id="cb6-2"><a href="#cb6-2"></a>  <span class="at">data =</span> modelCFA_data,</span>
+<span id="cb6-3"><a href="#cb6-3"></a>  <span class="at">seed =</span> <span class="dv">09102022</span>,</span>
+<span id="cb6-4"><a href="#cb6-4"></a>  <span class="at">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb6-5"><a href="#cb6-5"></a>  <span class="at">parallel_chains =</span> <span class="dv">4</span>,</span>
+<span id="cb6-6"><a href="#cb6-6"></a>  <span class="at">iter_warmup =</span> <span class="dv">1000</span>,</span>
+<span id="cb6-7"><a href="#cb6-7"></a>  <span class="at">iter_sampling =</span> <span class="dv">2000</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Note: Typically, longer chains are needed for larger models like this
+<ul>
+<li>These will become even longer when we use non-normal distributions for observed data</li>
+</ul></li>
+</ul>
+</section>
+<section id="model-results" class="slide level2">
+<h2>Model Results</h2>
+<div class="cell" data-hash="04b_Modeling_Observed_Data_cache/revealjs/unnamed-chunk-11_ed63d9dcf8f2fcff0e4a863743e2c99a">
+
+</div>
+<div class="cell" data-hash="04b_Modeling_Observed_Data_cache/revealjs/unnamed-chunk-12_24bc215d24078a2d6fccba93f338f7cc">
+
+</div>
+<ul>
+<li>Checking convergence with <span class="math inline">\(\hat{R}\)</span> (PSRF):</li>
+</ul>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.006423</code></pre>
+</div>
+</div>
+<ul>
+<li>Item Parameter Results:</li>
+</ul>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 30 × 10
+   variable    mean median     sd    mad    q5   q95  rhat ess_bulk ess_tail
+   &lt;chr&gt;      &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+ 1 mu[1]      2.37   2.37  0.0876 0.0862 2.23  2.51   1.00    1447.    2855.
+ 2 mu[2]      1.96   1.96  0.0850 0.0853 1.82  2.10   1.00     995.    2338.
+ 3 mu[3]      1.88   1.88  0.0825 0.0849 1.75  2.01   1.00    1081.    2746.
+ 4 mu[4]      2.01   2.01  0.0852 0.0856 1.87  2.15   1.00    1060.    2587.
+ 5 mu[5]      1.99   1.99  0.0842 0.0838 1.85  2.12   1.01     768.    1596.
+ 6 mu[6]      1.89   1.89  0.0775 0.0770 1.77  2.02   1.01     825.    1647.
+ 7 mu[7]      1.73   1.73  0.0766 0.0774 1.60  1.85   1.00    1025.    2523.
+ 8 mu[8]      1.84   1.84  0.0733 0.0739 1.72  1.97   1.01     803.    1771.
+ 9 mu[9]      1.81   1.81  0.0882 0.0883 1.67  1.96   1.00    1079.    2748.
+10 mu[10]     1.52   1.52  0.0809 0.0802 1.39  1.65   1.00    1464.    3239.
+11 lambda[1]  0.740  0.739 0.0838 0.0828 0.607 0.882  1.00    3429.    4389.
+12 lambda[2]  0.870  0.867 0.0774 0.0778 0.748 1.00   1.00    2010.    4141.
+13 lambda[3]  0.802  0.802 0.0766 0.0755 0.680 0.932  1.00    2249.    4009.
+14 lambda[4]  0.843  0.840 0.0763 0.0760 0.723 0.973  1.00    2383.    4144.
+15 lambda[5]  0.997  0.994 0.0715 0.0708 0.886 1.12   1.00    1439.    2565.
+16 lambda[6]  0.899  0.896 0.0650 0.0651 0.796 1.01   1.00    1408.    2668.
+17 lambda[7]  0.764  0.762 0.0704 0.0695 0.653 0.884  1.00    2473.    3577.
+18 lambda[8]  0.854  0.851 0.0609 0.0603 0.757 0.959  1.00    1528.    2882.
+19 lambda[9]  0.861  0.859 0.0806 0.0815 0.735 0.997  1.00    2196.    3286.
+20 lambda[10] 0.673  0.669 0.0772 0.0759 0.550 0.804  1.00    3108.    4190.
+21 psi[1]     0.893  0.891 0.0498 0.0492 0.815 0.978  1.00   15449.    6480.
+22 psi[2]     0.734  0.732 0.0433 0.0427 0.667 0.809  1.00   12834.    6393.
+23 psi[3]     0.782  0.780 0.0447 0.0442 0.712 0.859  1.00   14422.    6595.
+24 psi[4]     0.757  0.755 0.0438 0.0444 0.690 0.833  1.00   14700.    6978.
+25 psi[5]     0.544  0.543 0.0372 0.0369 0.486 0.607  1.00    8549.    6223.
+26 psi[6]     0.505  0.503 0.0334 0.0331 0.452 0.561  1.00    9757.    6302.
+27 psi[7]     0.686  0.684 0.0400 0.0400 0.623 0.755  1.00   13777.    5845.
+28 psi[8]     0.480  0.478 0.0317 0.0318 0.431 0.534  1.00    9750.    6699.
+29 psi[9]     0.782  0.781 0.0459 0.0461 0.710 0.859  1.00   12873.    6177.
+30 psi[10]    0.840  0.838 0.0467 0.0460 0.765 0.919  1.00   13693.    6461.</code></pre>
+</div>
+</div>
+</section>
+<section id="modeling-strategy-vs.-didactic-strategy" class="slide level2">
+<h2>Modeling Strategy vs.&nbsp;Didactic Strategy</h2>
+<p>At this point, one should investigate model fit of the model we just ran</p>
+<ul>
+<li>If the model does not fit, then all model parameters could be biased
+<ul>
+<li>Both item parameters and person parameters (<span class="math inline">\(\theta_p\)</span>)</li>
+</ul></li>
+<li>Moreover, the uncertainty accompanying each parameter (the posterior standard deviation) may also be biased
+<ul>
+<li>Especially bad for psychometric models as we quantify reliaiblity with these numbers</li>
+</ul></li>
+</ul>
+<p>But, to teach generalized measurement models, we will first talk about differing models for observed data</p>
+<ul>
+<li>Different distributions</li>
+<li>Different parameterizations across the different distributions</li>
+</ul>
+<p>Then we will discuss model fit methods</p>
+</section>
+<section id="investigating-item-parameters" class="slide level2">
+<h2>Investigating Item Parameters</h2>
+<p>One plot that can help provide information about the item parameters is the item characteristic curve (ICC)</p>
+<ul>
+<li>Not called this in CFA (but equivalent)</li>
+<li>The ICC is the plot of the expected value of the response conditional on the value of the latent traits, for a range of latent trait values</li>
+</ul>
+<p><span class="math display">\[E \left(Y_{pi} \mid \theta_p \right) = \mu_{i} +\lambda_{i}\theta_p \]</span></p>
+<ul>
+<li>Because we have sampled values for each parameter, we can plot one ICC for each posterior draw</li>
+</ul>
+</section>
+<section id="posterior-icc-plots" class="slide level2">
+<h2>Posterior ICC Plots</h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-15-1.png" width="960" class="r-stretch"></section>
+<section id="posterior-distribution-for-item-parameters" class="slide level2">
+<h2>Posterior Distribution for Item Parameters</h2>
+<p>Before moving onto the latent variables, let’s note the posterior distribution of the item parameters (for a single item):</p>
+<p><span class="math display">\[f(\mu_i, \lambda_i, \psi_i \mid \boldsymbol{Y}) \propto f\left(\boldsymbol{Y} \mid \mu_i, \lambda_i, \psi_i \right)
+f\left(\mu_i, \lambda_i, \psi_i \right)
+\]</span></p>
+<p><span class="math inline">\(f(\mu_i, \lambda_i, \psi_i \mid \boldsymbol{Y})\)</span> is the (joint) posterior distribution of the parameters for item <span class="math inline">\(i\)</span></p>
+<ul>
+<li>The distribution of the parameters conditional on the data</li>
+</ul>
+<p><span class="math inline">\(f\left(\boldsymbol{Y} \mid \mu_i, \lambda_i, \psi_i \right)\)</span> is the distribution we defined for our observed data:</p>
+<p><span class="math display">\[ f\left(\boldsymbol{Y} \mid \mu_i, \lambda_i, \psi_i \right) \sim N \left(\mu_i+\lambda_i\theta_p, \psi_i \right)\]</span></p>
+<p><span class="math inline">\(f\left(\mu_i, \lambda_i, \psi_i \right)\)</span> is the (joint) prior distribution for each of the parameters, which, are independent:</p>
+<p><span class="math display">\[ f\left(\mu_i, \lambda_i, \psi_i \right) = f(\mu_i)f(\lambda_i)f(\psi_i)\]</span></p>
+</section>
+<section id="investigating-the-latent-variables" class="slide level2">
+<h2>Investigating the Latent Variables</h2>
+<p>The estimated latent variables are then:</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 177 × 10
+    variable      mean  median    sd   mad      q5      q95  rhat ess_bulk
+    &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;
+  1 theta[1]    0.0182  0.0165 0.253 0.245 -0.399   0.441    1.00    6111.
+  2 theta[2]    1.53    1.53   0.261 0.258  1.10    1.96     1.00    3708.
+  3 theta[3]    1.70    1.70   0.266 0.265  1.27    2.14     1.00    3294.
+  4 theta[4]   -0.931  -0.927  0.250 0.249 -1.35   -0.528    1.00    4841.
+  5 theta[5]    0.0408  0.0369 0.244 0.239 -0.357   0.439    1.00    5235.
+  6 theta[6]   -0.986  -0.985  0.254 0.252 -1.40   -0.569    1.00    4620.
+  7 theta[7]   -0.342  -0.344  0.245 0.240 -0.746   0.0667   1.00    5411.
+  8 theta[8]   -0.0569 -0.0542 0.250 0.252 -0.463   0.355    1.00    5289.
+  9 theta[9]   -0.790  -0.789  0.250 0.249 -1.21   -0.385    1.00    5271.
+ 10 theta[10]   0.0373  0.0385 0.239 0.239 -0.352   0.432    1.00    5413.
+ 11 theta[11]  -0.986  -0.983  0.250 0.247 -1.40   -0.582    1.00    4511.
+ 12 theta[12]   0.254   0.255  0.246 0.245 -0.150   0.661    1.00    5364.
+ 13 theta[13]  -0.756  -0.756  0.249 0.249 -1.17   -0.347    1.00    4101.
+ 14 theta[14]  -0.981  -0.975  0.255 0.254 -1.42   -0.575    1.00    4542.
+ 15 theta[15]  -0.844  -0.844  0.251 0.251 -1.26   -0.435    1.00    5013.
+ 16 theta[16]  -0.0694 -0.0680 0.245 0.247 -0.480   0.329    1.00    5559.
+ 17 theta[17]  -0.0709 -0.0681 0.250 0.251 -0.487   0.343    1.00    5524.
+ 18 theta[18]  -0.667  -0.665  0.247 0.251 -1.08   -0.270    1.00    5153.
+ 19 theta[19]   1.86    1.86   0.270 0.270  1.43    2.31     1.00    3579.
+ 20 theta[20]  -0.932  -0.933  0.250 0.249 -1.34   -0.520    1.00    4524.
+ 21 theta[21]  -0.257  -0.255  0.247 0.240 -0.665   0.153    1.00    5381.
+ 22 theta[22]  -0.986  -0.983  0.252 0.254 -1.41   -0.571    1.00    4493.
+ 23 theta[23]  -0.985  -0.982  0.249 0.249 -1.39   -0.576    1.00    4811.
+ 24 theta[24]  -0.985  -0.982  0.246 0.246 -1.40   -0.586    1.00    4111.
+ 25 theta[25]   0.537   0.534  0.249 0.250  0.129   0.949    1.00    5298.
+ 26 theta[26]   0.734   0.732  0.250 0.250  0.331   1.14     1.00    5634.
+ 27 theta[27]  -0.120  -0.117  0.250 0.247 -0.532   0.288    1.00    5345.
+ 28 theta[28]   1.21    1.20   0.251 0.252  0.797   1.62     1.00    3920.
+ 29 theta[29]   0.888   0.884  0.247 0.244  0.485   1.31     1.00    4583.
+ 30 theta[30]   1.68    1.67   0.264 0.265  1.25    2.12     1.00    3506.
+ 31 theta[31]   0.539   0.539  0.253 0.253  0.124   0.960    1.00    5058.
+ 32 theta[32]  -0.422  -0.418  0.255 0.255 -0.842  -0.00893  1.00    4924.
+ 33 theta[33]   0.315   0.314  0.247 0.244 -0.0879  0.732    1.00    5116.
+ 34 theta[34]  -0.981  -0.982  0.252 0.250 -1.40   -0.566    1.00    5031.
+ 35 theta[35]  -0.672  -0.673  0.250 0.249 -1.08   -0.270    1.00    4187.
+ 36 theta[36]  -0.802  -0.800  0.253 0.252 -1.22   -0.390    1.00    4567.
+ 37 theta[37]  -0.984  -0.981  0.253 0.253 -1.41   -0.575    1.00    4562.
+ 38 theta[38]  -0.220  -0.217  0.249 0.255 -0.633   0.185    1.00    5240.
+ 39 theta[39]  -0.986  -0.981  0.251 0.254 -1.40   -0.585    1.00    4419.
+ 40 theta[40]   0.0370  0.0391 0.247 0.245 -0.368   0.444    1.00    5660.
+ 41 theta[41]  -0.984  -0.982  0.247 0.246 -1.40   -0.582    1.00    4614.
+ 42 theta[42]  -0.0895 -0.0913 0.255 0.259 -0.502   0.327    1.00    4973.
+ 43 theta[43]  -0.647  -0.649  0.253 0.257 -1.06   -0.237    1.00    5213.
+ 44 theta[44]  -0.0736 -0.0748 0.248 0.243 -0.479   0.339    1.00    5283.
+ 45 theta[45]   0.373   0.376  0.255 0.250 -0.0467  0.792    1.00    5716.
+ 46 theta[46]   0.264   0.264  0.244 0.244 -0.133   0.666    1.00    5277.
+ 47 theta[47]   0.502   0.503  0.247 0.244  0.0920  0.906    1.00    4611.
+ 48 theta[48]  -0.839  -0.837  0.251 0.249 -1.25   -0.425    1.00    4539.
+ 49 theta[49]  -0.985  -0.981  0.254 0.254 -1.40   -0.569    1.00    4992.
+ 50 theta[50]   0.154   0.155  0.255 0.257 -0.269   0.578    1.00    6206.
+ 51 theta[51]  -0.983  -0.982  0.248 0.254 -1.39   -0.575    1.00    4857.
+ 52 theta[52]   0.317   0.320  0.249 0.253 -0.0977  0.719    1.00    4789.
+ 53 theta[53]  -0.984  -0.982  0.246 0.243 -1.39   -0.584    1.00    4562.
+ 54 theta[54]   1.21    1.20   0.257 0.256  0.795   1.64     1.00    3650.
+ 55 theta[55]  -0.980  -0.977  0.249 0.252 -1.39   -0.579    1.00    4146.
+ 56 theta[56]  -0.982  -0.977  0.251 0.248 -1.40   -0.570    1.00    4726.
+ 57 theta[57]  -0.739  -0.738  0.249 0.249 -1.15   -0.331    1.00    4973.
+ 58 theta[58]  -0.986  -0.984  0.247 0.248 -1.39   -0.585    1.00    4612.
+ 59 theta[59]  -0.0745 -0.0739 0.247 0.248 -0.476   0.327    1.00    4742.
+ 60 theta[60]  -0.645  -0.644  0.248 0.245 -1.06   -0.232    1.00    4642.
+ 61 theta[61]   1.38    1.38   0.253 0.254  0.965   1.79     1.00    3888.
+ 62 theta[62]   0.317   0.315  0.245 0.244 -0.0768  0.717    1.00    6126.
+ 63 theta[63]  -0.979  -0.974  0.250 0.246 -1.39   -0.573    1.00    4571.
+ 64 theta[64]   1.37    1.37   0.255 0.253  0.954   1.79     1.00    3952.
+ 65 theta[65]   1.21    1.20   0.255 0.253  0.793   1.63     1.00    4012.
+ 66 theta[66]  -0.755  -0.750  0.252 0.245 -1.17   -0.345    1.00    4891.
+ 67 theta[67]   0.539   0.540  0.253 0.252  0.132   0.960    1.00    5462.
+ 68 theta[68]   0.856   0.853  0.250 0.250  0.446   1.27     1.00    4504.
+ 69 theta[69]  -0.535  -0.536  0.256 0.251 -0.965  -0.117    1.00    5020.
+ 70 theta[70]   0.886   0.883  0.251 0.249  0.480   1.31     1.00    4264.
+ 71 theta[71]   0.0572  0.0538 0.244 0.245 -0.331   0.457    1.00    5794.
+ 72 theta[72]   1.04    1.04   0.258 0.254  0.620   1.47     1.00    4113.
+ 73 theta[73]  -0.0194 -0.0191 0.247 0.244 -0.421   0.388    1.00    5284.
+ 74 theta[74]  -0.983  -0.987  0.249 0.244 -1.39   -0.573    1.00    4865.
+ 75 theta[75]  -0.985  -0.985  0.244 0.246 -1.39   -0.583    1.00    4211.
+ 76 theta[76]   3.24    3.24   0.298 0.299  2.77    3.74     1.00    2148.
+ 77 theta[77]  -0.792  -0.787  0.250 0.251 -1.21   -0.394    1.00    5120.
+ 78 theta[78]   1.14    1.14   0.252 0.249  0.735   1.57     1.00    4355.
+ 79 theta[79]   1.87    1.86   0.268 0.266  1.44    2.32     1.00    3602.
+ 80 theta[80]   0.606   0.606  0.247 0.245  0.202   1.01     1.00    5240.
+ 81 theta[81]   0.0395  0.0406 0.245 0.242 -0.361   0.438    1.00    5591.
+ 82 theta[82]   0.0136  0.0142 0.250 0.251 -0.399   0.419    1.00    5968.
+ 83 theta[83]  -0.985  -0.983  0.250 0.250 -1.40   -0.582    1.00    4853.
+ 84 theta[84]   1.57    1.57   0.264 0.263  1.15    2.01     1.00    3455.
+ 85 theta[85]   0.202   0.200  0.246 0.250 -0.207   0.611    1.00    5346.
+ 86 theta[86]  -0.982  -0.977  0.254 0.252 -1.41   -0.574    1.00    4628.
+ 87 theta[87]   0.163   0.164  0.244 0.247 -0.236   0.566    1.00    5157.
+ 88 theta[88]  -0.324  -0.321  0.246 0.245 -0.728   0.0797   1.00    5429.
+ 89 theta[89]  -0.985  -0.985  0.249 0.247 -1.39   -0.575    1.00    4405.
+ 90 theta[90]   0.832   0.830  0.252 0.250  0.417   1.25     1.00    5060.
+ 91 theta[91]  -0.844  -0.846  0.246 0.249 -1.24   -0.433    1.00    4310.
+ 92 theta[92]   1.05    1.05   0.257 0.254  0.634   1.49     1.00    4260.
+ 93 theta[93]   0.0148  0.0164 0.249 0.251 -0.392   0.423    1.00    5648.
+ 94 theta[94]   2.59    2.58   0.274 0.270  2.15    3.06     1.00    2326.
+ 95 theta[95]   1.65    1.64   0.263 0.263  1.23    2.10     1.00    3661.
+ 96 theta[96]   0.315   0.313  0.249 0.249 -0.0910  0.724    1.00    5005.
+ 97 theta[97]   0.262   0.262  0.243 0.239 -0.142   0.662    1.00    5407.
+ 98 theta[98]  -0.981  -0.979  0.248 0.249 -1.39   -0.580    1.00    4751.
+ 99 theta[99]   1.21    1.20   0.258 0.258  0.789   1.64     1.00    4004.
+100 theta[100] -0.934  -0.932  0.248 0.244 -1.34   -0.518    1.00    4387.
+101 theta[101] -0.714  -0.715  0.247 0.244 -1.12   -0.309    1.00    4983.
+102 theta[102]  2.81    2.80   0.286 0.282  2.35    3.30     1.00    2501.
+103 theta[103] -0.669  -0.668  0.250 0.246 -1.08   -0.261    1.00    4514.
+104 theta[104]  0.857   0.853  0.264 0.266  0.427   1.30     1.00    4378.
+105 theta[105] -0.0878 -0.0882 0.256 0.256 -0.505   0.334    1.00    5778.
+106 theta[106]  1.12    1.12   0.258 0.260  0.705   1.55     1.00    4134.
+107 theta[107]  1.57    1.57   0.264 0.262  1.14    2.01     1.00    3233.
+108 theta[108]  0.836   0.833  0.253 0.253  0.430   1.25     1.00    4734.
+109 theta[109]  1.03    1.02   0.253 0.253  0.621   1.45     1.00    4386.
+110 theta[110]  0.0423  0.0421 0.253 0.243 -0.378   0.462    1.00    6152.
+111 theta[111]  0.113   0.112  0.248 0.241 -0.300   0.518    1.00    4459.
+112 theta[112] -0.647  -0.650  0.246 0.252 -1.05   -0.248    1.00    5500.
+113 theta[113]  0.364   0.362  0.247 0.244 -0.0388  0.775    1.00    5724.
+114 theta[114] -0.322  -0.321  0.254 0.253 -0.741   0.0900   1.00    5777.
+115 theta[115]  0.852   0.847  0.259 0.257  0.432   1.29     1.00    3967.
+116 theta[116] -0.172  -0.171  0.249 0.255 -0.579   0.228    1.00    6242.
+117 theta[117]  0.0551  0.0511 0.242 0.239 -0.341   0.454    1.00    5062.
+118 theta[118]  0.315   0.315  0.246 0.249 -0.0873  0.724    1.00    5223.
+119 theta[119] -0.837  -0.833  0.247 0.249 -1.24   -0.437    1.00    5169.
+120 theta[120] -0.987  -0.986  0.249 0.247 -1.40   -0.576    1.00    4792.
+121 theta[121]  0.198   0.198  0.251 0.250 -0.217   0.608    1.00    5798.
+122 theta[122] -0.643  -0.638  0.246 0.244 -1.05   -0.239    1.00    4539.
+123 theta[123]  1.20    1.20   0.255 0.252  0.793   1.63     1.00    4452.
+124 theta[124]  1.03    1.03   0.250 0.250  0.625   1.45     1.00    4251.
+125 theta[125] -0.984  -0.982  0.257 0.258 -1.41   -0.569    1.00    4209.
+126 theta[126] -0.647  -0.646  0.251 0.252 -1.06   -0.238    1.00    5043.
+127 theta[127]  1.12    1.12   0.258 0.259  0.695   1.54     1.00    4753.
+128 theta[128] -0.851  -0.852  0.249 0.251 -1.26   -0.448    1.00    4437.
+129 theta[129] -0.669  -0.666  0.242 0.244 -1.07   -0.272    1.00    4287.
+130 theta[130]  1.86    1.85   0.264 0.264  1.43    2.30     1.00    3292.
+131 theta[131] -0.342  -0.336  0.248 0.245 -0.748   0.0709   1.00    6356.
+132 theta[132]  1.65    1.65   0.263 0.268  1.23    2.09     1.00    3584.
+133 theta[133] -0.984  -0.979  0.249 0.246 -1.40   -0.583    1.00    4221.
+134 theta[134]  2.59    2.58   0.280 0.279  2.14    3.06     1.00    2548.
+135 theta[135] -0.795  -0.793  0.248 0.246 -1.21   -0.381    1.00    5351.
+136 theta[136] -0.983  -0.982  0.248 0.248 -1.39   -0.581    1.00    4665.
+137 theta[137]  0.773   0.772  0.249 0.248  0.367   1.18     1.00    4585.
+138 theta[138] -0.792  -0.793  0.254 0.252 -1.22   -0.379    1.00    4540.
+139 theta[139]  0.0375  0.0374 0.249 0.246 -0.369   0.444    1.00    5480.
+140 theta[140] -0.0602 -0.0612 0.251 0.248 -0.471   0.358    1.00    6477.
+141 theta[141] -0.845  -0.844  0.246 0.244 -1.25   -0.442    1.00    5029.
+142 theta[142] -0.982  -0.978  0.249 0.251 -1.40   -0.574    1.00    4476.
+143 theta[143] -0.986  -0.986  0.251 0.249 -1.40   -0.576    1.00    4736.
+144 theta[144]  0.812   0.810  0.247 0.247  0.411   1.22     1.00    4872.
+145 theta[145] -0.982  -0.979  0.251 0.257 -1.40   -0.574    1.00    4775.
+146 theta[146]  0.603   0.604  0.251 0.247  0.193   1.02     1.00    5027.
+147 theta[147]  0.850   0.849  0.255 0.253  0.436   1.27     1.00    4995.
+148 theta[148]  0.117   0.116  0.256 0.261 -0.303   0.539    1.00    5353.
+149 theta[149] -0.983  -0.983  0.248 0.248 -1.39   -0.580    1.00    4671.
+150 theta[150] -0.985  -0.982  0.247 0.249 -1.39   -0.590    1.00    4557.
+151 theta[151] -0.641  -0.638  0.248 0.246 -1.05   -0.234    1.00    4594.
+152 theta[152] -0.983  -0.979  0.252 0.260 -1.40   -0.577    1.00    4416.
+153 theta[153]  1.52    1.52   0.255 0.252  1.11    1.94     1.00    3273.
+154 theta[154] -0.933  -0.931  0.251 0.250 -1.35   -0.531    1.00    5345.
+155 theta[155] -0.984  -0.980  0.251 0.252 -1.39   -0.574    1.00    4897.
+156 theta[156] -0.844  -0.844  0.254 0.256 -1.26   -0.436    1.00    4832.
+157 theta[157] -0.837  -0.837  0.245 0.248 -1.24   -0.435    1.00    4081.
+158 theta[158] -0.0176 -0.0192 0.245 0.245 -0.424   0.390    1.00    5124.
+159 theta[159]  0.604   0.603  0.252 0.253  0.192   1.02     1.00    5151.
+160 theta[160] -0.985  -0.982  0.247 0.244 -1.40   -0.585    1.00    4118.
+161 theta[161]  1.29    1.29   0.251 0.248  0.891   1.71     1.00    3948.
+162 theta[162]  0.164   0.165  0.249 0.250 -0.247   0.568    1.00    5887.
+163 theta[163] -0.985  -0.987  0.255 0.255 -1.40   -0.570    1.00    4361.
+164 theta[164] -0.546  -0.543  0.257 0.262 -0.971  -0.132    1.00    6051.
+165 theta[165]  0.154   0.154  0.255 0.253 -0.263   0.575    1.00    5766.
+166 theta[166] -0.983  -0.978  0.253 0.257 -1.40   -0.579    1.00    4344.
+167 theta[167]  0.316   0.316  0.245 0.242 -0.0825  0.717    1.00    4859.
+168 theta[168]  1.37    1.36   0.259 0.262  0.952   1.80     1.00    3668.
+169 theta[169] -0.355  -0.355  0.247 0.243 -0.762   0.0506   1.00    5240.
+170 theta[170]  0.110   0.109  0.245 0.244 -0.291   0.506    1.00    5557.
+171 theta[171] -0.753  -0.754  0.248 0.243 -1.16   -0.352    1.00    5032.
+172 theta[172]  0.194   0.189  0.246 0.245 -0.204   0.603    1.00    5027.
+173 theta[173]  0.609   0.606  0.251 0.256  0.197   1.02     1.00    5140.
+174 theta[174] -0.711  -0.710  0.253 0.251 -1.12   -0.288    1.00    4736.
+175 theta[175] -0.669  -0.665  0.243 0.240 -1.07   -0.269    1.00    4456.
+176 theta[176] -0.794  -0.795  0.247 0.246 -1.20   -0.386    1.00    5158.
+177 theta[177] -0.442  -0.444  0.246 0.245 -0.846  -0.0367   1.00    5852.
+# … with 1 more variable: ess_tail &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="eap-estimates-of-latent-variables" class="slide level2">
+<h2>EAP Estimates of Latent Variables</h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-17-1.png" width="960" class="r-stretch"></section>
+<section id="density-of-eap-estimates" class="slide level2">
+<h2>Density of EAP Estimates</h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-18-1.png" width="960" class="r-stretch"></section>
+<section id="density-of-all-posterior-draws" class="slide level2">
+<h2>Density of All Posterior Draws</h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-19-1.png" width="960" class="r-stretch"></section>
+<section id="comparing-two-posterior-distributions" class="slide level2">
+<h2>Comparing Two Posterior Distributions</h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-20-1.png" width="960" class="r-stretch"></section>
+<section id="comparing-eap-estimate-with-posterior-sd" class="slide level2">
+<h2>Comparing EAP Estimate with Posterior SD</h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-21-1.png" width="960" class="r-stretch"></section>
+<section id="comparing-eap-estimate-with-sum-score" class="slide level2">
+<h2>Comparing EAP Estimate with Sum Score</h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-22-1.png" width="960" class="r-stretch"></section>
+<section id="posterior-distribution-for-person-parameters" class="slide level2">
+<h2>Posterior Distribution for Person Parameters</h2>
+<p>The posterior distribution of the person parameters (the latent variable; for a single person):</p>
+<p><span class="math display">\[
+f(\theta_p \mid \boldsymbol{Y}) \propto f\left(\boldsymbol{Y} \mid \theta_p \right)
+f\left(\theta_p \right)
+\]</span></p>
+<p>Here:</p>
+<ul>
+<li><span class="math inline">\(f(\theta_p \mid \boldsymbol{Y})\)</span> is the posterior distribution of the latent variable conditional on the observed data</li>
+<li>$f( _p ) $ is the model (data) likelihood</li>
+</ul>
+<p><span class="math display">\[ f\left(\boldsymbol{Y} \mid \theta_p \right)  = \prod_{i=1}^I f(Y_i \mid \theta_p)\]</span></p>
+<ul>
+<li><span class="math inline">\(f(Y_i \mid \theta_p)\)</span> is the observed data likelihood: <span class="math inline">\(f(Y_i \mid \theta_p) ~ N(\mu_i + \lambda_i\theta_p, \psi_i)\)</span></li>
+<li><span class="math inline">\(f\left(\theta_p \right) \sim N(0,1)\)</span> is the prior likelihood for the latent variable <span class="math inline">\(\theta_p\)</span></li>
+</ul>
+</section>
+<section id="section-3" class="slide level2" data-auto-animate="true," data-visibility="uncounted">
+<h2 data-id="quarto-animate-title"></h2>
+<div style="margin-top: 200px; font-size: 3em; color: red;">
+<p>Measurement Model Estimation Fails</p>
+</div>
+</section>
+<section id="recall-stans-parameters-block" class="slide level2">
+<h2>Recall: Stan’s <code>parameters {}</code> Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>parameters {</span>
+<span id="cb10-2"><a href="#cb10-2"></a>  vector[nObs] theta;                <span class="sc">/</span><span class="er">/</span> the latent <span class="fu">variables</span> (one <span class="cf">for</span> each person)</span>
+<span id="cb10-3"><a href="#cb10-3"></a>  vector[nItems] mu;                 <span class="sc">/</span><span class="er">/</span> the item <span class="fu">intercepts</span> (one <span class="cf">for</span> each item)</span>
+<span id="cb10-4"><a href="#cb10-4"></a>  vector[nItems] lambda;             <span class="sc">/</span><span class="er">/</span> the factor loadings<span class="sc">/</span>item <span class="fu">discriminations</span> (one <span class="cf">for</span> each item)</span>
+<span id="cb10-5"><a href="#cb10-5"></a>  vector<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span>[nItems] psi;       <span class="sc">/</span><span class="er">/</span> the unique standard <span class="fu">deviations</span> (one <span class="cf">for</span> each item)   </span>
+<span id="cb10-6"><a href="#cb10-6"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here, the parameterization of <span class="math inline">\(\lambda\)</span> (factor loadings/discrimination parameters) can lead to problems in estimation</p>
+<ul>
+<li>The issue: <span class="math inline">\(\lambda_i \theta_p = (-\lambda_i)(-\theta_p)\)</span>
+<ul>
+<li>Depending on the random starting values of each of these parameters (per chain), a given chain may converge to a different region</li>
+</ul></li>
+<li>To demonstrate (later), we will start with a different random number seed
+<ul>
+<li>Currently using 09102022: works fine</li>
+<li>Change to 25102022: big problems</li>
+</ul></li>
+</ul>
+</section>
+<section id="new-samples-syntax" class="slide level2">
+<h2>New Samples Syntax</h2>
+<p>Trying the same model with a different random number seed:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>modelCFA_samplesFail <span class="ot">=</span> modelCFA_stan<span class="sc">$</span><span class="fu">sample</span>(</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="at">data =</span> modelCFA_data,</span>
+<span id="cb11-3"><a href="#cb11-3"></a>  <span class="at">seed =</span> <span class="dv">25102022</span>,</span>
+<span id="cb11-4"><a href="#cb11-4"></a>  <span class="at">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb11-5"><a href="#cb11-5"></a>  <span class="at">parallel_chains =</span> <span class="dv">4</span>,</span>
+<span id="cb11-6"><a href="#cb11-6"></a>  <span class="at">iter_warmup =</span> <span class="dv">2000</span>,</span>
+<span id="cb11-7"><a href="#cb11-7"></a>  <span class="at">iter_sampling =</span> <span class="dv">2000</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Convergence: FAIL</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.006423</code></pre>
+</div>
+</div>
+</section>
+<section id="why-convergence-failed" class="slide level2">
+<h2>Why Convergence Failed</h2>
+<p>The issue: <span class="math inline">\(\lambda_i \theta_p = (-\lambda_i)(-\theta_p)\)</span></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 30 × 10
+   variable    mean median     sd    mad    q5   q95  rhat ess_bulk ess_tail
+   &lt;chr&gt;      &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+ 1 mu[1]      2.37   2.37  0.0876 0.0862 2.23  2.51   1.00    1447.    2855.
+ 2 mu[2]      1.96   1.96  0.0850 0.0853 1.82  2.10   1.00     995.    2338.
+ 3 mu[3]      1.88   1.88  0.0825 0.0849 1.75  2.01   1.00    1081.    2746.
+ 4 mu[4]      2.01   2.01  0.0852 0.0856 1.87  2.15   1.00    1060.    2587.
+ 5 mu[5]      1.99   1.99  0.0842 0.0838 1.85  2.12   1.01     768.    1596.
+ 6 mu[6]      1.89   1.89  0.0775 0.0770 1.77  2.02   1.01     825.    1647.
+ 7 mu[7]      1.73   1.73  0.0766 0.0774 1.60  1.85   1.00    1025.    2523.
+ 8 mu[8]      1.84   1.84  0.0733 0.0739 1.72  1.97   1.01     803.    1771.
+ 9 mu[9]      1.81   1.81  0.0882 0.0883 1.67  1.96   1.00    1079.    2748.
+10 mu[10]     1.52   1.52  0.0809 0.0802 1.39  1.65   1.00    1464.    3239.
+11 lambda[1]  0.740  0.739 0.0838 0.0828 0.607 0.882  1.00    3429.    4389.
+12 lambda[2]  0.870  0.867 0.0774 0.0778 0.748 1.00   1.00    2010.    4141.
+13 lambda[3]  0.802  0.802 0.0766 0.0755 0.680 0.932  1.00    2249.    4009.
+14 lambda[4]  0.843  0.840 0.0763 0.0760 0.723 0.973  1.00    2383.    4144.
+15 lambda[5]  0.997  0.994 0.0715 0.0708 0.886 1.12   1.00    1439.    2565.
+16 lambda[6]  0.899  0.896 0.0650 0.0651 0.796 1.01   1.00    1408.    2668.
+17 lambda[7]  0.764  0.762 0.0704 0.0695 0.653 0.884  1.00    2473.    3577.
+18 lambda[8]  0.854  0.851 0.0609 0.0603 0.757 0.959  1.00    1528.    2882.
+19 lambda[9]  0.861  0.859 0.0806 0.0815 0.735 0.997  1.00    2196.    3286.
+20 lambda[10] 0.673  0.669 0.0772 0.0759 0.550 0.804  1.00    3108.    4190.
+21 psi[1]     0.893  0.891 0.0498 0.0492 0.815 0.978  1.00   15449.    6480.
+22 psi[2]     0.734  0.732 0.0433 0.0427 0.667 0.809  1.00   12834.    6393.
+23 psi[3]     0.782  0.780 0.0447 0.0442 0.712 0.859  1.00   14422.    6595.
+24 psi[4]     0.757  0.755 0.0438 0.0444 0.690 0.833  1.00   14700.    6978.
+25 psi[5]     0.544  0.543 0.0372 0.0369 0.486 0.607  1.00    8549.    6223.
+26 psi[6]     0.505  0.503 0.0334 0.0331 0.452 0.561  1.00    9757.    6302.
+27 psi[7]     0.686  0.684 0.0400 0.0400 0.623 0.755  1.00   13777.    5845.
+28 psi[8]     0.480  0.478 0.0317 0.0318 0.431 0.534  1.00    9750.    6699.
+29 psi[9]     0.782  0.781 0.0459 0.0461 0.710 0.859  1.00   12873.    6177.
+30 psi[10]    0.840  0.838 0.0467 0.0460 0.765 0.919  1.00   13693.    6461.</code></pre>
+</div>
+</div>
+</section>
+<section id="posterior-trace-plots-of-lambda" class="slide level2">
+<h2>Posterior Trace Plots of <span class="math inline">\(\lambda\)</span></h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-27-1.png" width="960" class="r-stretch"></section>
+<section id="posterior-density-plots-of-lambda" class="slide level2">
+<h2>Posterior Density Plots of <span class="math inline">\(\lambda\)</span></h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-28-1.png" width="960" class="r-stretch"></section>
+<section id="the-fix-restrict-lambda-or-change-prior" class="slide level2">
+<h2>The Fix? Restrict <span class="math inline">\(\lambda\)</span> or Change Prior</h2>
+<p>Stan allows starting values to be set via <code>cmdstanr</code>, but often this may not be enough</p>
+<p>Instead:</p>
+<ul>
+<li>Restrict <span class="math inline">\(\lambda\)</span> to be positive
+<ul>
+<li>Truncates prior distribution with MVN</li>
+</ul></li>
+<li>Can also choose prior that has strictly positive range (like log-normal)</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>parameters {</span>
+<span id="cb14-2"><a href="#cb14-2"></a>  vector[nObs] theta;                <span class="sc">/</span><span class="er">/</span> the latent <span class="fu">variables</span> (one <span class="cf">for</span> each person)</span>
+<span id="cb14-3"><a href="#cb14-3"></a>  vector[nItems] mu;                 <span class="sc">/</span><span class="er">/</span> the item <span class="fu">intercepts</span> (one <span class="cf">for</span> each item)</span>
+<span id="cb14-4"><a href="#cb14-4"></a>  vector<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span>[nItems] lambda;             <span class="sc">/</span><span class="er">/</span> the factor loadings<span class="sc">/</span>item <span class="fu">discriminations</span> (one <span class="cf">for</span> each item)</span>
+<span id="cb14-5"><a href="#cb14-5"></a>  vector<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span>[nItems] psi;       <span class="sc">/</span><span class="er">/</span> the unique standard <span class="fu">deviations</span> (one <span class="cf">for</span> each item)   </span>
+<span id="cb14-6"><a href="#cb14-6"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="new-results" class="slide level2">
+<h2>New Results</h2>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.003331</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 30 × 10
+   variable    mean median     sd    mad    q5   q95  rhat ess_bulk ess_tail
+   &lt;chr&gt;      &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+ 1 mu[1]      2.37   2.37  0.0883 0.0881 2.22  2.51   1.00    1657.    3207.
+ 2 mu[2]      1.95   1.96  0.0858 0.0860 1.81  2.10   1.00    1197.    2654.
+ 3 mu[3]      1.87   1.87  0.0842 0.0858 1.74  2.01   1.00    1289.    3218.
+ 4 mu[4]      2.01   2.01  0.0848 0.0843 1.87  2.15   1.00    1206.    2824.
+ 5 mu[5]      1.98   1.98  0.0849 0.0852 1.84  2.12   1.00     886.    2067.
+ 6 mu[6]      1.89   1.89  0.0771 0.0762 1.76  2.02   1.00     923.    2044.
+ 7 mu[7]      1.72   1.72  0.0770 0.0765 1.59  1.85   1.00    1270.    2757.
+ 8 mu[8]      1.84   1.84  0.0730 0.0735 1.72  1.96   1.00     934.    2129.
+ 9 mu[9]      1.81   1.81  0.0869 0.0873 1.66  1.95   1.00    1266.    2672.
+10 mu[10]     1.52   1.52  0.0808 0.0796 1.38  1.65   1.00    1673.    3143.
+11 lambda[1]  0.737  0.735 0.0830 0.0844 0.604 0.876  1.00    2652.    4811.
+12 lambda[2]  0.869  0.867 0.0776 0.0776 0.746 0.998  1.00    1923.    3556.
+13 lambda[3]  0.800  0.796 0.0784 0.0770 0.676 0.933  1.00    2156.    3507.
+14 lambda[4]  0.841  0.839 0.0778 0.0781 0.717 0.972  1.00    1911.    4155.
+15 lambda[5]  0.996  0.994 0.0727 0.0722 0.882 1.12   1.00    1285.    2796.
+16 lambda[6]  0.897  0.894 0.0660 0.0660 0.793 1.01   1.00    1307.    2975.
+17 lambda[7]  0.764  0.762 0.0703 0.0702 0.650 0.881  1.00    1956.    3876.
+18 lambda[8]  0.851  0.849 0.0614 0.0606 0.753 0.956  1.00    1315.    3180.
+19 lambda[9]  0.858  0.856 0.0803 0.0780 0.730 0.995  1.00    2115.    3682.
+20 lambda[10] 0.672  0.669 0.0789 0.0771 0.546 0.808  1.00    2958.    4715.
+21 psi[1]     0.893  0.891 0.0512 0.0512 0.813 0.982  1.00   13825.    5734.
+22 psi[2]     0.734  0.732 0.0444 0.0442 0.666 0.810  1.00   12492.    6332.
+23 psi[3]     0.782  0.780 0.0455 0.0455 0.711 0.858  1.00   13733.    6151.
+24 psi[4]     0.757  0.756 0.0443 0.0435 0.688 0.834  1.00   13207.    6349.
+25 psi[5]     0.545  0.543 0.0368 0.0365 0.488 0.608  1.00    8446.    6185.
+26 psi[6]     0.505  0.504 0.0340 0.0335 0.451 0.562  1.00    9516.    5861.
+27 psi[7]     0.686  0.684 0.0404 0.0394 0.623 0.756  1.00   14455.    5853.
+28 psi[8]     0.480  0.479 0.0318 0.0308 0.429 0.534  1.00    9878.    5893.
+29 psi[9]     0.782  0.780 0.0450 0.0453 0.711 0.859  1.00   13083.    6121.
+30 psi[10]    0.840  0.838 0.0465 0.0461 0.769 0.919  1.00   14516.    6224.</code></pre>
+</div>
+</div>
+</section>
+<section id="section-4" class="slide level2" data-auto-animate="true," data-visibility="uncounted">
+<h2 data-id="quarto-animate-title"></h2>
+<div style="margin-top: 200px; font-size: 3em; color: red;">
+<p>Wrapping Up</p>
+</div>
+</section>
+<section id="wrapping-up" class="slide level2">
+<h2>Wrapping Up</h2>
+<p>Today, we showed how to model observed data using a normal distribution</p>
+<ul>
+<li>Assumptions of Confirmatory Factor Analysis
+<ul>
+<li>Not appropriate for our data</li>
+<li>May not be appropriate for many data sets</li>
+</ul></li>
+<li>We will have to keep our loading/discrimination parameters positive to ensure each chain converges to the same posterior mode
+<ul>
+<li>This will continue through the next types of data</li>
+</ul></li>
+<li>Next up, categorical distributions for observed data
+<ul>
+<li>More appropriate for these data as they are discrete categorical responses</li>
+</ul></li>
+</ul>
+<div class="footer footer-default">
+<p><a href="https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/">https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/</a></p>
+</div>
+</section>
+    </div>
+  </div>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script>
+  <script src="04b_Modeling_Observed_Data_files/libs/revealjs/dist/reveal.js"></script>
+  <!-- reveal.js plugins -->
+  <script src="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  
+
+  <script src="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="04b_Modeling_Observed_Data_files/libs/revealjs/plugin/math/math.js"></script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+'controlsAuto': true,
+'previewLinksAuto': false,
+'smaller': false,
+'pdfSeparateFragments': false,
+'autoAnimateEasing': "ease",
+'autoAnimateDuration': 1,
+'autoAnimateUnmatched': true,
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'smaller': false,
+ 
+        // Display controls in the bottom right corner
+        controls: false,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: false,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'edges',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: 'c/t',
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: true,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: false,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'linear',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: false,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'none',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'none',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: 1050,
+
+        height: 700,
+
+        // Factor of the display size that should remain empty around the content
+        margin: 0.1,
+
+        math: {
+          mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
+
+          RevealMath,
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    
+    <script>
+      // htmlwidgets need to know to resize themselves when slides are shown/hidden.
+      // Fire the "slideenter" event (handled by htmlwidgets.js) when the current
+      // slide changes (different for each slide format).
+      (function () {
+        function fireSlideChanged(previousSlide, currentSlide) {
+
+          // dispatch for htmlwidgets
+          const event = window.document.createEvent("Event");
+          event.initEvent("slideenter", true, true);
+          window.document.dispatchEvent(event);
+
+          // dispatch for shiny
+          if (window.jQuery) {
+            if (previousSlide) {
+              window.jQuery(previousSlide).trigger("hidden");
+            }
+            if (currentSlide) {
+              window.jQuery(currentSlide).trigger("shown");
+            }
+          }
+        }
+
+        // hookup for reveal
+        if (window.Reveal) {
+          window.Reveal.addEventListener("slidechanged", function(event) {
+            fireSlideChanged(event.previousSlide, event.currentSlide);
+          });
+        }
+
+        // hookup for slidy
+        if (window.w3c_slidy) {
+          window.w3c_slidy.add_observer(function (slide_num) {
+            // slide_num starts at position 1
+            fireSlideChanged(null, w3c_slidy.slides[slide_num - 1]);
+          });
+        }
+
+      })();
+    </script>
+
+    <script id="quarto-html-after-body" type="application/javascript">
+    window.document.addEventListener("DOMContentLoaded", function (event) {
+      const toggleBodyColorMode = (bsSheetEl) => {
+        const mode = bsSheetEl.getAttribute("data-mode");
+        const bodyEl = window.document.querySelector("body");
+        if (mode === "dark") {
+          bodyEl.classList.add("quarto-dark");
+          bodyEl.classList.remove("quarto-light");
+        } else {
+          bodyEl.classList.add("quarto-light");
+          bodyEl.classList.remove("quarto-dark");
+        }
+      }
+      const toggleBodyColorPrimary = () => {
+        const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+        if (bsSheetEl) {
+          toggleBodyColorMode(bsSheetEl);
+        }
+      }
+      toggleBodyColorPrimary();  
+      const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+      tabsets.forEach(function(tabset) {
+        const tabby = new Tabby('#' + tabset.id);
+      });
+      const clipboard = new window.ClipboardJS('.code-copy-button', {
+        target: function(trigger) {
+          return trigger.previousElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        // button target
+        const button = e.trigger;
+        // don't keep focus
+        button.blur();
+        // flash "checked"
+        button.classList.add('code-copy-button-checked');
+        var currentTitle = button.getAttribute("title");
+        button.setAttribute("title", "Copied!");
+        setTimeout(function() {
+          button.setAttribute("title", currentTitle);
+          button.classList.remove('code-copy-button-checked');
+        }, 1000);
+        // clear code selection
+        e.clearSelection();
+      });
+      function tippyHover(el, contentFn) {
+        const config = {
+          allowHTML: true,
+          content: contentFn,
+          maxWidth: 500,
+          delay: 100,
+          arrow: false,
+          appendTo: function(el) {
+              return el.closest('section.slide') || el.parentElement;
+          },
+          interactive: true,
+          interactiveBorder: 10,
+          theme: 'quarto-reveal',
+          placement: 'bottom-start'
+        };
+          config['offset'] = [0,0];
+          config['maxWidth'] = 700;
+        window.tippy(el, config); 
+      }
+      const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+      for (var i=0; i<noterefs.length; i++) {
+        const ref = noterefs[i];
+        tippyHover(ref, function() {
+          let href = ref.getAttribute('href');
+          try { href = new URL(href).hash; } catch {}
+          const id = href.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          return note.innerHTML;
+        });
+      }
+      var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+      for (var i=0; i<bibliorefs.length; i++) {
+        const ref = bibliorefs[i];
+        const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+        tippyHover(ref, function() {
+          var popup = window.document.createElement('div');
+          cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    });
+    </script>
+    
+
+</body></html>
