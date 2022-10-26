@@ -1112,6 +1112,7 @@ f\left(\theta_p \right)
 <ul>
 <li><span class="math inline">\(f(Y_i \mid \theta_p)\)</span> is the observed data likelihood: <span class="math inline">\(f(Y_i \mid \theta_p) ~ N(\mu_i + \lambda_i\theta_p, \psi_i)\)</span></li>
 <li><span class="math inline">\(f\left(\theta_p \right) \sim N(0,1)\)</span> is the prior likelihood for the latent variable <span class="math inline">\(\theta_p\)</span></li>
+<li>Technical details: <a href="https://jonathantemplin.com/wp-content/uploads/2022/10/sem15pre906_lecture11.pdf">https://jonathantemplin.com/wp-content/uploads/2022/10/sem15pre906_lecture11.pdf</a></li>
 </ul>
 </section>
 <section id="section-3" class="slide level2" data-auto-animate="true," data-visibility="uncounted">
@@ -1159,7 +1160,7 @@ f\left(\theta_p \right)
 <p>Convergence: FAIL</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 1.006423</code></pre>
+<pre><code>[1] 1.741764</code></pre>
 </div>
 </div>
 </section>
@@ -1169,38 +1170,38 @@ f\left(\theta_p \right)
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 30 × 10
-   variable    mean median     sd    mad    q5   q95  rhat ess_bulk ess_tail
-   &lt;chr&gt;      &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
- 1 mu[1]      2.37   2.37  0.0876 0.0862 2.23  2.51   1.00    1447.    2855.
- 2 mu[2]      1.96   1.96  0.0850 0.0853 1.82  2.10   1.00     995.    2338.
- 3 mu[3]      1.88   1.88  0.0825 0.0849 1.75  2.01   1.00    1081.    2746.
- 4 mu[4]      2.01   2.01  0.0852 0.0856 1.87  2.15   1.00    1060.    2587.
- 5 mu[5]      1.99   1.99  0.0842 0.0838 1.85  2.12   1.01     768.    1596.
- 6 mu[6]      1.89   1.89  0.0775 0.0770 1.77  2.02   1.01     825.    1647.
- 7 mu[7]      1.73   1.73  0.0766 0.0774 1.60  1.85   1.00    1025.    2523.
- 8 mu[8]      1.84   1.84  0.0733 0.0739 1.72  1.97   1.01     803.    1771.
- 9 mu[9]      1.81   1.81  0.0882 0.0883 1.67  1.96   1.00    1079.    2748.
-10 mu[10]     1.52   1.52  0.0809 0.0802 1.39  1.65   1.00    1464.    3239.
-11 lambda[1]  0.740  0.739 0.0838 0.0828 0.607 0.882  1.00    3429.    4389.
-12 lambda[2]  0.870  0.867 0.0774 0.0778 0.748 1.00   1.00    2010.    4141.
-13 lambda[3]  0.802  0.802 0.0766 0.0755 0.680 0.932  1.00    2249.    4009.
-14 lambda[4]  0.843  0.840 0.0763 0.0760 0.723 0.973  1.00    2383.    4144.
-15 lambda[5]  0.997  0.994 0.0715 0.0708 0.886 1.12   1.00    1439.    2565.
-16 lambda[6]  0.899  0.896 0.0650 0.0651 0.796 1.01   1.00    1408.    2668.
-17 lambda[7]  0.764  0.762 0.0704 0.0695 0.653 0.884  1.00    2473.    3577.
-18 lambda[8]  0.854  0.851 0.0609 0.0603 0.757 0.959  1.00    1528.    2882.
-19 lambda[9]  0.861  0.859 0.0806 0.0815 0.735 0.997  1.00    2196.    3286.
-20 lambda[10] 0.673  0.669 0.0772 0.0759 0.550 0.804  1.00    3108.    4190.
-21 psi[1]     0.893  0.891 0.0498 0.0492 0.815 0.978  1.00   15449.    6480.
-22 psi[2]     0.734  0.732 0.0433 0.0427 0.667 0.809  1.00   12834.    6393.
-23 psi[3]     0.782  0.780 0.0447 0.0442 0.712 0.859  1.00   14422.    6595.
-24 psi[4]     0.757  0.755 0.0438 0.0444 0.690 0.833  1.00   14700.    6978.
-25 psi[5]     0.544  0.543 0.0372 0.0369 0.486 0.607  1.00    8549.    6223.
-26 psi[6]     0.505  0.503 0.0334 0.0331 0.452 0.561  1.00    9757.    6302.
-27 psi[7]     0.686  0.684 0.0400 0.0400 0.623 0.755  1.00   13777.    5845.
-28 psi[8]     0.480  0.478 0.0317 0.0318 0.431 0.534  1.00    9750.    6699.
-29 psi[9]     0.782  0.781 0.0459 0.0461 0.710 0.859  1.00   12873.    6177.
-30 psi[10]    0.840  0.838 0.0467 0.0460 0.765 0.919  1.00   13693.    6461.</code></pre>
+   variable     mean   median     sd    mad     q5   q95  rhat ess_bulk ess_tail
+   &lt;chr&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+ 1 mu[1]     2.37e+0  2.37    0.0865 0.0852  2.22  2.51   1.00  1316.      2582.
+ 2 mu[2]     1.95e+0  1.95    0.0837 0.0838  1.82  2.09   1.00   935.      2294.
+ 3 mu[3]     1.87e+0  1.87    0.0831 0.0812  1.74  2.01   1.00  1144.      2591.
+ 4 mu[4]     2.01e+0  2.01    0.0841 0.0842  1.87  2.15   1.00   970.      2281.
+ 5 mu[5]     1.98e+0  1.98    0.0838 0.0840  1.84  2.12   1.00   740.      1639.
+ 6 mu[6]     1.89e+0  1.89    0.0761 0.0775  1.77  2.02   1.00   712.      1580.
+ 7 mu[7]     1.72e+0  1.72    0.0767 0.0754  1.60  1.85   1.00   966.      2777.
+ 8 mu[8]     1.84e+0  1.84    0.0730 0.0720  1.72  1.96   1.00   700.      1438.
+ 9 mu[9]     1.81e+0  1.81    0.0864 0.0865  1.66  1.95   1.00  1002.      2556.
+10 mu[10]    1.52e+0  1.52    0.0812 0.0804  1.39  1.66   1.00  1419.      2979.
+11 lambda[… -1.41e-3  0.00962 0.745  1.09   -0.849 0.845  1.74     6.08     117.
+12 lambda[… -1.70e-3 -0.00212 0.874  1.29   -0.969 0.969  1.74     6.08     161.
+13 lambda[… -1.89e-3 -0.0291  0.807  1.19   -0.906 0.906  1.74     6.06     104.
+14 lambda[… -3.35e-4 -0.0119  0.848  1.25   -0.944 0.948  1.74     6.08     115.
+15 lambda[… -1.54e-3  0.00194 1.00   1.48   -1.10  1.09   1.74     6.11     135.
+16 lambda[… -1.22e-3 -0.00280 0.903  1.33   -0.986 0.984  1.74     6.09     119.
+17 lambda[… -2.25e-3  0.0241  0.769  1.13   -0.858 0.855  1.74     6.07     105.
+18 lambda[… -1.17e-3  0.00361 0.857  1.26   -0.938 0.935  1.74     6.11     132.
+19 lambda[… -1.48e-3 -0.0127  0.867  1.28   -0.968 0.966  1.74     6.10     121.
+20 lambda[… -5.68e-4 -0.0454  0.678  0.995  -0.776 0.775  1.74     6.06     104.
+21 psi[1]    8.92e-1  0.890   0.0511 0.0513  0.812 0.979  1.00 14005.      5818.
+22 psi[2]    7.35e-1  0.732   0.0439 0.0437  0.666 0.811  1.00 12426.      6036.
+23 psi[3]    7.81e-1  0.779   0.0451 0.0453  0.711 0.857  1.00 13389.      6747.
+24 psi[4]    7.58e-1  0.756   0.0444 0.0440  0.688 0.834  1.00 13036.      6175.
+25 psi[5]    5.44e-1  0.543   0.0373 0.0368  0.484 0.607  1.00  8344.      6597.
+26 psi[6]    5.05e-1  0.504   0.0334 0.0333  0.452 0.561  1.00  8379.      6575.
+27 psi[7]    6.85e-1  0.684   0.0396 0.0391  0.623 0.751  1.00 12734.      5950.
+28 psi[8]    4.80e-1  0.479   0.0313 0.0309  0.431 0.534  1.00  8723.      6298.
+29 psi[9]    7.81e-1  0.780   0.0455 0.0455  0.709 0.859  1.00 12511.      6226.
+30 psi[10]   8.39e-1  0.837   0.0470 0.0467  0.766 0.921  1.00 14004.      6265.</code></pre>
 </div>
 </div>
 </section>
@@ -1212,6 +1213,35 @@ f\left(\theta_p \right)
 <h2>Posterior Density Plots of <span class="math inline">\(\lambda\)</span></h2>
 
 <img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-28-1.png" width="960" class="r-stretch"></section>
+<section id="examining-latent-variables" class="slide level2">
+<h2>Examining Latent Variables</h2>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 177 × 10
+   variable       mean   median    sd   mad     q5   q95  rhat ess_bulk ess_tail
+   &lt;chr&gt;         &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+ 1 theta[1]  -0.00146  -3.15e-3 0.249 0.246 -0.408 0.403  1.00  4198.     4672. 
+ 2 theta[2]   0.00245  -1.22e-1 1.55  2.25  -1.85  1.86   1.73     6.07     98.4
+ 3 theta[3]   0.00266  -4.40e-3 1.72  2.52  -2.04  2.05   1.74     6.06    117. 
+ 4 theta[4]   0.00206  -2.96e-2 0.959 1.37  -1.24  1.25   1.73     6.06    107. 
+ 5 theta[5]  -0.00233  -4.57e-3 0.250 0.251 -0.409 0.410  1.02   201.     4934. 
+ 6 theta[6]  -0.00499   7.38e-2 1.01  1.45  -1.30  1.29   1.73     6.08    124. 
+ 7 theta[7]   0.00155  -3.12e-3 0.423 0.502 -0.655 0.664  1.61     6.59    106. 
+ 8 theta[8]  -0.000405  5.58e-4 0.250 0.251 -0.409 0.407  1.03   108.     4176. 
+ 9 theta[9]  -0.00238  -5.91e-3 0.826 1.16  -1.11  1.11   1.73     6.06    104. 
+10 theta[10]  0.000514 -1.02e-3 0.252 0.244 -0.411 0.412  1.02   238.     4244. 
+# … with 167 more rows</code></pre>
+</div>
+</div>
+</section>
+<section id="posterior-trace-plots-of-theta" class="slide level2">
+<h2>Posterior Trace Plots of <span class="math inline">\(\theta\)</span></h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-30-1.png" width="960" class="r-stretch"></section>
+<section id="posterior-density-plots-of-theta" class="slide level2">
+<h2>Posterior Density Plots of <span class="math inline">\(\theta\)</span></h2>
+
+<img data-src="04b_Modeling_Observed_Data_files/figure-revealjs/unnamed-chunk-31-1.png" width="960" class="r-stretch"></section>
 <section id="the-fix-restrict-lambda-or-change-prior" class="slide level2">
 <h2>The Fix? Restrict <span class="math inline">\(\lambda\)</span> or Change Prior</h2>
 <p>Stan allows starting values to be set via <code>cmdstanr</code>, but often this may not be enough</p>
@@ -1224,12 +1254,12 @@ f\left(\theta_p \right)
 <li>Can also choose prior that has strictly positive range (like log-normal)</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>parameters {</span>
-<span id="cb14-2"><a href="#cb14-2"></a>  vector[nObs] theta;                <span class="sc">/</span><span class="er">/</span> the latent <span class="fu">variables</span> (one <span class="cf">for</span> each person)</span>
-<span id="cb14-3"><a href="#cb14-3"></a>  vector[nItems] mu;                 <span class="sc">/</span><span class="er">/</span> the item <span class="fu">intercepts</span> (one <span class="cf">for</span> each item)</span>
-<span id="cb14-4"><a href="#cb14-4"></a>  vector<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span>[nItems] lambda;             <span class="sc">/</span><span class="er">/</span> the factor loadings<span class="sc">/</span>item <span class="fu">discriminations</span> (one <span class="cf">for</span> each item)</span>
-<span id="cb14-5"><a href="#cb14-5"></a>  vector<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span>[nItems] psi;       <span class="sc">/</span><span class="er">/</span> the unique standard <span class="fu">deviations</span> (one <span class="cf">for</span> each item)   </span>
-<span id="cb14-6"><a href="#cb14-6"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>parameters {</span>
+<span id="cb15-2"><a href="#cb15-2"></a>  vector[nObs] theta;                <span class="sc">/</span><span class="er">/</span> the latent <span class="fu">variables</span> (one <span class="cf">for</span> each person)</span>
+<span id="cb15-3"><a href="#cb15-3"></a>  vector[nItems] mu;                 <span class="sc">/</span><span class="er">/</span> the item <span class="fu">intercepts</span> (one <span class="cf">for</span> each item)</span>
+<span id="cb15-4"><a href="#cb15-4"></a>  vector<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span>[nItems] lambda;             <span class="sc">/</span><span class="er">/</span> the factor loadings<span class="sc">/</span>item <span class="fu">discriminations</span> (one <span class="cf">for</span> each item)</span>
+<span id="cb15-5"><a href="#cb15-5"></a>  vector<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span>[nItems] psi;       <span class="sc">/</span><span class="er">/</span> the unique standard <span class="fu">deviations</span> (one <span class="cf">for</span> each item)   </span>
+<span id="cb15-6"><a href="#cb15-6"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="new-results" class="slide level2">

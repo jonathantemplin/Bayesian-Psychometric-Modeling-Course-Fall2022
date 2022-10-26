@@ -665,7 +665,7 @@ $$ f\left(\boldsymbol{Y} \mid \theta_p \right)  = \prod_{i=1}^I f(Y_i \mid \thet
 
 * $f(Y_i \mid \theta_p)$ is the observed data likelihood: $f(Y_i \mid \theta_p) ~ N(\mu_i + \lambda_i\theta_p, \psi_i)$
 * $f\left(\theta_p \right) \sim N(0,1)$ is the prior likelihood for the latent variable $\theta_p$
-
+* Technical details: [https://jonathantemplin.com/wp-content/uploads/2022/10/sem15pre906_lecture11.pdf](https://jonathantemplin.com/wp-content/uploads/2022/10/sem15pre906_lecture11.pdf)
 
 ## {auto-animate=true, visibility="uncounted"}
 
@@ -710,7 +710,7 @@ modelCFA_samplesFail = modelCFA_stan$sample(
 Convergence: FAIL
 ```{r}
 # checking convergence
-max(modelCFA_samples$summary()$rhat, na.rm = TRUE)
+max(modelCFA_samplesFail$summary()$rhat, na.rm = TRUE)
 ```
 
 ## Why Convergence Failed
@@ -719,7 +719,7 @@ The issue: $\lambda_i \theta_p = (-\lambda_i)(-\theta_p)$
 
 ```{r}
 # item parameter results
-print(modelCFA_samples$summary(variables = c("mu", "lambda", "psi")) ,n=Inf)
+print(modelCFA_samplesFail$summary(variables = c("mu", "lambda", "psi")) ,n=Inf)
 
 ```
 
@@ -734,6 +734,25 @@ mcmc_trace(modelCFA_samplesFail$draws(variables = "lambda"))
 ```{r}
 mcmc_dens(modelCFA_samplesFail$draws(variables = "lambda"))
 ```
+
+## Examining Latent Variables
+
+```{r}
+modelCFA_samplesFail$summary(variables = "theta")
+```
+
+## Posterior Trace Plots of $\theta$
+
+```{r}
+mcmc_trace(modelCFA_samplesFail$draws(variables = c("theta[1]", "theta[2]")))
+```
+
+## Posterior Density Plots of $\theta$
+
+```{r}
+mcmc_dens(modelCFA_samplesFail$draws(variables = c("theta[1]", "theta[2]")))
+```
+
 
 ## The Fix? Restrict $\lambda$ or Change Prior
 
