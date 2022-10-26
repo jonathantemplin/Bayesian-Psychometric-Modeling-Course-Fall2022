@@ -15,6 +15,7 @@ options(mc.cores = 4)
 conspiracyData = read.csv("conspiracies.csv")
 conspiracyItems = conspiracyData[,1:10]
 
+# CFA Model Syntax ==========================================================================
 
 modelCFA_syntax = "
 
@@ -105,7 +106,8 @@ max(modelCFA_samples$summary()$rhat, na.rm = TRUE)
 # item parameter results
 print(modelCFA_samples$summary(variables = c("mu", "lambda", "psi")) ,n=Inf)
 
-# investigating item parameters
+
+# investigating item parameters ================================================
 itemNumber = 3
 
 labelMu = paste0("mu[", itemNumber, "]")
@@ -199,6 +201,41 @@ mcmc_trace(modelCFA_samplesFail$draws(variables = "lambda"))
 # plotting densities
 mcmc_dens(modelCFA_samplesFail$draws(variables = "lambda"))
 
+# investigating item parameters
+itemNumber = 3
+
+labelMu = paste0("mu[", itemNumber, "]")
+labelLambda = paste0("lambda[", itemNumber, "]")
+labelPsi = paste0("psi[", itemNumber, "]")
+itemParameters = modelCFA_samplesFail$draws(variables = c(labelMu, labelLambda, labelPsi), format = "draws_matrix")
+itemSummary = modelCFA_samplesFail$summary(variables = c(labelMu, labelLambda, labelPsi))
+
+# item plot
+theta = seq(-3,3,.1) # for plotting analysis lines--x axis values
+
+# drawing item characteristic curves for item
+y = as.numeric(itemParameters[1,labelMu]) + as.numeric(itemParameters[1,labelLambda])*theta
+plot(x = theta, y = y, type = "l", main = paste("Item", itemNumber, "ICC"), 
+     ylim=c(-2,8), xlab = expression(theta), ylab=paste("Item", itemNumber,"Predicted Value"))
+for (draw in 2:nrow(itemParameters)){
+  y = as.numeric(itemParameters[draw,labelMu]) + as.numeric(itemParameters[draw,labelLambda])*theta
+  lines(x = theta, y = y)
+}
+
+# drawing limits
+lines(x = c(-3,3), y = c(5,5), type = "l", col = 4, lwd=5, lty=2)
+lines(x = c(-3,3), y = c(1,1), type = "l", col = 4, lwd=5, lty=2)
+
+# drawing EAP line
+y = itemSummary$mean[which(itemSummary$variable==labelMu)] + 
+  itemSummary$mean[which(itemSummary$variable==labelLambda)]*theta
+lines(x = theta, y = y, lwd = 5, lty=3, col=2)
+
+# legend
+legend(x = -3, y = 7, legend = c("Posterior Draw", "Item Limits", "EAP"), col = c(1,4,2), lty = c(1,2,3), lwd=5)
+
+
+
 modelCFAFixed_syntax = "
 
 data {
@@ -254,4 +291,84 @@ print(modelCFA_samplesfixed$summary(variables = c("mu", "lambda", "psi")) ,n=Inf
 save.image(file = "lecture04b.RData")
 
 
+# alternative strategy for ensuring convergence to single mode of data:
 
+modelCFA_stan = cmdstan_model(stan_file = write_stan_file(modelCFA_syntax))
+
+# data dimensions
+nObs = nrow(conspiracyItems)
+nItems = ncol(conspiracyItems)
+
+# item intercept hyperparameters
+muMeanHyperParameter = 0
+muMeanVecHP = rep(muMeanHyperParameter, nItems)
+
+muVarianceHyperParameter = 1000
+muCovarianceMatrixHP = diag(x = muVarianceHyperParameter, nrow = nItems)
+
+# item discrimination/factor loading hyperparameters
+lambdaMeanHyperParameter = 0
+lambdaMeanVecHP = rep(lambdaMeanHyperParameter, nItems)
+
+lambdaVarianceHyperParameter = 1000
+lambdaCovarianceMatrixHP = diag(x = lambdaVarianceHyperParameter, nrow = nItems)
+
+# unique standard deviation hyperparameters
+psiRateHyperParameter = .01
+psiRateVecHP = rep(psiRateHyperParameter, nItems)
+
+modelCFA_data = list(
+  nObs = nObs,
+  nItems = nItems,
+  Y = conspiracyItems, 
+  meanMu = muMeanVecHP,
+  covMu = muCovarianceMatrixHP,
+  meanLambda = lambdaMeanVecHP,
+  covLambda = lambdaCovarianceMatrixHP,
+  psiRate = psiRateVecHP
+)
+
+# initial problem chains:
+modelCFA_samples2 = modelCFA_stan$sample(
+  data = modelCFA_data,
+  seed = 25102022,
+  chains = 1,
+  parallel_chains = 1,
+  iter_warmup = 2000,
+  iter_sampling = 2000
+)
+
+# set starting values for some of the parameters
+# here, we are examining what the starting values were by running a very small chain without warmup
+modelCFA_samples2 = modelCFA_stan$sample(
+  data = modelCFA_data,
+  seed = 25102022,
+  chains = 1,
+  parallel_chains = 1,
+  iter_warmup = 0,
+  iter_sampling = 10, 
+  init = function() list(lambda=rnorm(nItems, mean=10, sd=2)), 
+  adapt_engaged = FALSE
+)
+
+modelCFA_samples2$draws(variables = "lambda", format = "draws_matrix")
+
+
+# now we can see the sampling work (with limited warmup)
+modelCFA_samples2 = modelCFA_stan$sample(
+  data = modelCFA_data,
+  seed = 25102022,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 10,
+  iter_sampling = 2000, 
+  init = function() list(lambda=rnorm(nItems, mean=10, sd=2))
+)
+
+mcmc_trace(modelCFA_samples2$draws(variables = "lambda"))
+
+max(modelCFA_samples2$summary()$rhat, na.rm = TRUE)
+print(modelCFA_samples2$summary(variables = c("mu", "lambda", "psi")) ,n=Inf)
+print(modelCFA_samples2$summary(variables = c("theta")) ,n=Inf)
+
+modelCFA_samples2$init()
