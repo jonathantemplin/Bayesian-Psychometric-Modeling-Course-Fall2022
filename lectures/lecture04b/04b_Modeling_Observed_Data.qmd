@@ -754,15 +754,19 @@ mcmc_dens(modelCFA_samplesFail$draws(variables = c("theta[1]", "theta[2]")))
 ```
 
 
-## The Fix? Restrict $\lambda$ or Change Prior
+## Fixing Convergence
 
-Stan allows starting values to be set via ```cmdstanr```, but often this may not be enough
+Stan allows starting values to be set via ```cmdstanr```
 
-Instead:
+* Documentation is very lacking, but with some trial and a lot of error, I will show you how
+
+Alternatively:
 
 * Restrict $\lambda$ to be positive
   * Truncates prior distribution with MVN
 * Can also choose prior that has strictly positive range (like log-normal)
+* Note: The restriction on the space of $\lambda$ will not permit truely negative values
+  * Not ideal as negative $\lambda$ values are informative as a problem with data
 
 ```{r, eval=FALSE, echo=TRUE}
 parameters {
@@ -774,15 +778,66 @@ parameters {
 
 ```
 
-## New Results
+## Setting Starting Values in Stan
 
-```{r}
-max(modelCFA_samplesfixed$summary()$rhat, na.rm = TRUE)
+Starting values (initial values) are the first values used when an MCMC chain starts
+
+* In Stan, by default, parameters are randomly started between -2 and 2
+  * Bounded parameters are transformed so they are unbounded in the algorithm
+* What we need:
+  * Randomly start all $\lambda$ parameters so that they converge to the $\lambda_i\theta_p$ mode
+    * As opposed to the $(-\lambda_i)(-\theta_p)$ mode
+    
+## cmdstanr Syntax for Initial Values
+
+Add the init option to the $sample() function of the ```cmdstanr``` object:
+
+```{r, echo=TRUE, eval=FALSE}
+# set starting values for some of the parameters
+modelCFA_samples2fixed = modelCFA_stan$sample(
+  data = modelCFA_data,
+  seed = 25102022,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 2000,
+  iter_sampling = 2000, 
+  init = function() list(lambda=rnorm(nItems, mean=10, sd=2))
+)
+
 ```
 
+The init option can be specified as a function, here, randomly starting each $\lambda$ following
+a normal distribution
+
+## Initialization Process
+
+See the lecture R syntax for information on how to confirm starting values are set
+
+## Final Results: Parameters
+
 ```{r}
-print(modelCFA_samplesfixed$summary(variables = c("mu", "lambda", "psi")) ,n=Inf)
+max(modelCFA_samples2fixed$summary()$rhat, na.rm = TRUE)
+
+print(modelCFA_samples2fixed$summary(variables = c("mu", "lambda", "psi")) ,n=Inf)
+
 ```
+
+## Comparing Results
+
+Plot of all parameters across both algorithm runs:
+```{r}
+plot(y = modelCFA_samples2fixed$summary(variables = c("mu", "lambda", "psi", "theta"))$mean,
+     x = modelCFA_samples$summary(variables = c("mu", "lambda", "psi", "theta"))$mean,
+     main = "Comparing Results from Converged", xlab = "Without Starting Values",
+     ylab = "With Starting Values")
+```
+
+Correlation of all parameters across both algorithm runs:
+```{r}
+cor(modelCFA_samples2fixed$summary(variables = c("mu", "lambda", "psi", "theta"))$mean,
+    modelCFA_samples$summary(variables = c("mu", "lambda", "psi", "theta"))$mean)
+```
+
 
 ## {auto-animate=true, visibility="uncounted"}
 
