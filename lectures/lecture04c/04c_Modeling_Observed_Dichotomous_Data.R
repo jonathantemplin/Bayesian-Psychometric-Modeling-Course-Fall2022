@@ -788,7 +788,7 @@ modelIRT_2PNO_data = list(
   nItems = nItems,
   Y = t(conspiracyItemsDichtomous), 
   meanB = bMeanVecHP,
-  covB = bCovarianceMatrixHP,
+  covB = diag(nItems),
   meanA = aMeanVecHP,
   covA = diag(nItems) # changing prior covariance to help with convergence
 )
@@ -800,7 +800,7 @@ modelIRT_2PNO_samples = modelIRT_2PNO_stan$sample(
   parallel_chains = 4,
   iter_warmup = 5000,
   iter_sampling = 5000,
-  init = function() list(a=rnorm(nItems, mean=2, sd=.05))
+  init = function() list(a=rnorm(nItems, mean=3, sd=.05))
 )
 
 # checking convergence -- not great!
