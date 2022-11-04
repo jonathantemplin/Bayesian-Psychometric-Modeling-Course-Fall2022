@@ -1,0 +1,1301 @@
+---
+title: "Generalized Measurement Models: Modeling Observed Dichotomous Data"
+author: "Lecture 4c" 
+format: 
+  revealjs:
+    multiplex: false
+    footer: "[https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/](https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/)"
+    theme: ["pp.scss"]
+    slide-number: c/t
+    incremental: false
+editor: source
+---
+
+
+```{r, include=FALSE}
+load("lecture04c.RData")
+needed_packages = c("ggplot2", "cmdstanr", "HDInterval", "bayesplot", "loo", "pathdiagram")
+for(i in 1:length(needed_packages)){
+  haspackage = require(needed_packages[i], character.only = TRUE)
+  if(haspackage == FALSE){
+    install.packages(needed_packages[i])
+  }
+  library(needed_packages[i], character.only = TRUE)
+}
+
+conspiracyData = read.csv("conspiracies.csv")
+conspiracyItems = conspiracyData[,1:10]
+
+```
+
+
+## Today's Lecture Objectives
+
+1. Show how to estimate unidimensional latent variable models with dichotomous data
+  a. Also known as Item Response Theory (IRT) or Item Factor Analysis (IFA) models
+2. Show how to estimate different parameterizations of IRT/IFA models
+2. Describe how to obtain IRT/IFA auxiliary statistics from Markov Chains
+3. Show variations of various dichotomous-data models
+
+
+
+## Example Data: Conspiracy Theories
+
+Today's example is from a bootstrap resample of 177 undergraduate students at a large state university in the Midwest. The
+survey was a measure of 10 questions about their beliefs in various conspiracy theories that were being passed around
+the internet in the early 2010s. Additionally, gender was included in the survey. All items responses were on a 5-
+point Likert scale with:
+
+1. Strongly Disagree
+2. Disagree
+3. Neither Agree or Disagree
+4. Agree 
+5. Strongly Agree
+
+#### Please note, the purpose of this survey was to study individual beliefs regarding conspiracies. The questions can provoke some strong emotions given the world we live in currently. All questions were approved by university IRB prior to their use. 
+
+Our purpose in using this instrument is to provide a context that we all may find relevant as many of these conspiracy theories are still prevalent today. 
+
+## Conspiracy Theory Questions 1-5
+
+Questions:
+
+1. The U.S. invasion of Iraq was not part of a campaign to fight terrorism, but was driven by oil companies and Jews in the U.S. and Israel.
+2. Certain U.S. government officials planned the attacks of September 11, 2001 because they wanted the United States to go to war in the Middle East.
+3. President Barack Obama was not really born in the United States and does not have an authentic Hawaiian birth certificate.
+4. The current financial crisis was secretly orchestrated by a small group of Wall Street bankers to extend the power of the Federal Reserve and further their control of the world's economy.
+5. Vapor trails left by aircraft are actually chemical agents deliberately sprayed in a clandestine program directed by government officials.
+
+## Conspiracy Theory Questions 6-10
+
+Questions: 
+
+6. Billionaire George Soros is behind a hidden plot to destabilize the American government, take control of the media, and put the world under his control.
+7. The U.S. government is mandating the switch to compact fluorescent light bulbs because such lights make people more obedient and easier to control.
+8. Government officials are covertly Building a 12-lane \"NAFTA superhighway\" that runs from Mexico to Canada through America's heartland.
+9. Government officials purposely developed and spread drugs like crack-cocaine and diseases like AIDS in order to destroy the African American community. 
+10. God sent Hurricane Katrina to punish America for its sins.
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+DON'T DO THIS WITH YOUR DATA
+:::
+
+## Making Our Data Dichotomous
+
+To show dichotomous-data models with our data, we will arbitrarily dichotomize our item responses:
+
+* 0 == Response is Strongly Disagree or Disagree, or Neither
+* 1 == Response is Agree, or Strongly Agree
+
+Now, we could argue that a "1" represents someone who agrees with a statement and a zero is someone who disagrees or is neutral
+
+Note that this is only for teaching purposes, such dichotomization shouldn't be done
+
+* There are distributions for multinomial categories (we discuss these next week)
+* The results will reflect more of our choice for 0/1 
+
+But, we must first learn dichotomous data models before we get to models for polytomous data
+
+
+## Examining Dichotomous Data
+
+Checking on one item (Item 1):
+```{r}
+# examining data after transformation
+table(conspiracyItemsDichtomous$PolConsp1, conspiracyItems$PolConsp1)
+```
+
+New item means:
+```{r}
+# item means:
+apply(X = conspiracyItemsDichtomous, MARGIN = 2, FUN = mean)
+
+```
+
+Note: these items have a relatively low proportion of people agreeing with each conspiracy statement
+
+* Highest mean: .169
+* Lowest mean: .034
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Dichotomous Data Distribution: Bernoulli
+:::
+
+## The Bernoulli Distribution
+
+The Bernoulli distribution is a one-trial version of the Binomial distribution
+
+* Sample space (support) $Y \in \{0, 1\}$
+
+The probability mass function (pdf):
+
+$$P(Y = y) = \pi^y\left(1-\pi\right)^{(1-y)}$$
+
+The distribution has only one parameter: $\pi$ (the probability $Y=1$)
+
+* Mean of the distribution: $E(Y) = \pi$
+* Variance of the distribution: $Var(Y) = \pi \left(1- \pi \right)$
+
+## Definition: Dichotomous vs. Binary
+
+Note the definitions of some of the words for data with two values:
+
+* Dichotomous: Taking two values (without numbers attached)
+* Binary: either zero or one (specifically: $\{0,1 \}$)
+
+Therefore:
+
+* Not all dichotomous variables are binary (i.e., $\{2, 7\}$ is a dichotomous variable)
+* All binary variables are dichotomous
+
+Finally: 
+
+* Bernoulli distributions are for binary variables
+* Most dichotomous variables can be recoded as binary variables without loss of model effects
+
+## Models with Bernoulli Distributions
+
+Generalized linear models using Bernoulli distributions put a linear model onto a transformation of the mean
+
+* Link functions map the mean $E(Y)$ from its original range of $[0,1]$ to $(-\infty, \infty)$
+
+For an unconditional (empty) model, this is shown here:
+
+$$f\left( E \left(Y \right) \right) = f(\pi)$$
+
+## Link Functions for Bernoulli Distributions
+
+Common choices for the link function (in latent variable models): 
+
+* Logit (or log odds):
+$$f\left( \pi \right) = \log \left( \frac{\pi}{1-\pi} \right)$$
+
+* Probit:
+$$f\left( \pi \right) = \Phi^{-1} \left( \pi \right) $$
+
+Where Phi is the inverse cumulative distribution of a standard normal distribution: 
+
+$$\Phi(Z) = \int_{-\infty}^Z \frac{1}{\sqrt{2\pi}} \exp \left( \frac{-x^2}{2} \right) dx$$
+
+
+## Less Common Link Functions
+
+In the generalized linear models literature, there are a number of different link functions:
+
+* Log-log: $f\left( \pi \right) = -\log \left( -\log \left( \pi \right) \right)$
+* Complementary Log-Log: $f\left( \pi \right) = \log \left( -\log \left( 1- \pi \right) \right)$
+
+
+Most of these seldom appear in latent variable models
+
+* Each has a slightly different curve shape
+
+## Inverse Link Functions
+
+Our latent variable models will be defined on the scale of the link function
+
+* Sometimes we wish to convert back to the scale of the data
+  * Example: Test characteristic curves mapping $\theta_p$ onto an expected test score
+  
+For this, we need the inverse link function
+  
+* Logit (or log odds) link function:
+$$logit \left(\pi\right)  = \log \left( \frac{\pi}{1-\pi} \right)$$  
+  
+* Logit (or log odds) inverse link function:
+  
+$$\pi  = \frac{\exp \left(logit \left(\pi \right)\right)}{1+\exp \left(logit \left(\pi \right)\right)} = \frac{1}{1+\exp \left(-logit \left(\pi \right)\right)}  = \left( 1+\exp \left(-logit \left(\pi \right)\right)\right)^{-1}$$  
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Latent Variable Models with Bernoulli Distributions for Observed Variables
+:::
+
+## Latent Variable Models with Bernoulli Distributions for Observed Variables
+
+We can finally define a latent variable model for binary responses using a Bernoulli distribution
+
+* To start, we will use the logit link function
+* We will begin with the linear predictor we had from the normal distribution models (Confirmator factor analysis: $\mu_i +\lambda_i\theta_p$)
+
+For an item $i$ and a person $p$, the model becomes:
+
+$$logit \left( P\left( Y_{pi}=1\right) \right) = \mu_i +\lambda_i\theta_p$$
+* Note: the mean $\pi_i$ is replaced by $P\left(Y_{pi} = 1 |\theta_p \right)$
+  * This is the mean of the observed variable, conditional on $\theta_p$
+* The item intercept is $\mu_i$: The expected logit when $\theta_p = 0$
+* The item discrimination is $\lambda_i$: The change in the logit for a one-unit increase in $\theta_p$
+  
+## Model Family Names
+
+Depending on your field, the model from the previous slide can be called:
+
+* The two-parameter logistic (2PL) model with slope/intercept parameterization
+* An item factor model
+
+These names reflect the terms given to the model in diverging literatures:
+
+* 2PL: Educational measurement
+  * Birnbaum, A. (1968). Some Latent Trait Models and Their Use in Inferring an Examinee’s Ability. In F. M. Lord & M. R. Novick (Eds.), Statistical Theories of Mental Test Scores (pp. 397-424). Reading, MA: Addison-Wesley.
+* Item factor analysis: Psychology
+  * Christofferson, A.(1975). Factor analysis of dichotomous variables. Psychometrika , 40, 5-22.
+
+Estimation methods are the largest difference between the two families
+
+## Differences from Normal Distributions
+
+Recall our normal distribution models:
+
+$$ 
+\begin{array}{cc}
+Y_{pi} = \mu_i + \lambda_i \theta_p  + e_{p,i}; & e_{p,i} \sim N\left(0, \psi_i^2 \right) \\ 
+\end{array}
+$$
+
+Compared to our Bernoulli distribution models:
+
+$$logit \left( P\left( Y_{pi}=1\right) \right) = \mu_i +\lambda_i\theta_p$$
+
+Differences:
+
+* No residual (unique) variance $\phi^2$ in Bernoulli distribution 
+  * Only one parameter in distribution; variance is a function of the mean
+* Identity link function in normal distribution: $f(E(Y_{pi}|\theta_p)) = E(Y_{pi}|\theta_p)$
+  * Model scale and data scale are the same
+* Logit link function in Bernoulli distribution
+  * Model scale is different from data scale
+
+## From Model Scale to Data Scale
+
+Commonly, the IRT or IFA model is shown on the data scale (using the inverse link function):
+
+$$P\left( Y_{pi}=1\right) = \frac{\exp \left(\mu_i +\lambda_i\theta_p \right)}{1+\exp \left(\mu_i +\lambda_i\theta_p \right)}$$
+
+The core of the model (the terms in the exponent on the right-hand side) is the same
+
+* Models are equivalent
+  * $P\left( Y_{pi}=1\right)$ is on the data scale
+  * $logit \left( P\left( Y_{pi}=1\right) \right)$ is on the model (link) scale
+
+
+## Modeling All Data
+
+As with the normal distribution (CFA) models, we use the Bernoulli distribution for all observed variables:
+
+$$
+\begin{array}{c}
+logit \left(Y_{p1} = 1 \right) = \mu_1 + \lambda_1 \theta_p  \\ 
+logit \left(Y_{p2} = 1 \right) = \mu_2 + \lambda_2 \theta_p  \\  
+logit \left(Y_{p3} = 1 \right) = \mu_3 + \lambda_3 \theta_p  \\  
+logit \left(Y_{p4} = 1 \right) = \mu_4 + \lambda_4 \theta_p  \\  
+logit \left(Y_{p5} = 1 \right) = \mu_5 + \lambda_5 \theta_p  \\  
+logit \left(Y_{p6} = 1 \right) = \mu_6 + \lambda_6 \theta_p  \\  
+logit \left(Y_{p7} = 1 \right) = \mu_7 + \lambda_7 \theta_p  \\  
+logit \left(Y_{p8} = 1 \right) = \mu_8 + \lambda_8 \theta_p  \\
+logit \left(Y_{p9} = 1 \right) = \mu_9 + \lambda_9 \theta_p  \\  
+logit \left(Y_{p10} = 1 \right) = \mu_{10} + \lambda_{10} \theta_p  \\
+\end{array}
+$$
+
+
+
+
+## Measurement Model Analysis Steps 
+
+1. Specify model
+2. Specify scale identification method for latent variables
+3. Estimate model
+4. Examine model-data fit
+5. Iterate between steps 1-4 until adequate fit is achieved
+
+#### Measurement Model Auxiliary Components
+
+6. Score estimation (and secondary analyses with scores)
+7. Item evaluation
+8. Scale construction
+9. Equating
+10. Measurement invariance/differential item functioning
+
+
+## Model Specification
+
+The set of equations on the previous slide formed step #1 of the Measurement Model Analysis Steps:
+
+1. Specify Model
+
+The next step is:
+
+2. Specify scale identification method for latent variables
+
+We will initially assume $\theta_p \sim N(0,1)$, which allows us to estimate all item parameters of the model
+
+* This is what we call a standardized latent variable 
+  * They are like Z-scores
+
+## Model (Data) Likelihood Functions
+
+The specification of the model defines the model (data) likelihood function for each type of parameter
+
+* To demonstrate, let's examine the data likelihood for the factor loading for the first item $\lambda_1$
+
+The model (data) likelihood function can be defined conditional on all other parameter values (as in a block in an MCMC iteration)
+
+* That is: hold $\mu_1$ and $\boldsymbol{\theta}$ constant
+
+The likelihood is then:
+
+$$f \left(Y_{p1} \mid \lambda_1 \right) = \prod_{p=1}^P \left( \pi_{p1} \right)^{Y_{p1}} \left(1- \pi_{p1} \right)^{1-Y_{p1}}$$
+
+## Model (Data) Log Likelihood Functions
+
+As this number can be very small (making numerical precision an issue), we often take the log:
+
+
+$$\log f \left(Y_{p1} \mid \lambda_1 \right) = \sum_{p=1}^P \log \left[ \left( \pi_{p1} \right)^{Y_{p1}} \left(1- \pi_{p1} \right)^{1-Y_{p1}}\right]$$
+
+The key in the likelihood function is to substitute each person's data-scale model for $\pi_{p1}$:
+
+$$ \pi_{p1} = \frac{\exp \left(\mu_1 +\lambda_1\theta_p \right)}{1+\exp \left(\mu_1 +\lambda_1\theta_p \right)} $$
+
+Which then becomes:
+
+$$\log f \left(Y_{p1} \mid \lambda_1 \right) = \sum_{p=1}^P \log \left[ \left( \frac{\exp \left(\mu_1 +\lambda_1\theta_p \right)}{1+\exp \left(\mu_1 +\lambda_1\theta_p \right)} \right)^{Y_{p1}} \left(1- \frac{\exp \left(\mu_1 +\lambda_1\theta_p \right)}{1+\exp \left(\mu_1 +\lambda_1\theta_p \right)} \right)^{1-Y_{p1}}\right]$$
+
+## Model (Data) Log Likelihood Functions
+
+As an example for $\lambda_1$:
+
+```{r}
+
+mu1 = -2
+theta = rnorm(n = nrow(conspiracyItemsDichtomous), mean = 0, sd = 1)
+
+lambda = seq(-2,2, .01)
+logLike = NULL
+
+param=1 # for demonstrating
+for (param in 1:length(lambda)){
+  
+  logit = mu1 + lambda[param]*theta
+  prob = exp(logit)/(1+exp(logit))
+  bernoulliLL = sum(dbinom(x = conspiracyItemsDichtomous$PolConsp1, size = 1, prob = prob, log = TRUE))
+  
+  logLike = c(logLike, bernoulliLL)
+}
+
+plot(x = lambda, y = logLike, type = "l")
+
+```
+
+## Model (Data) Log Likelihood Functions for $\theta_p$
+
+For each person, the same model (data) likelihood function is used
+
+* Only now it varies across each item response
+* Example: Person 1
+
+
+$$f \left(Y_{1i} \mid \theta_1 \right) = \prod_{i=1}^I \left( \pi_{1i} \right)^{Y_{1i}} \left(1- \pi_{1i} \right)^{1-Y_{1i}}$$
+
+
+## Model (Data) Log Likelihood Functions
+
+As an example for the log-likelihood for $\theta_2$:
+
+```{r}
+
+person = 2
+
+# for theta2
+mu = runif(n = ncol(conspiracyItemsDichtomous), min = -2, max = 0)
+lambda = runif(n = ncol(conspiracyItemsDichtomous), min = 0, max = 2)
+
+
+
+theta = seq(-3,3,.01)
+logLike = NULL
+
+param=1 # for demonstrating
+for (param in 1:length(theta)){
+  thetaLL = 0
+  for (item in 1:ncol(conspiracyItemsDichtomous)){
+    logit = mu[item] + lambda[item]*theta[param]
+    prob = exp(logit)/(1+exp(logit))
+    thetaLL = thetaLL + dbinom(x = conspiracyItemsDichtomous[person,item], size = 1, prob = prob, log = TRUE)
+  }
+  
+  logLike = c(logLike, thetaLL)
+}
+
+plot(x = theta, y = logLike, type = "l")
+
+```
+
+
+## Model (Data) Log Likelihood Functions
+
+As an example for the log-likelihood for $\theta_1$: 
+
+```{r}
+
+person = 1
+
+# for theta2
+mu = runif(n = ncol(conspiracyItemsDichtomous), min = -2, max = 0)
+lambda = runif(n = ncol(conspiracyItemsDichtomous), min = 0, max = 2)
+
+
+
+theta = seq(-3,3,.01)
+logLike = NULL
+
+param=1 # for demonstrating
+for (param in 1:length(theta)){
+  thetaLL = 0
+  for (item in 1:ncol(conspiracyItemsDichtomous)){
+    logit = mu[item] + lambda[item]*theta[param]
+    prob = exp(logit)/(1+exp(logit))
+    thetaLL = thetaLL + dbinom(x = conspiracyItemsDichtomous[person,item], size = 1, prob = prob, log = TRUE)
+  }
+  
+  logLike = c(logLike, thetaLL)
+}
+
+plot(x = theta, y = logLike, type = "l")
+
+```
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Implementing Bernoulli Outcomes in Stan
+:::
+
+
+## Stan's ```model``` Block
+
+```{r, echo=TRUE, eval=FALSE}
+model {
+  
+  lambda ~ multi_normal(meanLambda, covLambda); // Prior for item discrimination/factor loadings
+  mu ~ multi_normal(meanMu, covMu);             // Prior for item intercepts
+  
+  theta ~ normal(0, 1);                         // Prior for latent variable (with mean/sd specified)
+  
+  for (item in 1:nItems){
+    Y[item] ~ bernoulli_logit(mu[item] + lambda[item]*theta);
+  }
+  
+}
+```
+
+For logit models without lower/upper asymptote parameters, Stan has a convenient ```bernoulli_logit()``` function
+
+* Automatically has the link function embedded
+* The catch: The data have to be defined as an integer
+
+Also, note that there are few differences from the normal outcomes models (CFA)
+
+* No $\psi$ parameters
+
+## Stan's ```parameters``` Block
+
+```{r, echo=TRUE, eval=FALSE}
+parameters {
+  vector[nObs] theta;                // the latent variables (one for each person)
+  vector[nItems] mu;                 // the item intercepts (one for each item)
+  vector[nItems] lambda;             // the factor loadings/item discriminations (one for each item)
+}
+```
+
+Only change from normal outcomes (CFA) model: 
+
+* No $\psi$ parameters
+
+  
+## Stan's ```data {}``` Block
+
+```{r, eval=FALSE, echo=TRUE}
+data {
+  int<lower=0> nObs;                            // number of observations
+  int<lower=0> nItems;                          // number of items
+  array[nItems, nObs] int<lower=0, upper=1>  Y; // item responses in an array
+
+  vector[nItems] meanMu;             // prior mean vector for intercept parameters
+  matrix[nItems, nItems] covMu;      // prior covariance matrix for intercept parameters
+  
+  vector[nItems] meanLambda;         // prior mean vector for discrimination parameters
+  matrix[nItems, nItems] covLambda;  // prior covariance matrix for discrimination parameters
+}
+```
+
+One difference from normal outcomes model:
+
+``` array[nItems, nObs] int<lower=0, upper=1>  Y; ```
+
+* Arrays are types of matrices (with more than two dimensions possible)
+  * Allows for different types of data (here Y are integers)
+    * Integer-valued variables needed for ```bernoulli_logit()``` function
+* Arrays are row-major (meaning order of items and persons is switched)
+  * Can define differently
+  
+## Change to Data List for Stan Import
+
+The switch of items and observations in the ```array``` statement means the data imported have to be transposed:
+
+```{r, echo=TRUE, eval=FALSE}
+modelIRT_2PL_SI_data = list(
+  nObs = nObs,
+  nItems = nItems,
+  Y = t(conspiracyItemsDichtomous), 
+  meanMu = muMeanVecHP,
+  covMu = muCovarianceMatrixHP,
+  meanLambda = lambdaMeanVecHP,
+  covLambda = lambdaCovarianceMatrixHP
+)
+```
+
+  
+## Running the Model In Stan
+
+The Stan program takes longer to run than in linear models:
+
+* Number of parameters = 197
+  * 10 observed variables (with two item parameters each: $\mu_i$ and $\lambda_i$)
+  * 177 latent variables (one for each person: 177 parameters)
+
+* cmdstanr samples call:
+
+```{r, eval=FALSE, echo=TRUE}
+modelIRT_2PL_SI_samples = modelIRT_2PL_SI_stan$sample(
+  data = modelIRT_2PL_SI_data,
+  seed = 02112022,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 5000,
+  iter_sampling = 5000,
+  init = function() list(lambda=rnorm(nItems, mean=5, sd=1))
+)
+```
+
+* Note: Typically, longer chains are needed for larger models like this
+* Note: Starting values added (mean of 5 is due to logit function limits)
+  * Helps keep definition of parameters (stay away from opposite mode)
+  * Too large of value can lead to NaN values (exceeding numerical precision)
+
+## Model Results
+
+* Checking convergence with $\hat{R}$ (PSRF):
+```{r, cache=TRUE}
+# checking convergence
+max(modelIRT_2PL_SI_samples$summary()$rhat, na.rm = TRUE)
+```
+
+* Item Parameter Results:
+```{r, cache=TRUE}
+# item parameter results
+print(modelIRT_2PL_SI_samples$summary(variables = c("mu", "lambda")) ,n=Inf)
+```
+
+## Modeling Strategy vs. Didactic Strategy
+
+At this point, one should investigate model fit of the model we just ran
+
+* If the model does not fit, then all model parameters could be biased
+  * Both item parameters and person parameters ($\theta_p$)
+* Moreover, the uncertainty accompanying each parameter (the posterior standard deviation) may also be biased
+  * Especially bad for psychometric models as we quantify reliaiblity with these numbers
+
+But, to teach generalized measurement models, we will first talk about differing models for observed data
+
+* Different distributions
+* Different parameterizations across the different distributions
+
+
+## Investigating Item Parameters
+
+One plot that can help provide information about the item parameters is the item characteristic curve (ICC)
+
+* The ICC is the plot of the expected value of the response conditional on the value of the latent traits, for a range of latent trait values
+
+$$E \left(Y_{pi} \mid \theta_p \right) = \frac{\exp \left(\mu_{i} +\lambda_{i}\theta_p \right)}{1+\exp \left(\mu_{i} +\lambda_{i}\theta_p \right)}  $$
+
+* Because we have sampled values for each parameter, we can plot one ICC for each posterior draw
+
+## Posterior ICC Plots
+```{r, cache=TRUE}
+itemNumber = 5
+
+labelMu = paste0("mu[", itemNumber, "]")
+labelLambda = paste0("lambda[", itemNumber, "]")
+itemParameters = modelIRT_2PL_SI_samples$draws(variables = c(labelMu, labelLambda), format = "draws_matrix")
+itemSummary = modelIRT_2PL_SI_samples$summary(variables = c(labelMu, labelLambda))
+
+# item plot
+theta = seq(-3,3,.1) # for plotting analysis lines--x axis values
+
+# drawing item characteristic curves for item
+logit = as.numeric(itemParameters[1,labelMu]) + as.numeric(itemParameters[1,labelLambda])*theta
+y = exp(logit)/(1+exp(logit))
+plot(x = theta, y = y, type = "l", main = paste("Item", itemNumber, "ICC"), 
+     ylim=c(0,1), xlab = expression(theta), ylab=paste("Item", itemNumber, "Predicted Value"))
+
+for (draw in 2:nrow(itemParameters)){
+  logit = as.numeric(itemParameters[draw,labelMu]) + as.numeric(itemParameters[draw,labelLambda])*theta
+  y = exp(logit)/(1+exp(logit))
+  lines(x = theta, y = y)
+}
+
+# drawing EAP line
+logit = itemSummary$mean[which(itemSummary$variable==labelMu)] + 
+  itemSummary$mean[which(itemSummary$variable==labelLambda)]*theta
+y = exp(logit)/(1+exp(logit))
+lines(x = theta, y = y, lwd = 5, lty=3, col=2)
+
+# legend
+legend(x = -3, y = 1, legend = c("Posterior Draw", "EAP"), col = c(1,2), lty = c(1,3), lwd=5)
+
+
+```
+
+## Investigating the Item Parameters
+
+Trace plots for $\mu_i$
+
+```{r, cache=TRUE}
+mcmc_trace(modelIRT_2PL_SI_samples$draws(variables = "mu"))
+```
+
+## Investigating the Item Parameters
+
+Density plots for $\mu_i$
+
+```{r, cache=TRUE}
+mcmc_dens(modelIRT_2PL_SI_samples$draws(variables = "mu"))
+```
+
+
+## Investigating the Item Parameters
+
+Trace plots for $\lambda_i$
+
+```{r, cache=TRUE}
+mcmc_trace(modelIRT_2PL_SI_samples$draws(variables = "lambda"))
+```
+
+
+## Investigating the Item Parameters
+
+Density plots for $\lambda_i$
+
+```{r, cache=TRUE}
+mcmc_dens(modelIRT_2PL_SI_samples$draws(variables = "lambda"))
+```
+
+## Investigating the Item Parameters
+
+Bivariate plots for $\mu_i$ and $\lambda_i$
+
+```{r, cache=TRUE}
+# bivariate posterior distributions
+itemNum = 1
+muLabel = paste0("mu[", itemNum, "]")
+lambdaLabel = paste0("lambda[", itemNum, "]")
+mcmc_pairs(modelIRT_2PL_SI_samples$draws(), pars = c(muLabel, lambdaLabel))
+```
+
+## Investigating the Latent Variables
+
+The estimated latent variables are then:
+
+```{r, cache=TRUE}
+print(modelIRT_2PL_SI_samples$summary(variables = "theta") ,n=Inf)
+```
+
+## EAP Estimates of Latent Variables
+
+```{r, cache=TRUE}
+hist(modelIRT_2PL_SI_samples$summary(variables = c("theta"))$mean, main="EAP Estimates of Theta", 
+     xlab = expression(theta))
+```
+
+## Density of EAP Estimates
+
+```{r, cache=TRUE}
+plot(density(modelIRT_2PL_SI_samples$summary(variables = c("theta"))$mean), main="EAP Estimates of Theta", 
+     xlab = expression(theta))
+```
+
+## Comparing Two Posterior Distributions
+
+```{r, cache=TRUE}
+theta1 = "theta[1]"
+theta2 = "theta[2]"
+thetaSamples = modelIRT_2PL_SI_samples$draws(variables = c(theta1, theta2), format = "draws_matrix")
+thetaVec = rbind(thetaSamples[,1], thetaSamples[,2])
+thetaDF = data.frame(observation = c(rep(theta1,nrow(thetaSamples)), rep(theta2, nrow(thetaSamples))), 
+                     sample = thetaVec)
+names(thetaDF) = c("observation", "sample")
+ggplot(thetaDF, aes(x=sample, fill=observation)) +geom_density(alpha=.25)
+```
+
+## Comparing EAP Estimates with Posterior SDs
+
+```{r, cache=TRUE}
+plot(y = modelIRT_2PL_SI_samples$summary(variables = c("theta"))$sd, 
+     x = modelIRT_2PL_SI_samples$summary(variables = c("theta"))$mean,
+     xlab = "E(theta|Y)", ylab = "SD(theta|Y)", main="Mean vs SD of Theta")
+```
+
+## Comparing EAP Estimates with Sum Score
+
+```{r, cache=TRUE}
+plot(y = rowSums(conspiracyItemsDichtomous), x = modelIRT_2PL_SI_samples$summary(variables = c("theta"))$mean,
+     ylab = "Sum Score", xlab = expression(theta))
+```
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Discrimination/Difficulty Parameterization
+:::
+
+## Discrimination/Difficulty Parameterization
+
+The slope/intercept form is used in many model families:
+
+* Confirmatory factor analysis
+* Item factor analysis
+* Multidimensional item response theory
+
+In educational measurement, a more common form of the model is discrimination/difficulty:
+
+$$logit \left( P\left( Y_{pi}=1 \mid \theta_p \right) \right) = a_i\left(\theta_p - b_i\right)$$
+
+More commonly, this is expressed on the data scale:
+$$P\left( Y_{pi}=1 \mid \theta_p \right) = \frac{\exp \left( a_i\left(\theta_p - b_i\right) \right)}{1+\exp \left(a_i\left(\theta_p - b_i\right) \right)} $$
+
+## Comparisons of Parameterizations
+
+We've mentioned before there is a one-one relationship between the models:
+
+$$a_i\left(\theta_p - b_i\right) = -a_i b_i + a_i\theta_p = \mu_i + \lambda_i\theta_p$$
+Where:
+
+* $\mu_i = -a_ib_i$ 
+* $\lambda_i = a_i$
+
+Alternatively:
+
+* $b_i = -\frac{\mu_i}{a_i}$
+* $a_i = \lambda_i$
+
+## Calculating Discrimination/Difficulty Parameters in Generated Quantities
+
+We can calculate one parameterization from the other using Stan's generated quantities:
+
+```{r, echo=TRUE, eval=FALSE}
+generated quantities{
+  vector[nItems] a;
+  vector[nItems] b;
+  
+  for (item in 1:nItems){
+    a[item] = lambda[item];
+    b[item] = -1*mu[item]/lambda[item];
+  }
+  
+}
+```
+
+## Discrimination/Difficulty Parameter Estimates
+
+```{r, cache=TRUE}
+print(modelIRT_2PL_SI2_samples$summary(variables = c("a", "b")) ,n=Inf)
+```
+
+## Estimating the Discrimination/Difficulty Model
+
+A change is needed to Stan's model statement to directly estimate the discrimination/difficulty model:
+
+```{r, eval=FALSE, echo=TRUE}
+model {
+  
+  a ~ multi_normal(meanA, covA); // Prior for item discrimination/factor loadings
+  b ~ multi_normal(meanB, covB);             // Prior for item intercepts
+  
+  theta ~ normal(0, 1);                         // Prior for latent variable (with mean/sd specified)
+  
+  for (item in 1:nItems){
+    Y[item] ~ bernoulli_logit(a[item]*(theta - b[item]));
+  }
+  
+}
+```
+
+We can also estimate the slope/intercept parameters from the discrimination/difficulty parameters:
+```{r, eval=FALSE, echo=TRUE}
+generated quantities{
+  vector[nItems] lambda;
+  vector[nItems] mu;
+  
+  lambda = a;
+  for (item in 1:nItems){
+    mu[item] = -1*a[item]*b[item];
+  }
+}
+
+```
+
+
+## Model Results
+
+Checking convergence:
+
+```{r, cache=TRUE}
+# checking convergence
+max(modelIRT_2PL_DD_samples$summary()$rhat, na.rm = TRUE)
+```
+
+Checking parameter estimates:
+```{r, cache=TRUE}
+# item parameter results
+print(modelIRT_2PL_DD_samples$summary(variables = c("a", "b")) ,n=Inf)
+```
+
+## Comparing Difficulty Parameters
+
+Difficulty parameters from discrimination/difficulty model:
+```{r, cache=TRUE}
+# item parameter results
+print(modelIRT_2PL_DD_samples$summary(variables = c("b")) ,n=Inf)
+```
+
+
+Difficulty parameters from slope/intercept model:
+```{r, cache=TRUE}
+# item parameter results
+print(modelIRT_2PL_SI2_samples$summary(variables = c("b")) ,n=Inf)
+```
+
+## Comparing Difficulty Parameters: Plot
+
+```{r, cache=TRUE}
+# comparing with other parameters estimated:
+plot(x = modelIRT_2PL_DD_samples$summary(variables = c("b"))$mean,
+     y = modelIRT_2PL_SI2_samples$summary(variables = c("b"))$mean,
+     xlab = "Discrimination/Difficulty Model", 
+     ylab = "Slope/Intercept Model",
+     main = "Difficulty Parameter EAP Estimates"
+)
+
+```
+
+## Comparing Discrimination Parameters
+
+Discrimination parameters from discrimination/difficulty model:
+```{r, cache=TRUE}
+# item parameter results
+print(modelIRT_2PL_DD_samples$summary(variables = c("a")) ,n=Inf)
+```
+
+
+Discrimination parameters from slope/intercept model:
+```{r, cache=TRUE}
+# item parameter results
+print(modelIRT_2PL_SI2_samples$summary(variables = c("a")) ,n=Inf)
+```
+
+## Comparing Discrimination Parameters: Plot
+
+```{r, cache=TRUE}
+# comparing with other parameters estimated:
+plot(x = modelIRT_2PL_DD_samples$summary(variables = c("a"))$mean,
+     y = modelIRT_2PL_SI2_samples$summary(variables = c("a"))$mean,
+     xlab = "Discrimination/Difficulty Model", 
+     ylab = "Slope/Intercept Model",
+     main = "Discrimination Parameters EAP Estimates"
+)
+```
+
+## Comparing Theta EAP Estimates
+
+```{r, cache=TRUE}
+# theta results
+# comparing with other parameters estimated:
+plot(x = modelIRT_2PL_DD_samples$summary(variables = c("theta"))$mean,
+     y = modelIRT_2PL_SI2_samples$summary(variables = c("theta"))$mean,
+     xlab = "Discrimination/Difficulty Model", 
+     ylab = "Slope/Intercept Model",
+     main = "Theta EAP Estimates"
+)
+```
+
+## Comparing Theta SD Estimates
+
+```{r, cache=TRUE}
+# theta results
+# comparing with other parameters estimated:
+plot(x = modelIRT_2PL_DD_samples$summary(variables = c("theta"))$sd,
+     y = modelIRT_2PL_SI2_samples$summary(variables = c("theta"))$sd,
+     xlab = "Discrimination/Difficulty Model", 
+     ylab = "Slope/Intercept Model",
+     main = "Theta SD Estimates"
+)
+```
+
+
+## Posterior Distributions Are Different
+
+Although the parameters of each type of model can be found from the others, the posterior distributions are not the same
+
+* Prior distributions are defined on the coded model parameters
+* Posterior distributions are not necessarily the same
+  * But are linearly related (in this case)
+* More extreme choices of priors would lead to more extreme differences
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Estimating IRT Model Auxiliary Statistics
+:::
+
+
+## Estimating IRT Model Auxiliary Statistics
+
+We can also use the generated quantities block to estimate some important auxiliary statitics from IRT models
+
+* Test characteristic curve estimates (with posterior standard deviations); TCC
+* Item information functions (with posterior standard deviations); IIF
+* Test information functions (with posterior standard deviations); TIF
+
+Shown for the discrimination/difficulty parameterization (but applies to slope/intercept, too)
+
+The key: 
+
+* Define a set of $\theta$ values and import them into Stan
+* Then calculate each statistic using (conditional on) each value of $\theta$ imported
+
+## Range of $\theta$
+
+To begin, define a range of $\theta$ over which you wish to calculate these statistics
+
+* As we've used a standardized $\theta$, we can define that range being from $\[-3, 3\]$ 
+  * Covers about 99% of the distribution of $\theta$
+* Here, I am creating a sequence that adds .01 to each successive values (only first 10 shown)
+  * Makes for better plots 
+  * More values (smaller interval) slows the estimation process down
+  * More values also takes more memory to store chains
+
+```{r, echo=TRUE}
+thetaVals = seq(-3,3,.01)
+thetaVals[1:10]
+```
+
+
+## Test Characteristic Curves
+
+The test characteristic curve is formed by taking the sum of the expected value for each item, conditional on a value of $\theta$
+
+$$TCC(\theta) = \sum_{i=1}^I \frac{\exp \left(a_i \left(\theta -b_i \right) \right)}{1+ \exp \left(a_i \left(\theta-b_i \right) \right)}$$
+
+We must compute this for each imported value of $\theta$ across all iterations of the Markov Chain
+
+
+## TCC Plots
+
+Each TCC theta-to-raw score conversion has its own posterior standard error
+
+```{r, cache=TRUE}
+# TCC Spaghetti Plots
+tccSamples = modelIRT_2PL_DD2_samples$draws(variables = "TCC", format = "draws_matrix")
+plot(x = thetaVals, 
+     y = tccSamples[1,],
+     xlab = expression(theta), 
+     ylab = "Expected Score", type = "l",
+     main = "Test Characteristic Curve", lwd = 2)
+
+for (draw in 1:nrow(tccSamples)){
+  lines(x = thetaVals,
+        y = tccSamples[draw,])
+}
+
+# EAP TCC
+lines(x = thetaVals, 
+      y = modelIRT_2PL_DD2_samples$summary(variables = c("TCC"))$mean,
+      lwd = 3, 
+      col = 2, 
+      lty = 2)
+
+legend(x = -3, y = 7, legend = c("Posterior Draw", "EAP"), col = c(1,2), lty = c(1,2), lwd=5)
+
+```
+
+## Item Information
+
+An item information function quantifies the amount of information about the latent trait provided by an item
+
+* Note: the derivation of information is for MAP estimates (so not the contribution to the posterior standard deviation)
+
+For a given value of $\theta$, we can calculate an item's information by taking the second partial derivative the model/data likelihood for an time with respect to $\theta$
+
+* For the two-parameter logistic model this is:
+
+$$I_i\left( \theta \right) = a_i^2 \left(\frac{\exp \left(a_i \left(\theta -b_i \right) \right)}{1+ \exp \left(a_i \left(\theta-b_i \right) \right)} \right) \left(1-\frac{\exp \left(a_i \left(\theta -b_i \right) \right)}{1+ \exp \left(a_i \left(\theta-b_i \right) \right)} \right)$$
+
+## Item Information from Markov Chains
+
+Using generated quantities, we can also calculate the item information for each item at each step of the chain. 
+
+* We must also use a set of theta values to calculate this across (as with the TCC)
+
+## Item Information Functions
+
+```{r, cache=TRUE}
+# ICC Spaghetti Plots
+item = 1
+itemLabel = paste0("Item ", item)
+iccSamples = modelIRT_2PL_DD2_samples$draws(variables = "itemInfo", format = "draws_matrix")
+iccNames = colnames(iccSamples)
+itemSamples = iccSamples[,iccNames[grep(pattern = ",1]", x = iccNames)]]
+
+maxInfo = max(apply(X = itemSamples, MARGIN = 2, FUN = max))
+
+plot(x = thetaVals, 
+     y = itemSamples[1,],
+     xlab = expression(theta), 
+     ylab = "Information", type = "l",
+     main = paste0(itemLabel, " Information Function"), lwd = 2,
+     ylim = c(0,maxInfo+.5))
+
+for (draw in 1:nrow(itemSamples)){
+  lines(x = thetaVals,
+        y = itemSamples[draw,])
+}
+
+# EAP TCC
+lines(x = thetaVals, 
+      y = apply(X = itemSamples, MARGIN=2, FUN=mean),
+      lwd = 3, 
+      col = 2, 
+      lty = 3)
+
+legend(x = -3, y = maxInfo-.5, legend = c("Posterior Draw", "EAP"), col = c(1,2), lty = c(1,2), lwd=5)
+
+```
+
+## Test Information Function
+
+The test information function is the sum of the item information functions for a given value of $\theta$
+
+* But, as we are in Bayesian, we must also include the information from the prior distribution of $\theta$
+  * Found by taking the second partial derivative of the pdf of the prior distribution with respect to $\theta$
+  * When $\theta$ has the standardized factor parameterization, this value is simply -1
+  
+* We can use Stan's generated quantities to calculate this, too
+
+For the 2PL model, the test information function is then:
+
+$$TIF\left( \theta \right) = -1+ \sum_{i=1}^I a_i^2 \left(\frac{\exp \left(a_i \left(\theta -b_i \right) \right)}{1+ \exp \left(a_i \left(\theta-b_i \right) \right)} \right) \left(1-\frac{\exp \left(a_i \left(\theta -b_i \right) \right)}{1+ \exp \left(a_i \left(\theta-b_i \right) \right)} \right)$$
+
+## TIF Spaghetti Plots
+
+```{r, cache=TRUE}
+# TIF Spaghetti Plots
+tifSamples = modelIRT_2PL_DD2_samples$draws(variables = "testInfo", format = "draws_matrix")
+maxTIF = max(apply(X = tifSamples, MARGIN = 2, FUN = max))
+
+plot(x = thetaVals, 
+     y = tifSamples[1,],
+     xlab = expression(theta), 
+     ylab = "Information", type = "l",
+     main = "Test Information Function", lwd = 2,
+     ylim = c(0,maxTIF))
+
+for (draw in 1:nrow(tifSamples)){
+  lines(x = thetaVals,
+        y = tifSamples[draw,])
+}
+
+# EAP TCC
+lines(x = thetaVals, 
+      y = apply(X=tifSamples, MARGIN=2, FUN=mean),
+      lwd = 3, 
+      col = 2, 
+      lty = 3)
+
+legend(x = -3, y = maxTIF, legend = c("Posterior Draw", "EAP"), col = c(1,2), lty = c(1,2), lwd=5)
+```
+
+  
+## EAP TIF Plot
+
+```{r, cache=TRUE}
+plot(x = thetaVals, 
+     y = apply(X=tifSamples, MARGIN=2, FUN=mean),
+     xlab = expression(theta), 
+     ylab = "Information", type = "l",
+     main = "Test Information Function", 
+     lwd = 2)
+```
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Other IRT/IFA Models
+:::
+
+## Other IRT/IFA Models
+
+There are a number of different IRT models that can be implemented in Stan
+
+* A slight change is needed in the model statement for the observed data
+
+Up to now, for the 2PL model, we had:
+
+```{r, eval=FALSE, echo=TRUE}
+model {
+  
+  a ~ multi_normal(meanA, covA); // Prior for item discrimination/factor loadings
+  b ~ multi_normal(meanB, covB);             // Prior for item intercepts
+  
+  theta ~ normal(0, 1);                         // Prior for latent variable (with mean/sd specified)
+  
+  for (item in 1:nItems){
+    Y[item] ~ bernoulli_logit(a[item]*(theta - b[item]));
+  }
+```
+
+The function ```bernoulli_logit()``` will only work for the 1- and 2PL models
+
+* It applies the logit link function to the inner portion of the function, then transforms it to a probability, then evaluates the Bernoulli likelihood
+
+## Slight Change in Parameterization
+
+To make this more general, we must construct the model using just the Bernoulli function:
+
+```{r, eval=FALSE, echo=TRUE}
+model {
+  
+  a ~ multi_normal(meanA, covA); // Prior for item discrimination/factor loadings
+  b ~ multi_normal(meanB, covB);             // Prior for item intercepts
+  
+  theta ~ normal(0, 1);                         // Prior for latent variable (with mean/sd specified)
+  
+  for (item in 1:nItems){
+    Y[item] ~ bernoulli(inv_logit(a[item]*(theta - b[item])));
+  }
+```
+
+Here, the result of ```inv_logit()``` is a probability for each person and item
+
+* Then, the ```bernoulli()``` function calculates the likelihood based on the probability from each item
+
+## 1PL Model
+
+Item Response Function:
+$$ P\left(Y_{pi} = 1 \mid \theta_p \right) = \frac{\exp \left(\theta -b_i \right)}{1+ \exp \left(\theta-b_i \right)} $$
+
+The 1PL model can be built by removing the $a$ parameter:
+
+```{r, eval=FALSE, echo=TRUE}
+data {
+  int<lower=0> nObs;                 // number of observations
+  int<lower=0> nItems;               // number of items
+  array[nItems, nObs] int<lower=0, upper=1>  Y; // item responses in a matrix
+  
+  vector[nItems] meanB;         // prior mean vector for coefficients
+  matrix[nItems, nItems] covB;  // prior covariance matrix for coefficients
+}
+
+parameters {
+  vector[nObs] theta;                // the latent variables (one for each person)
+  vector[nItems] b;             // the factor loadings/item discriminations (one for each item)
+}
+
+model {
+  b ~ multi_normal(meanB, covB);             // Prior for item intercepts
+  theta ~ normal(0, 1);                         // Prior for latent variable (with mean/sd specified)
+  
+  for (item in 1:nItems){
+    Y[item] ~ bernoulli(inv_logit(theta - b[item]));
+  }
+}
+
+```
+
+
+
+
+## 3PL Model
+
+Item Response Function:
+$$ P\left(Y_{pi} = 1 \mid \theta_p \right) = c_i +\left(1-c_i\right)\left[\frac{\exp \left(a_i \left(\theta -b_i \right) \right)}{1+ \exp \left(a_i \left(\theta-b_i \right) \right)}\right] $$
+
+```{r, eval=FALSE, echo=TRUE}
+parameters {
+  vector[nObs] theta;                // the latent variables (one for each person)
+  vector[nItems] a;
+  vector[nItems] b;             // the factor loadings/item discriminations (one for each item)
+  vector<lower=0, upper=1>[nItems] c;
+}
+
+model {
+  a ~ multi_normal(meanA, covA);             // Prior for item intercepts
+  b ~ multi_normal(meanB, covB);             // Prior for item intercepts
+  c ~ beta(1,1);                              // Simple prior for c parameter
+  
+  theta ~ normal(0, 1);                         // Prior for latent variable (with mean/sd specified)
+  
+  for (item in 1:nItems){
+    Y[item] ~ bernoulli(c[item] + (1-c[item])*inv_logit(a[item]*(theta - b[item])));
+  }
+}
+```
+
+## Two-Parameter Normal Ogive Model
+
+Item Response Function:
+$$ P\left(Y_{pi} = 1 \mid \theta_p \right) =  \Phi \left(a_i \left(\theta -b_i \right)\right) $$
+
+```{r, echo=FALSE, eval=FALSE}
+model {
+  a ~ multi_normal(meanA, covA);             // Prior for item intercepts
+  b ~ multi_normal(meanB, covB);             // Prior for item intercepts
+  
+  theta ~ normal(0, 1);                         // Prior for latent variable (with mean/sd specified)
+  
+  for (item in 1:nItems){
+    Y[item] ~ bernoulli(Phi(a[item]*(theta - b[item])));
+  }
+  
+}
+```
+
+Stan's function ```Phi()``` converts the term in the function to a probability using the inverse normal CDF
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Wrapping Up
+:::
+
+
+## Wrapping Up
+
+This lecture covered models for dichotomous data 
+
+* Many different models can be estimated using Stan with minimal changes to syntax
+* All IRT auxiliary statistics (i.e, TIF, TCC, IIF) can be computed within Stan
+
+
