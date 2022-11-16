@@ -1,0 +1,1136 @@
+---
+title: "Generalized Measurement Models: Modeling Observed Polytomous Data"
+author: "Lecture 4d" 
+format: 
+  revealjs:
+    multiplex: false
+    footer: "[https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/](https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/)"
+    theme: ["pp.scss"]
+    slide-number: c/t
+    incremental: false
+editor: source
+---
+
+
+```{r, include=FALSE}
+load("lecture04d.RData")
+needed_packages = c("ggplot2", "cmdstanr", "HDInterval", "bayesplot", "loo")
+for(i in 1:length(needed_packages)){
+  haspackage = require(needed_packages[i], character.only = TRUE)
+  if(haspackage == FALSE){
+    install.packages(needed_packages[i])
+  }
+  library(needed_packages[i], character.only = TRUE)
+}
+
+conspiracyData = read.csv("conspiracies.csv")
+conspiracyItems = conspiracyData[,1:10]
+
+```
+
+
+## Today's Lecture Objectives
+
+1. Show how to estimate unidimensional latent variable models with polytomous data*
+
+* Also known as Polytomous Item Repsonse Theory (IRT) or Item Factor Analysis (IFA) models
+
+2. Distributions appropriate for polytomous (discrete; data with lower/upper limits) 
+
+## Example Data: Conspiracy Theories
+
+Today's example is from a bootstrap resample of 177 undergraduate students at a large state university in the Midwest. The
+survey was a measure of 10 questions about their beliefs in various conspiracy theories that were being passed around
+the internet in the early 2010s. Additionally, gender was included in the survey. All items responses were on a 5-
+point Likert scale with:
+
+1. Strongly Disagree
+2. Disagree
+3. Neither Agree or Disagree
+4. Agree 
+5. Strongly Agree
+
+#### Please note, the purpose of this survey was to study individual beliefs regarding conspiracies. The questions can provoke some strong emotions given the world we live in currently. All questions were approved by university IRB prior to their use. 
+
+Our purpose in using this instrument is to provide a context that we all may find relevant as many of these conspiracy theories are still prevalent today. 
+
+## Conspiracy Theory Questions 1-5
+
+Questions:
+
+1. The U.S. invasion of Iraq was not part of a campaign to fight terrorism, but was driven by oil companies and Jews in the U.S. and Israel.
+2. Certain U.S. government officials planned the attacks of September 11, 2001 because they wanted the United States to go to war in the Middle East.
+3. President Barack Obama was not really born in the United States and does not have an authentic Hawaiian birth certificate.
+4. The current financial crisis was secretly orchestrated by a small group of Wall Street bankers to extend the power of the Federal Reserve and further their control of the world's economy.
+5. Vapor trails left by aircraft are actually chemical agents deliberately sprayed in a clandestine program directed by government officials.
+
+## Conspiracy Theory Questions 6-10
+
+Questions: 
+
+6. Billionaire George Soros is behind a hidden plot to destabilize the American government, take control of the media, and put the world under his control.
+7. The U.S. government is mandating the switch to compact fluorescent light bulbs because such lights make people more obedient and easier to control.
+8. Government officials are covertly Building a 12-lane \"NAFTA superhighway\" that runs from Mexico to Canada through America's heartland.
+9. Government officials purposely developed and spread drugs like crack-cocaine and diseases like AIDS in order to destroy the African American community. 
+10. God sent Hurricane Katrina to punish America for its sins.
+
+## From Previous Lectures: CFA (Normal Outcomes)
+
+For comparisons today, we will be using the model where we assumed each outcome was (conditionally) normally distributed:
+
+For an item $i$ the model is:
+
+$$ 
+\begin{array}{cc}
+Y_{pi} = \mu_i + \lambda_i \theta_p  + e_{p,i}; & e_{p,i} \sim N\left(0, \psi_i^2 \right) \\ 
+\end{array}
+$$
+
+Recall that this assumption wasn't a good one as the type of data (discrete, bounded, some multimodality) did not match the normal distribution assumption
+
+## Plotting CFA (Normal Outcome) Results
+
+```{r cfaplot, cache=TRUE}
+
+# investigating item parameters ================================================
+itemNumber = 10
+
+labelMu = paste0("mu[", itemNumber, "]")
+labelLambda = paste0("lambda[", itemNumber, "]")
+labelPsi = paste0("psi[", itemNumber, "]")
+itemParameters = modelCFA_samples$draws(variables = c(labelMu, labelLambda, labelPsi), format = "draws_matrix")
+itemSummary = modelCFA_samples$summary(variables = c(labelMu, labelLambda, labelPsi))
+
+# item plot
+theta = seq(-3,3,.1) # for plotting analysis lines--x axis values
+
+# drawing item characteristic curves for item
+y = as.numeric(itemParameters[1,labelMu]) + as.numeric(itemParameters[1,labelLambda])*theta
+plot(x = theta, y = y, type = "l", main = paste("Item", itemNumber, "ICC"), 
+     ylim=c(-2,8), xlab = expression(theta), ylab=paste("Item", itemNumber,"Predicted Value"))
+for (draw in 2:nrow(itemParameters)){
+  y = as.numeric(itemParameters[draw,labelMu]) + as.numeric(itemParameters[draw,labelLambda])*theta
+  lines(x = theta, y = y)
+}
+
+# drawing limits
+lines(x = c(-3,3), y = c(5,5), type = "l", col = 4, lwd=5, lty=2)
+lines(x = c(-3,3), y = c(1,1), type = "l", col = 4, lwd=5, lty=2)
+
+# drawing EAP line
+y = itemSummary$mean[which(itemSummary$variable==labelMu)] + 
+  itemSummary$mean[which(itemSummary$variable==labelLambda)]*theta
+lines(x = theta, y = y, lwd = 5, lty=3, col=2)
+
+# legend
+legend(x = -3, y = 7, legend = c("Posterior Draw", "Item Limits", "EAP"), col = c(1,4,2), lty = c(1,2,3), lwd=5)
+
+
+```
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Polytomous Data Distributions
+:::
+
+## Polytomous Data Characteristics
+
+As we have done with each observed variable, we must decide which distribution to use
+
+* To do this, we need to map the characteristics of our data on to distributions that share those characteristics
+
+Our observed data:
+
+* Discrete responses
+* Small set of known categories: ${1, 2, 3, 4, 5}$
+* Some observed item responses may be multimodal
+
+Choice of distribution must match
+
+* Be capable of modeling a small set of known categories 
+  * Discrete distribution
+  * Limited number of categories (with fixed upper bound)
+* Possible multimodality
+
+## Discrete Data Distributions
+
+Stan has a list of distributions for bounded discrete data: [https://mc-stan.org/docs/functions-reference/bounded-discrete-distributions.html](https://mc-stan.org/docs/functions-reference/bounded-discrete-distributions.html)
+
+* Binomial distribution
+  * Pro: Easy to use/code
+  * Con: Unimodal distribution
+* Beta-binomial distribution
+  * Not often used in psychometrics (but could be)
+  * Generalizes binomial distribution to have different probability for each trial
+* Hypergeometric distribution
+  * Not often used in psychometrics
+* Categorical distribution (sometimes called multinomial)
+  * Most frequently used
+  * Base distribution for graded response, partial credit, and nominal response models
+* Discrete range distribution (sometimes called uniform)
+  * Not useful--doesn't have much information about latent variables
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Binomial Distribution Models
+:::
+
+## Binomial Distribution Models
+
+The binomial distribution is one of the easiest to use for polytomous items
+
+* However, it assumes the distribution of responses are unimodal
+
+
+Binomial probability mass function (i.e., pdf):
+
+$$P(Y = y) = {n \choose y} p^k \left(1-p \right)^{(n-k)}  $$
+
+Parameters:
+
+* $n$ -- "number of trials"  (range: $n \in \{0, 1, \ldots\}$)
+* $y$ -- "number of successes" out of $n$ "trials" (range: $y \in \{0, 1, \ldots, n\}$)
+* $p$ -- probability of "success" (range: $[0, 1]$)
+
+Mean: $np$ 
+
+Variance: $np(1-p$)
+
+## Adapting the Binomial for Item Response Models
+
+Although it doesn't seem like our items fit with a binomial, we can actually use this distribution
+
+* Item response: number of successes $y_i$
+  * Needed: recode data so that lowest category is $0$ (subtract one from each item)
+* Highest (recoded) item response: number of trials $n$
+  * For all our items, once recoded, $n_i=4$ ($\forall i$)
+* Then, use a link function to model each item's $p_i$ as a function of the latent trait:
+  
+
+$$p_i = \frac{\exp\left(\mu_i + \lambda_i \theta_p)\right)}{1+\exp\left(\mu_i + \lambda_i \theta_p)\right)}$$
+
+Note:
+
+* Shown with a logit link function (but could be any link)
+* Shown in slope/intercept form (but could be discrimination/difficulty for unidimensional items)
+* Could also include asymptote parameters ($c_i$ or $d_i$)
+
+## Binomial Item Repsonse Model
+
+The item response model, put into the PDF of the binomial is then:
+
+$$P(Y_{pi}  \mid \theta_p) = {n_i \choose Y_{pi}} \left(\frac{\exp\left(\mu_i + \lambda_i \theta_p)\right)}{1+\exp\left(\mu_i + \lambda_i \theta_p)\right)}\right)^{Y_{pi}} \left(1-\left(\frac{\exp\left(\mu_i + \lambda_i \theta_p)\right)}{1+\exp\left(\mu_i + \lambda_i \theta_p)\right)}\right) \right)^{(n_i-Y_{pi})}  $$
+
+Further, we can use the same priors as before on each of our item parameters
+
+* $\mu_i$: Normal prior $N(0, 1000)$
+* $\lambda_i$ Normal prior $N(0, 1000)$
+
+Likewise, we can identify the scale of the latent variable as before, too:
+
+* $\theta_p \sim N(0,1)$
+
+## Estimating the Binomial Model in Stan
+
+```{r binomModel, eval=FALSE, echo=TRUE}
+model {
+  
+  lambda ~ multi_normal(meanLambda, covLambda); // Prior for item discrimination/factor loadings
+  mu ~ multi_normal(meanMu, covMu);             // Prior for item intercepts
+  
+  theta ~ normal(0, 1);                         // Prior for latent variable (with mean/sd specified)
+  
+  for (item in 1:nItems){
+    Y[item] ~ binomial(maxItem[item], inv_logit(mu[item] + lambda[item]*theta));
+  }
+  
+}
+```
+
+Here, the binomial function has two arguments:
+
+* The first (```maxItem[item]```) is the number of "trials" $n_i$ (here, our maximum score minus one)
+* The second ``` inv_logit(mu[item] + lambda[item]*theta)``` is the probability from our model ($p_i$)
+
+The data ```Y[item]``` must be:
+
+* Type: integer 
+* Range: 0 through ```maxItem[item]```
+
+## Binomial Model ```Parameters``` Block
+
+```{r, eval=FALSE, echo=TRUE}
+parameters {
+  vector[nObs] theta;                // the latent variables (one for each person)
+  vector[nItems] mu;                 // the item intercepts (one for each item)
+  vector[nItems] lambda;             // the factor loadings/item discriminations (one for each item)
+}
+
+```
+
+No changes from any of our previous slope/intercept models 
+
+## Binomial Model Data Block
+
+```{r, eval=FALSE, echo=TRUE}
+data {
+  int<lower=0> nObs;                            // number of observations
+  int<lower=0> nItems;                          // number of items
+  array[nItems] int<lower=0> maxItem;
+  
+  array[nItems, nObs] int<lower=0>  Y; // item responses in an array
+
+  vector[nItems] meanMu;             // prior mean vector for intercept parameters
+  matrix[nItems, nItems] covMu;      // prior covariance matrix for intercept parameters
+  
+  vector[nItems] meanLambda;         // prior mean vector for discrimination parameters
+  matrix[nItems, nItems] covLambda;  // prior covariance matrix for discrimination parameters
+}
+
+```
+
+Note: 
+
+* Need to supply ```maxItem``` (maximum score minus one for each item)
+* The data are the same (integer) as in the binary/dichotomous items syntax
+
+## Preparing Data for Stan
+
+```{r, echo=TRUE}
+# note: data must start at zero
+conspiracyItemsBinomial = conspiracyItems
+for (item in 1:ncol(conspiracyItemsBinomial)){
+  conspiracyItemsBinomial[, item] = conspiracyItemsBinomial[, item] - 1
+}
+
+# check first item
+table(conspiracyItemsBinomial[,1])
+
+# determine maximum value for each item
+maxItem = apply(X = conspiracyItemsBinomial,
+                MARGIN = 2, 
+                FUN = max)
+```
+
+## Binomial Model Stan Call
+
+
+```{r, echo=TRUE, eval=FALSE}
+modelBinomial_samples = modelBinomial_stan$sample(
+  data = modelBinomial_data,
+  seed = 12112022,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 5000,
+  iter_sampling = 5000,
+  init = function() list(lambda=rnorm(nItems, mean=5, sd=1))
+)
+
+```
+
+ 
+## Binomial Model Results
+
+```{r, echo=TRUE}
+# checking convergence
+max(modelBinomial_samples$summary()$rhat, na.rm = TRUE)
+
+# item parameter results
+print(modelBinomial_samples$summary(variables = c("mu", "lambda")) ,n=Inf)
+
+```
+
+## Option Characteristic Curves
+
+```{r, cache=TRUE}
+# investigating option characteristic curves ===================================
+itemNumber = 10
+
+labelMu = paste0("mu[", itemNumber, "]")
+labelLambda = paste0("lambda[", itemNumber, "]")
+itemParameters = modelBinomial_samples$draws(variables = c(labelMu, labelLambda), format = "draws_matrix")
+itemSummary = modelBinomial_samples$summary(variables = c(labelMu, labelLambda))
+
+# item plot
+theta = seq(-3,3,.1) # for plotting analysis lines--x axis values
+y = matrix(data = 0, nrow = length(theta), ncol=5)
+
+thetaMat = NULL
+prob = exp(itemSummary$mean[which(itemSummary$variable==labelMu)] + 
+             itemSummary$mean[which(itemSummary$variable==labelLambda)]*theta)/
+  (1+exp(itemSummary$mean[which(itemSummary$variable==labelMu)] + 
+           itemSummary$mean[which(itemSummary$variable==labelLambda)]*theta))
+
+option = 1
+for (option in 1:5){
+  thetaMat = cbind(thetaMat, theta)
+  y[,option] = dbinom(x = option-1, size=4, prob=prob)
+}
+
+matplot(x = thetaMat, y = y, type="l", xlab=expression(theta), ylab="P(Y |theta)", 
+        main=paste0("Option Characteristic Curves for Item ", itemNumber), lwd=3)
+
+legend(x = -3, y = .8, legend = paste("Option", 1:5), lty = 1:5, col=1:5, lwd=3)
+
+```
+
+
+## ICC Plots
+
+```{r, cache=TRUE}
+# investigating item parameters ================================================
+itemNumber = 10
+
+labelMu = paste0("mu[", itemNumber, "]")
+labelLambda = paste0("lambda[", itemNumber, "]")
+itemParameters = modelBinomial_samples$draws(variables = c(labelMu, labelLambda), format = "draws_matrix")
+itemSummary = modelBinomial_samples$summary(variables = c(labelMu, labelLambda))
+
+# item plot
+theta = seq(-3,3,.1) # for plotting analysis lines--x axis values
+
+# drawing item characteristic curves for item
+y = 4*exp(as.numeric(itemParameters[1,labelMu]) + as.numeric(itemParameters[1,labelLambda])*theta)/
+  (1+exp(as.numeric(itemParameters[1,labelMu]) + as.numeric(itemParameters[1,labelLambda])*theta)) +1
+plot(x = theta, y = y, type = "l", main = paste("Item", itemNumber, "ICC"), 
+     ylim=c(0,6), xlab = expression(theta), ylab=paste("Item", itemNumber,"Expected Value"))
+for (draw in 2:nrow(itemParameters)){
+  y =4*exp(as.numeric(itemParameters[draw,labelMu]) + as.numeric(itemParameters[draw,labelLambda])*theta)/
+    (1+exp(as.numeric(itemParameters[draw,labelMu]) + as.numeric(itemParameters[draw,labelLambda])*theta)) +1 
+    
+  
+  lines(x = theta, y = y)
+}
+
+# drawing limits
+lines(x = c(-3,3), y = c(5,5), type = "l", col = 4, lwd=5, lty=2)
+lines(x = c(-3,3), y = c(1,1), type = "l", col = 4, lwd=5, lty=2)
+
+# drawing EAP line
+y = 4*exp(itemSummary$mean[which(itemSummary$variable==labelMu)] + 
+  itemSummary$mean[which(itemSummary$variable==labelLambda)]*theta)/
+  (1+exp(itemSummary$mean[which(itemSummary$variable==labelMu)] + 
+           itemSummary$mean[which(itemSummary$variable==labelLambda)]*theta)) +1
+lines(x = theta, y = y, lwd = 5, lty=3, col=2)
+
+# legend
+legend(x = -3, y = 4, legend = c("Posterior Draw", "Item Limits", "EAP"), col = c(1,4,2), lty = c(1,2,3), lwd=5)
+
+```
+
+## Investigating Latent Variable Estimates
+
+```{r, cache=TRUE}
+# EAP Estimates of Latent Variables
+hist(modelBinomial_samples$summary(variables = c("theta"))$mean, main="EAP Estimates of Theta", 
+     xlab = expression(theta))
+
+```
+
+## Comparing Two Latent Variable Posterior Distributions
+
+```{r, cache=TRUE}
+# Comparing Two Posterior Distributions
+theta1 = "theta[1]"
+theta2 = "theta[2]"
+thetaSamples = modelBinomial_samples$draws(variables = c(theta1, theta2), format = "draws_matrix")
+thetaVec = rbind(thetaSamples[,1], thetaSamples[,2])
+thetaDF = data.frame(observation = c(rep(theta1,nrow(thetaSamples)), rep(theta2, nrow(thetaSamples))), 
+                     sample = thetaVec)
+names(thetaDF) = c("observation", "sample")
+ggplot(thetaDF, aes(x=sample, fill=observation)) +geom_density(alpha=.25)
+```
+
+## Comparing Latent Variable Posterior Mean and SDs 
+
+```{r, cache=TRUE}
+# Comparing EAP Estimates with Posterior SDs
+plot(y = modelBinomial_samples$summary(variables = c("theta"))$sd, 
+     x = modelBinomial_samples$summary(variables = c("theta"))$mean,
+     xlab = "E(theta|Y)", ylab = "SD(theta|Y)", main="Mean vs SD of Theta")
+```
+
+## Comparing EAP Estimates with Sum Scores
+
+```{r, cache=TRUE}
+plot(y = rowSums(conspiracyItemsBinomial), 
+     x = modelBinomial_samples$summary(variables = c("theta"))$mean,
+     ylab = "Sum Score", xlab = expression(theta))
+```
+
+## Comparing Thetas: Binomial vs Normal
+
+```{r, cache=TRUE}
+plot(y = modelCFA_samples$summary(variables = c("theta"))$mean, 
+     x = modelBinomial_samples$summary(variables = c("theta"))$mean,
+     ylab = "Normal", xlab = "Binomial", main="Theta EAP Estimates")
+```
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Categorical/Multinomial Distribution Models
+:::
+
+## Categorical/Multinomial Distribution Models
+
+Although the binomial distribution is easy, it may not fit our data well
+
+* Instead, we can use the categorical (sometimes called multinomial) distribution, with pmf (pdf):
+
+$$P(Y = y) = \frac{n!}{y_1! \cdots y_C!}p_1^{y_1}\cdots p_C^{y_C}$$
+
+Here:
+
+* $n$: number of "trials"
+* $y_c$: number of events in each of $c$ categories ($c \in \{1, \ldots, C\}$; $\sum_c y_c = n$)
+* $p_c$: probability of observing an event in category $c$
+
+## Adapting the Multinomial Distribution for Item Response Models
+
+With some definitions, we can make a multinomial distribution into one we can use for polytomous item response models
+
+* The number of "trials" is set to one for all items $n_i=1$ ($\forall i$)
+  * With $n_i = 1$, this is called the categorical distribution
+  
+$$P(Y_{pi} \mid \theta_p) = p_{i1}^{I(y_{pi}=1)}\cdots p_{iC_i}^{I(y_{pi}=C_i)}$$  
+  
+* The number of categories is equal to the number of options on an item ($C_i$)
+* The item response model is specified for the set of probabilities $p_{ic}$, with $\sum_c p_{ic}=1$
+  * Then, use a link function to model each item's set of $p_{ic}$ as a function of the latent trait
+
+## Choices for Models for Probability of Each Category $p_{ic}$
+
+The most-frequently used polytomous item response models all use the categorical distribution for observed data
+
+* They differ in how the model function builds the conditional response probabilities
+  * Graded response models: set of ordered intercepts (or thresholds) and a single loading
+    * Called proportional odds models in categorical data analysis
+  * Partial credit models: set of unordered difficulty parameters and a single loading
+  * Nominal response models: set of unordered intercepts and set of loadings
+    * Called generalized logit models in categorical data analysis
+
+* Terminology note: 
+  * Terms graded response and partial credit come from educational measurement
+    * Data need not be graded response/partial credit to you
+
+## Graded Response Model
+
+The graded response model is an ordered logistic regression model where:
+
+$$P\left(Y_{ic } \mid \theta \right) = \left\{ 
+\begin{array}{lr}
+1-P^*\left(Y_{i1} \mid \theta \right) & \text{if } c=1 \\
+P^*\left(Y_{i{c-1}} \mid \theta \right) - P^*\left(Y_{i{c}} \mid \theta \right) & \text{if } 1<c<C_i \\
+P^*\left(Y_{i{C_i -1} } \mid \theta \right) & \text{if } c=C_i \\
+\end{array} \right.$$
+
+Where:
+
+$$P^*\left(Y_{i{c}} \mid \theta \right)  = \frac{\exp(\mu_{ic}+\lambda_i\theta_p)}{1+\exp(\mu_{ic}+\lambda_i\theta_p)}$$
+
+With:
+
+* $C_i-1$ Ordered intercepts: $\mu_1 > \mu_2 > \ldots > \mu_{C_i-1}$
+
+## Estimating the Graded Response Model in Stan
+
+
+```{r, eval=FALSE, echo=TRUE}
+model {
+  
+  lambda ~ multi_normal(meanLambda, covLambda); // Prior for item discrimination/factor loadings
+  theta ~ normal(0, 1);                         // Prior for latent variable (with mean/sd specified)
+  
+  for (item in 1:nItems){
+    thr[item] ~ multi_normal(meanThr[item], covThr[item]);             // Prior for item intercepts
+    Y[item] ~ ordered_logistic(lambda[item]*theta, thr[item]);
+  }
+  
+}
+```
+
+Notes:
+
+* ```ordered_logistic``` is a built in Stan function that makes the model easy to implement
+  * Instead of intercepts, however, it uses thresholds: $\tau_{ic} = -\mu_{ic} $
+  * First argument is the linear predictor (the non-intercept portion of the model)
+  * Second argument is the set of thresholds for the item
+
+* The function expects the responses of $Y$ to start at one and go to maxCategory ($Y_{pi}$ \in \{1, \ldots, C_i\}) 
+  * No transformation needed to data (unless some categories have zero observations)
+
+## Graded Response Model ```parameters``` Block
+
+```{r, eval=FALSE, echo=TRUE}
+parameters {
+  vector[nObs] theta;                // the latent variables (one for each person)
+  array[nItems] ordered[maxCategory-1] thr; // the item thresholds (one for each item category minus one)
+  vector[nItems] lambda;             // the factor loadings/item discriminations (one for each item)
+}
+```
+
+Notes:
+
+* Threshold parameters: ```array[nItems] ordered[maxCategory-1] thr;```
+  * Is an array (each item has maxCategory-1) parameters
+  * Is of type ```ordered```: Automatically ensures order is maintained
+     $$ \tau_{i1} < \tau_{i2} < \ldots < \tau_{iC-1}$$
+
+## Graded Response Model ```generated quantities``` Block
+
+```{r, echo=TRUE, eval=FALSE}
+
+generated quantities{
+  array[nItems] vector[maxCategory-1] mu;
+  for (item in 1:nItems){
+    mu[item] = -1*thr[item];
+  }
+}
+```
+
+We use generated quantities to convert threshold parameters into intercepts
+
+## Graded Response Model ```data``` block
+
+
+```{r, eval=FALSE, echo=TRUE}
+data {
+  int<lower=0> nObs;                            // number of observations
+  int<lower=0> nItems;                          // number of items
+  int<lower=0> maxCategory; 
+  
+  array[nItems, nObs] int<lower=1, upper=5>  Y; // item responses in an array
+
+  array[nItems] vector[maxCategory-1] meanThr;   // prior mean vector for intercept parameters
+  array[nItems] matrix[maxCategory-1, maxCategory-1] covThr;      // prior covariance matrix for intercept parameters
+  
+  vector[nItems] meanLambda;         // prior mean vector for discrimination parameters
+  matrix[nItems, nItems] covLambda;  // prior covariance matrix for discrimination parameters
+}
+```
+
+Notes:
+
+* The input for the prior mean/covariance matrix for threshold parameters is now an array (one mean vector and covariance matrix per item)
+
+## Graded Response Model Data Preparation
+
+To match the array for input for the threshold hyperparameter matrices, a little data manipulation is needed
+
+```{r, echo=TRUE}
+# item threshold hyperparameters
+thrMeanHyperParameter = 0
+thrMeanVecHP = rep(thrMeanHyperParameter, maxCategory-1)
+thrMeanMatrix = NULL
+for (item in 1:nItems){
+  thrMeanMatrix = rbind(thrMeanMatrix, thrMeanVecHP)
+}
+
+thrVarianceHyperParameter = 1000
+thrCovarianceMatrixHP = diag(x = thrVarianceHyperParameter, nrow = maxCategory-1)
+thrCovArray = array(data = 0, dim = c(nItems, maxCategory-1, maxCategory-1))
+for (item in 1:nItems){
+  thrCovArray[item, , ] = diag(x = thrVarianceHyperParameter, nrow = maxCategory-1)
+}
+
+```
+
+* The R array matches stan's array type
+
+## Graded Response Model Stan Call
+
+```{r, eval=FALSE, echo=TRUE}
+modelOrderedLogit_samples = modelOrderedLogit_stan$sample(
+  data = modelOrderedLogit_data,
+  seed = 121120221,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 5000,
+  iter_sampling = 5000,
+  init = function() list(lambda=rnorm(nItems, mean=5, sd=1))
+)
+
+```
+
+Note: Using positive starting values for the $\lambda$ parameters
+
+## Graded Response Model Results
+
+
+```{r, echo=TRUE, cache=TRUE}
+# checking convergence
+max(modelOrderedLogit_samples$summary()$rhat, na.rm = TRUE)
+
+# item parameter results
+print(modelOrderedLogit_samples$summary(variables = c("lambda", "mu")) ,n=Inf)
+
+```
+
+## Graded Response Model Option Characteristic Curves
+
+```{r, cache=TRUE}
+## investigating option characteristic curves ===================================
+itemNumber = 10
+
+labelMu = paste0("mu[", itemNumber, ",", 1:4, "]")
+labelLambda = paste0("lambda[", itemNumber, "]")
+muParams = modelOrderedLogit_samples$summary(variables = labelMu)
+lambdaParams = modelOrderedLogit_samples$summary(variables = labelLambda)
+
+# item plot
+theta = seq(-3,3,.1) # for plotting analysis lines--x axis values
+y = NULL
+thetaMat = NULL
+expectedValue = 0
+
+option = 1
+for (option in 1:5){
+  if (option==1){
+    prob = 1 - exp(muParams$mean[which(muParams$variable == labelMu[option])] + 
+                 lambdaParams$mean[which(lambdaParams$variable == labelLambda[1])]*theta)/
+      (1+exp(muParams$mean[which(muParams$variable == labelMu[option])] + 
+               lambdaParams$mean[which(lambdaParams$variable == labelLambda[1])]*theta))
+  } else if (option == 5){
+    
+    prob = (exp(muParams$mean[which(muParams$variable == labelMu[option-1])] + 
+                  lambdaParams$mean[which(lambdaParams$variable == labelLambda[1])]*theta)/
+              (1+exp(muParams$mean[which(muParams$variable == labelMu[option-1])] + 
+                       lambdaParams$mean[which(lambdaParams$variable == labelLambda[1])]*theta)))
+  } else {
+    prob = (exp(muParams$mean[which(muParams$variable == labelMu[option-1])] + 
+                  lambdaParams$mean[which(lambdaParams$variable == labelLambda[1])]*theta)/
+              (1+exp(muParams$mean[which(muParams$variable == labelMu[option-1])] + 
+                       lambdaParams$mean[which(lambdaParams$variable == labelLambda[1])]*theta))) -
+      exp(muParams$mean[which(muParams$variable == labelMu[option])] + 
+            lambdaParams$mean[which(lambdaParams$variable == labelLambda[1])]*theta)/
+      (1+exp(muParams$mean[which(muParams$variable == labelMu[option])] + 
+               lambdaParams$mean[which(lambdaParams$variable == labelLambda[1])]*theta))
+  }
+  
+  thetaMat = cbind(thetaMat, theta)
+  expectedValue = expectedValue + prob*option
+  y = cbind(y, prob)
+}
+
+matplot(x = thetaMat, y = y, type="l", xlab=expression(theta), ylab="P(Y |theta)", 
+        main=paste0("Option Characteristic Curves for Item ", itemNumber), lwd=3)
+
+legend(x = -3, y = .8, legend = paste("Option", 1:5), lty = 1:5, col=1:5, lwd=3)
+
+```
+
+
+## Graded Response Model Item Characteristic Curves
+
+```{r}
+## plot of EAP of expected value per item ======================================================
+plot(x = theta, y = expectedValue, type = "l", main = paste("Item", itemNumber, "ICC"), 
+     ylim=c(0,6), xlab = expression(theta), ylab=paste("Item", itemNumber,"Expected Value"), lwd = 5, lty=3, col=2)
+
+# drawing limits
+lines(x = c(-3,3), y = c(5,5), type = "l", col = 4, lwd=5, lty=2)
+lines(x = c(-3,3), y = c(1,1), type = "l", col = 4, lwd=5, lty=2)
+
+```
+
+
+## Investigating Latent Variables
+
+```{r, cache=TRUE}
+# EAP Estimates of Latent Variables
+hist(modelOrderedLogit_samples$summary(variables = c("theta"))$mean, 
+     main="EAP Estimates of Theta", 
+     xlab = expression(theta))
+```
+
+
+## Comparing Two Latent Variable Posterior Distributions
+
+```{r, cache=TRUE}
+theta1 = "theta[1]"
+theta2 = "theta[2]"
+thetaSamples = modelOrderedLogit_samples$draws(
+  variables = c(theta1, theta2), format = "draws_matrix")
+thetaVec = rbind(thetaSamples[,1], thetaSamples[,2])
+thetaDF = data.frame(
+  observation = c(rep(theta1,nrow(thetaSamples)), rep(theta2, nrow(thetaSamples))), 
+  sample = thetaVec)
+names(thetaDF) = c("observation", "sample")
+ggplot(thetaDF, aes(x=sample, fill=observation)) +geom_density(alpha=.25)
+
+```
+
+## Comparing Latent Variable EAP Estimates with Posterior SDs
+
+```{r, cache=TRUE}
+plot(y = modelOrderedLogit_samples$summary(variables = c("theta"))$sd, 
+     x = modelOrderedLogit_samples$summary(variables = c("theta"))$mean,
+     xlab = "E(theta|Y)", ylab = "SD(theta|Y)", main="Mean vs SD of Theta")
+
+```
+
+## Comparing Latent Variable EAP Estimates with Sum Scores
+
+```{r, cache=TRUE}
+plot(y = rowSums(conspiracyItems), 
+     x = modelOrderedLogit_samples$summary(variables = c("theta"))$mean,
+     ylab = "Sum Score", xlab = expression(theta))
+```
+
+## Comparing Latent Variable Posterior Means: GRM vs CFA
+
+```{r, cache=TRUE}
+plot(y = modelCFA_samples$summary(variables = c("theta"))$mean, 
+     x = modelOrderedLogit_samples$summary(variables = c("theta"))$mean,
+     ylab = "Normal", xlab = "Ordered Logit")
+```
+
+## Comparing Latent Variable Posterior SDs: GRM vs Normal
+```{r}
+plot(y = modelCFA_samples$summary(variables = c("theta"))$sd, 
+     x = modelOrderedLogit_samples$summary(variables = c("theta"))$sd,
+     ylab = "Normal", xlab = "Ordered Logit", main="Posterior SDs")
+```
+
+## Which Posterior SD is Larger: GRM vs. CFA
+
+```{r, cache=TRUE}
+hist(modelCFA_samples$summary(variables = c("theta"))$sd-
+       modelOrderedLogit_samples$summary(variables = c("theta"))$sd,
+     main = "SD(normal) - SD(ordered)")
+```
+
+## Comparing Thetas: GRM vs Binomial
+
+```{r, cache=TRUE}
+plot(y = modelBinomial_samples$summary(variables = c("theta"))$mean, 
+     x = modelOrderedLogit_samples$summary(variables = c("theta"))$mean,
+     ylab = "Binomial", xlab = "Ordered Logit")
+
+
+```
+
+## Comparing Latent Variable Posterior SDs: GRM vs Binomial
+
+```{r, cache=TRUE}
+plot(y = modelBinomial_samples$summary(variables = c("theta"))$sd, 
+     x = modelOrderedLogit_samples$summary(variables = c("theta"))$sd,
+     ylab = "Binomial", xlab = "Ordered Logit", main="Posterior SDs")
+```
+
+## Which Posterior SD is Larger: GRM vs. Binomial
+```{r, cache=TRUE}
+hist(modelBinomial_samples$summary(variables = c("theta"))$sd-
+       modelOrderedLogit_samples$summary(variables = c("theta"))$sd,
+     main = "SD(binomial) - SD(ordered)")
+```
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Nominal Response Models (Generalized Logit Models)
+:::
+
+
+## Adapting the Multinomial Distribution for Item Response Models
+
+With some definitions, we can make a multinomial distribution into one we can use for polytomous item response models
+
+* The number of "trials" is set to one for all items $n_i=1$ ($\forall i$)
+  * With $n_i = 1$, this is called the categorical distribution
+  
+$$P(Y_{pi} \mid \theta_p) = p_{i1}^{I(y_{pi}=1)}\cdots p_{iC_i}^{I(y_{pi}=C_i)}$$  
+  
+* The number of categories is equal to the number of options on an item ($C_i$)
+* The item response model is specified for the set of probabilities $p_{ic}$, with $\sum_c p_{ic}=1$
+  * Then, use a link function to model each item's set of $p_{ic}$ as a function of the latent trait
+
+
+## Nominal Response Model (Generalized Logit Model)
+
+The nominal response model is an ordered logistic regression model where:
+
+$$P\left(Y_{ic } \mid \theta \right) = \frac{\exp(\mu_{ic}+\lambda_{ic}\theta_p)}{\sum_{c=1}^{C_i} \exp(\mu_{ic}+\lambda_{ic}\theta_p)}$$
+
+Where:
+
+* One constraint per parameter (one of these options):
+  * Sum to zero: $\sum_{c=1}^{C_i} \mu_{ic} = 0$ and $\sum_{c=1}^{C_i} \lambda_{ic} = 0$
+  * Fix one category's parameters to zero: $\mu_{iC_{i}} = 0$ and $\lambda_{iC_{i}} = 0$
+
+## Estimating the NRM in Stan
+
+```{r, echo=TRUE, eval=FALSE}
+model {
+  
+  vector[maxCategory] probVec;
+  
+  theta ~ normal(0,1);
+  
+  for (item in 1:nItems){
+    initMu[item] ~ multi_normal(meanMu[item], covMu[item]);  // Prior for item intercepts
+    initLambda[item] ~ multi_normal(meanLambda[item], covLambda[item]);  // Prior for item loadings
+    
+    for (obs in 1:nObs) {
+      for (category in 1:maxCategory){
+        probVec[category] = mu[item, category] + lambda[item, category]*theta[obs];     
+      }
+      Y[item, obs] ~ categorical_logit(probVec);
+    }  
+  }
+}
+```
+
+* Probability vector is built category-by-category
+  * Code is not vectorized (takes longer to run)
+* ```categorical_logit``` model takes input, applies inverse logit function, evaluates categorical distribution pmf
+* Set-to-zero constraints used:
+  * ```initMu``` and ```initLambda``` have only estimated values in them
+  * Will build ```mu``` and ```lambda``` in transformed parameters block
+
+## Nominal Response Model ```parameters``` Block
+
+```{r, echo=TRUE, eval=FALSE}
+parameters {
+  array[nItems] vector[maxCategory - 1] initMu;
+  array[nItems] vector[maxCategory - 1] initLambda;
+  vector[nObs] theta;                // the latent variables (one for each person)
+}
+```
+
+Set-to-zero constraints used:
+
+  * ```initMu``` and ```initLambda``` have only estimated values in them
+  * Will build ```mu``` and ```lambda``` in transformed parameters block
+
+## Nominal Response Model ```transformed parameters``` Block
+
+```{r, echo=TRUE, eval=FALSE}
+transformed parameters {
+  array[nItems] vector[maxCategory] mu;
+  array[nItems] vector[maxCategory] lambda;
+  
+  for (item in 1:nItems){
+    mu[item, 2:maxCategory] = initMu[item, 1:(maxCategory-1)];
+    mu[item, 1] = 0.0; // setting one category's intercept to zero
+    
+    lambda[item, 2:maxCategory] = initLambda[item, 1:(maxCategory-1)];
+    lambda[item, 1] = 0.0; // setting one category's lambda to zero
+    
+  }
+}
+```
+
+Notes: 
+
+* Here, we set the first category's $\mu_{i1}$ and $\lambda_{i1}$ to zero
+* We use ```mu``` and ```lambda``` for the model itself (not ```initMu``` or ```initLambda```)
+
+## Nominal Response Model ```data``` Block
+
+```{r, eval=FALSE, echo=TRUE}
+data {
+  int maxCategory;
+  int nObs;
+  int nItems;
+  
+  array[nItems, nObs] int Y; 
+  
+  array[nItems] vector[maxCategory-1] meanMu;   // prior mean vector for intercept parameters
+  array[nItems] matrix[maxCategory-1, maxCategory-1] covMu;      // prior covariance matrix for intercept parameters
+  
+  array[nItems] vector[maxCategory-1] meanLambda;       // prior mean vector for discrimination parameters
+  array[nItems] matrix[maxCategory-1, maxCategory-1] covLambda;  // prior covariance matrix for discrimination parameters
+  
+}
+```
+
+Almost the same as graded response model
+
+* Lambda now needs an array
+
+## Nominal Response Model Data Preparation
+
+```{r, eval=FALSE, echo=TRUE}
+
+# Data needs: successive integers from 1 to highest number (recode if not consistent)
+maxCategory = 5
+
+# data dimensions
+nObs = nrow(conspiracyItems)
+nItems = ncol(conspiracyItems)
+
+# item threshold hyperparameters
+muMeanHyperParameter = 0
+muMeanVecHP = rep(muMeanHyperParameter, maxCategory-1)
+muMeanMatrix = NULL
+for (item in 1:nItems){
+  muMeanMatrix = rbind(muMeanMatrix, muMeanVecHP)
+}
+
+muVarianceHyperParameter = 1000
+muCovarianceMatrixHP = diag(x = muVarianceHyperParameter, nrow = maxCategory-1)
+muCovArray = array(data = 0, dim = c(nItems, maxCategory-1, maxCategory-1))
+for (item in 1:nItems){
+  muCovArray[item, , ] = diag(x = muVarianceHyperParameter, nrow = maxCategory-1)
+}
+
+# item discrimination/factor loading hyperparameters
+lambdaMeanHyperParameter = 0
+lambdaMeanVecHP = rep(lambdaMeanHyperParameter, maxCategory-1)
+lambdaMeanMatrix = NULL
+for (item in 1:nItems){
+  lambdaMeanMatrix = rbind(lambdaMeanMatrix, lambdaMeanVecHP)
+}
+
+lambdaVarianceHyperParameter = 1000
+lambdaCovarianceMatrixHP = diag(x = lambdaVarianceHyperParameter, nrow = maxCategory-1)
+lambdaCovArray = array(data = 0, dim = c(nItems, maxCategory-1, maxCategory-1))
+for (item in 1:nItems){
+  lambdaCovArray[item, , ] = diag(x = lambdaVarianceHyperParameter, nrow = maxCategory-1)
+}
+
+
+modelOrderedLogit_data = list(
+  nObs = nObs,
+  nItems = nItems,
+  maxCategory = maxCategory,
+  maxItem = maxItem,
+  Y = t(conspiracyItems), 
+  meanMu = muMeanMatrix,
+  covMu = muCovArray,
+  meanLambda = lambdaMeanMatrix,
+  covLambda = lambdaCovArray
+)
+```
+
+## Nominal Response Model Stan Call
+
+```{r, eval=FALSE, echo=TRUE}
+modelCategoricalLogit_samples = modelCategoricalLogit_stan$sample(
+  data = modelOrderedLogit_data,
+  seed = 121120222,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 1000,
+  iter_sampling = 1000,
+  init = function() list(initLambda=rnorm(nItems*(maxCategory-1), mean=1, sd=.1))
+)
+
+```
+
+## Nominal Response Model Results
+
+```{r, cache=TRUE, echo=TRUE}
+# checking convergence
+max(modelCategoricalLogit_samples$summary()$rhat, na.rm = TRUE)
+
+print(modelCategoricalLogit_samples$summary(variables = c("mu", "lambda")), n=Inf)
+```
+
+
+
+## Comparing EAP Estimates with Posterior SDs
+
+```{r, cache=TRUE}
+plot(y = modelCategoricalLogit_samples$summary(variables = c("theta"))$sd, 
+     x = modelCategoricalLogit_samples$summary(variables = c("theta"))$mean,
+     xlab = "E(theta|Y)", ylab = "SD(theta|Y)", main="Mean vs SD of Theta")
+
+```
+
+
+## Comparing EAP Estimates with Sum Scores
+
+```{r, cache=TRUE}
+plot(y = rowSums(conspiracyItems), 
+     x = modelCategoricalLogit_samples$summary(variables = c("theta"))$mean,
+     ylab = "Sum Score", xlab = expression(theta))
+```
+
+## Comparing Thetas: NRM vs Normal:
+```{r, cache=TRUE}
+plot(y = modelCFA_samples$summary(variables = c("theta"))$mean, 
+     x = modelCategoricalLogit_samples$summary(variables = c("theta"))$mean,
+     ylab = "Normal", xlab = "NRM")
+```
+
+## Comparing Theta SDs: NRM vs Normal:
+
+```{r, cache=TRUE}
+plot(y = modelCFA_samples$summary(variables = c("theta"))$sd, 
+     x = modelCategoricalLogit_samples$summary(variables = c("theta"))$sd,
+     ylab = "Normal", xlab = "NRM", main="Posterior SDs")
+```
+
+## Which SDs are bigger: NRM vs. Normal?
+
+```{r, cache=TRUE}
+hist(modelCFA_samples$summary(variables = c("theta"))$sd-
+       modelCategoricalLogit_samples$summary(variables = c("theta"))$sd,
+     main = "SD(normal) - SD(categorical)")
+```
+
+## Comparing Thetas: NRM vs GRM:
+
+```{r, cache=TRUE}
+plot(y = modelCategoricalLogit_samples$summary(variables = c("theta"))$mean, 
+     x = modelOrderedLogit_samples$summary(variables = c("theta"))$mean,
+     ylab = "NRM", xlab = "GRM")
+```
+
+
+## Comparing Theta SDs: NRM vs GRM:
+
+```{r, cache=TRUE}
+plot(y = modelCategoricalLogit_samples$summary(variables = c("theta"))$sd, 
+     x = modelOrderedLogit_samples$summary(variables = c("theta"))$sd,
+     ylab = "NRM", xlab = "GRM", main="Posterior SDs")
+```
+
+## Which SDs are bigger: NRM vs GRM?
+
+```{r, cache=TRUE}
+hist(modelCategoricalLogit_samples$summary(variables = c("theta"))$sd-
+       modelOrderedLogit_samples$summary(variables = c("theta"))$sd,
+     main = "SD(NRM) - SD(GRM)")
+```
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Models With Different Types of Items
+:::
+
+## Models with Different Types of Items
+
+Although often taught as one type of model that applies to all items, you can mix-and-match distributions
+
+* Recall the posterior distribution of the latent variable $\theta_p$
+* For each person, the model (data) likelihood function can be constructed so that each item's conditional PDF is used:
+
+
+$$f \left(\boldsymbol{Y}_{p} \mid \theta_p \right) = \prod_{i=1}^If \left(Y_{pi} \mid \theta_p \right)$$
+
+Here, $\prod_{i=1}^If \left(Y_{pi} \mid \theta_p \right)$ can be any distribution that you can build
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Wrapping Up
+:::
+
+## Wrapping Up
+
+* There are many different models for polytomous data
+  * Almost all use the categorical (multinomial with one trial) distribution
+* What we say today is that the posterior SDs of the latent variables are larger with categorical models
+  * Much more uncertainty compared to normal models
+* What we will need is model fit information to determine what fits best
+
+
