@@ -1,0 +1,374 @@
+---
+title: "Missing Data"
+author: "Lecture 4f" 
+format: 
+  revealjs:
+    multiplex: false
+    footer: "[https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/](https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/)"
+    theme: ["pp.scss"]
+    slide-number: c/t
+    incremental: false
+editor: source
+---
+
+
+```{r, include=FALSE}
+load("lecture04f.RData")
+needed_packages = c("ggplot2", "cmdstanr", "HDInterval", "bayesplot", "loo")
+for(i in 1:length(needed_packages)){
+  haspackage = require(needed_packages[i], character.only = TRUE)
+  if(haspackage == FALSE){
+    install.packages(needed_packages[i])
+  }
+  library(needed_packages[i], character.only = TRUE)
+}
+
+conspiracyData = read.csv("conspiracies.csv")
+conspiracyItems = conspiracyData[,1:10]
+
+```
+
+
+## Today's Lecture Objectives
+
+1. Show how to estimate models where data are missing
+
+## Example Data: Conspiracy Theories
+
+Today's example is from a bootstrap resample of 177 undergraduate students at a large state university in the Midwest. The
+survey was a measure of 10 questions about their beliefs in various conspiracy theories that were being passed around
+the internet in the early 2010s. Additionally, gender was included in the survey. All items responses were on a 5-
+point Likert scale with:
+
+1. Strongly Disagree
+2. Disagree
+3. Neither Agree or Disagree
+4. Agree 
+5. Strongly Agree
+
+#### Please note, the purpose of this survey was to study individual beliefs regarding conspiracies. The questions can provoke some strong emotions given the world we live in currently. All questions were approved by university IRB prior to their use. 
+
+Our purpose in using this instrument is to provide a context that we all may find relevant as many of these conspiracy theories are still prevalent today. 
+
+## Conspiracy Theory Questions 1-5
+
+Questions:
+
+1. The U.S. invasion of Iraq was not part of a campaign to fight terrorism, but was driven by oil companies and Jews in the U.S. and Israel.
+2. Certain U.S. government officials planned the attacks of September 11, 2001 because they wanted the United States to go to war in the Middle East.
+3. President Barack Obama was not really born in the United States and does not have an authentic Hawaiian birth certificate.
+4. The current financial crisis was secretly orchestrated by a small group of Wall Street bankers to extend the power of the Federal Reserve and further their control of the world's economy.
+5. Vapor trails left by aircraft are actually chemical agents deliberately sprayed in a clandestine program directed by government officials.
+
+## Conspiracy Theory Questions 6-10
+
+Questions: 
+
+6. Billionaire George Soros is behind a hidden plot to destabilize the American government, take control of the media, and put the world under his control.
+7. The U.S. government is mandating the switch to compact fluorescent light bulbs because such lights make people more obedient and easier to control.
+8. Government officials are covertly Building a 12-lane \"NAFTA superhighway\" that runs from Mexico to Canada through America's heartland.
+9. Government officials purposely developed and spread drugs like crack-cocaine and diseases like AIDS in order to destroy the African American community. 
+10. God sent Hurricane Katrina to punish America for its sins.
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Missing Data in Stan
+:::
+
+
+## Missing Data in Stan
+
+If you ever attempted to analyze missing data in Stan, you likely received an error message:
+
+```Error: Variable 'Y' has NA values.```
+
+That is because, as a default, Stan does not model missing data
+
+* Instead, we have to get Stan to work with the data we have (the values that are not missing)
+  * That does not mean remove cases where any observed variables are missing
+  
+## Example Missing Data
+
+To make things a bit easier, I'm only turning one value into missing data (the first person's response to the first item)
+
+```{r, eval=TRUE, echo=TRUE}
+
+# Import data ===============================================================================
+
+conspiracyData = read.csv("conspiracies.csv")
+conspiracyItems = conspiracyData[,1:10]
+
+# make some cases missing for demonstration:
+conspiracyItems[1,1] = NA
+
+```
+
+Note: All code will work with as much missing as you have 
+
+* Observed variables do have to have some values that are not missing (by definition!)
+
+## Stan Syntax: Multidimensional Model
+
+We will use the syntax from the [last lecture](https://jonathantemplin.github.io/Bayesian-Psychometric-Modeling-Course-Fall2022/lectures/lecture04e/04e_Modeling_Multidimensional_Latent_Variables#/title-slide)--for multidimensional measurement models with ordinal logit (graded response) items
+
+The Q-matrix this time, will be a single column vector (one dimension)
+
+```{r}
+Qmatrix
+```
+
+## Stan Model Block
+
+```{r, eval=FALSE, echo=TRUE}
+model {
+  
+  lambda ~ multi_normal(meanLambda, covLambda); 
+  thetaCorrL ~ lkj_corr_cholesky(1.0);
+  theta ~ multi_normal_cholesky(meanTheta, thetaCorrL);    
+  
+  
+  for (item in 1:nItems){
+    thr[item] ~ multi_normal(meanThr[item], covThr[item]);            
+    Y[item, observed[item, 1:nObserved[item]]] ~ ordered_logistic(thetaMatrix[observed[item, 1:nObserved[item]],]*lambdaMatrix[item,1:nFactors]', thr[item]);
+  }
+  
+  
+}
+```
+
+Notes:
+
+* Big change is in ```Y```: 
+  * Previous: ``` Y[item]```
+  * Now: ```Y[item, observed[item, 1:nObserved[item]]]```
+    * The part after the comma is a list of who provided responses to the item (input in the data block)
+* Mirroring this is a change to ```thetaMatrix[observed[item, 1:nObserved[item]],]``` 
+  * Keeps only the latent variables for the persons who provided responses
+
+## Stan Data Block
+
+```{r, eval=FALSE, echo=TRUE}
+data {
+  
+  // data specifications  =============================================================
+  int<lower=0> nObs;                            // number of observations
+  int<lower=0> nItems;                          // number of items
+  int<lower=0> maxCategory;       // number of categories for each item
+  array[nItems] int nObserved;
+  array[nItems, nObs] array[nItems] int observed;
+  
+  // input data  =============================================================
+  array[nItems, nObs] int<lower=-1, upper=5>  Y; // item responses in an array
+
+  // loading specifications  =============================================================
+  int<lower=1> nFactors;                                       // number of loadings in the model
+  array[nItems, nFactors] int<lower=0, upper=1> Qmatrix;
+  
+  // prior specifications =============================================================
+  array[nItems] vector[maxCategory-1] meanThr;                // prior mean vector for intercept parameters
+  array[nItems] matrix[maxCategory-1, maxCategory-1] covThr;  // prior covariance matrix for intercept parameters
+  
+  vector[nItems] meanLambda;         // prior mean vector for discrimination parameters
+  matrix[nItems, nItems] covLambda;  // prior covariance matrix for discrimination parameters
+  
+  vector[nFactors] meanTheta;
+}
+```
+
+
+## Data Block Notes
+
+ 
+* Two new arrays added: 
+  * ```array[nItems] int nObserved;```: The number of observations with non-missing data for each item
+  * ```array[nItems, nObs] array[nItems] int observed;```: A listing of which observations have non-missing data for each item
+    * Here, the size of the array is equal to the size of the data matrix
+    * If there were no missing data at all, the listing of observations with non-missing data would equal this size
+* Stan uses these arrays to only model data that are not missing
+  * The values of observed serve to select only cases in Y that are not missing
+
+## Building Non-Missing Data Arrays
+
+To build these arrays, we can use a loop in R:
+
+```{r, eval=FALSE, echo=TRUE}
+observed = matrix(data = -1, nrow = nrow(conspiracyItems), ncol = ncol(conspiracyItems))
+nObserved = NULL
+for (variable in 1:ncol(conspiracyItems)){
+  nObserved = c(nObserved, length(which(!is.na(conspiracyItems[, variable]))))
+  observed[1:nObserved[variable], variable] = which(!is.na(conspiracyItems[, variable]))
+}
+```
+
+For the item that has the first case missing, this gives:
+
+```{r, echo=TRUE}
+nObserved[1]
+```
+
+```{r,echo=TRUE}
+observed[, 1]
+```
+
+The item has 176 observed responses and one missing
+
+* Entries 1 through 176 of ```observed[,1]``` list who has non-missing data
+* The 177th entry of ```observed[,1]``` is -1 (but won't be used in Stan)
+    
+## Array Indexing
+
+We can use the values of ```observed[,1]``` to have Stan only select the corresponding data points that are non-missing
+
+To demonstrate, in R, here is all of the data for the first item 
+
+```{r, echo=TRUE}
+conspiracyItems[,1]
+```
+
+And here, we select the non-missing using the index values in ```observed```:
+```{r, echo=TRUE}
+conspiracyItems[observed[1:nObserved, 1], 1]
+```
+
+The values of ```observed[1:nObserved, 1]``` lead to only using the non-missing data
+
+## Change Missing NA to Nonsense Values
+
+Finally, we must ensure all data into Stan have no NA values
+
+* My recommendation: Change all NA values to something that cannot be modeled
+  * I am picking -1 here: It cannot be used with the ordered_logit() likelihood
+* This ensures that Stan won't model the data by accident
+  * But, we must remember this if we are using the data in other steps (like PPMC)
+
+```{r, echo=TRUE, eval=FALSE}
+# Fill in NA values in Y
+Y = conspiracyItems
+for (variable in 1:ncol(conspiracyItems)){
+  Y[which(is.na(Y[,variable])),variable] = -1
+}
+```
+
+## Running Stan
+
+With our missing values denoted, we then run Stan as we have previously
+
+```{r, echo=TRUE, eval=FALSE}
+modelOrderedLogit_data = list(
+  nObs = nObs,
+  nItems = nItems,
+  maxCategory = maxCategory,
+  nObserved = nObserved,
+  observed = t(observed),
+  Y = t(Y), 
+  nFactors = ncol(Qmatrix),
+  Qmatrix = Qmatrix,
+  meanThr = thrMeanMatrix,
+  covThr = thrCovArray,
+  meanLambda = lambdaMeanVecHP,
+  covLambda = lambdaCovarianceMatrixHP,
+  meanTheta = thetaMean
+)
+
+
+modelOrderedLogit_samples = modelOrderedLogit_stan$sample(
+  data = modelOrderedLogit_data,
+  seed = 191120221,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 2000,
+  iter_sampling = 2000,
+  init = function() list(lambda=rnorm(nItems, mean=5, sd=1))
+)
+
+```
+
+## Stan Results
+
+```{r, cache=TRUE}
+# checking convergence
+max(modelOrderedLogit_samples$summary()$rhat, na.rm = TRUE)
+
+# item parameter results
+print(modelOrderedLogit_samples$summary(variables = c("lambda", "mu")) ,n=Inf)
+```
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Likelihoods with Missing Data 
+:::
+
+## Likelihoods with Missing Data
+
+The way we have coded Stan enables estimation by effectively skipping over cases that were missing
+
+* This means our likelihood functions are slightly different
+
+For the parameters of an item $i$, the previous model/data likelihood was:
+
+$$f \left(\boldsymbol{Y}_{p} \mid \theta_p \right) = \prod_{p=1}^P f \left(Y_{pi} \mid \theta_p \right)$$
+
+Now, we must alter the PDF so that missing data do not contribute:
+
+$$f \left(Y_{pi} \mid \theta_p \right) = \left\{ 
+\begin{array}{lr}
+f \left(Y_{pi} \mid \theta_p \right) & \text{if } Y_{pi} \text{ observed} \\
+1 & \text{if } Y_{pi} \text{ missing} \\
+\end{array} \right.$$
+
+
+This also applies to the likelihood for a person's $\theta$ as any missing items are skipped:
+
+$$f \left(\boldsymbol{Y}_{p} \mid \theta_p \right) = \prod_{i=1}^I f \left(Y_{pi} \mid \theta_p \right)$$
+
+
+## Ramifications of Skipping Missing Data
+
+It may seem somewhat basic to simply skip over missing cases (also called list-wise deletion), but:
+
+* Such methods meet the assumptions of missing at random data
+  * Missing data are related to some of the observed data
+  
+It is a stronger method for analysis than case-wise deletion (removing a person fully)
+
+* Case-wise deletion assumes the data are missing completely at random
+  * No relation to any observed data
+  * Less likely to hold in missing data than MAR
+  
+Moreover, the methods we implemented in Stan are equivalent to those implemented in maximum likelihood algorithms
+
+* The likelihood function is the same
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Wrapping Up
+:::
+
+## Wrapping Up
+
+Today, we showed how to skip over missing data in Stan
+
+* Slight modifications needed to syntax
+* Assumes missing at random
+
+Of note, we could (but didn't) also build models for missing data in Stan
+
+* Using the transformed parameters block 
+
+Finally, Stan's missing data methods are quite different from JAGS
+
+* JAGS imputes any missing data at each step of a Markov chain using Gibbs sampling 
+
+
+
+
+
+
+
+
+
