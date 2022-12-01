@@ -1,0 +1,479 @@
+---
+title: "Empirical Priors for Measurement Model Parameters"
+author: "Lecture 4f" 
+format: 
+  revealjs:
+    multiplex: false
+    footer: "[https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/](https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/)"
+    theme: ["pp.scss"]
+    slide-number: c/t
+    incremental: false
+editor: source
+---
+
+
+```{r, include=FALSE}
+load("lecture04g.RData")
+needed_packages = c("ggplot2", "cmdstanr", "HDInterval", "bayesplot", "loo")
+for(i in 1:length(needed_packages)){
+  haspackage = require(needed_packages[i], character.only = TRUE)
+  if(haspackage == FALSE){
+    install.packages(needed_packages[i])
+  }
+  library(needed_packages[i], character.only = TRUE)
+}
+
+conspiracyData = read.csv("conspiracies.csv")
+conspiracyItems = conspiracyData[,1:10]
+
+```
+
+
+## Today's Lecture Objectives
+
+1. Show differing choices of prior distributions for varying parameters 
+
+## Example Data: Conspiracy Theories
+
+Today's example is from a bootstrap resample of 177 undergraduate students at a large state university in the Midwest. The
+survey was a measure of 10 questions about their beliefs in various conspiracy theories that were being passed around
+the internet in the early 2010s. Additionally, gender was included in the survey. All items responses were on a 5-
+point Likert scale with:
+
+1. Strongly Disagree
+2. Disagree
+3. Neither Agree or Disagree
+4. Agree 
+5. Strongly Agree
+
+#### Please note, the purpose of this survey was to study individual beliefs regarding conspiracies. The questions can provoke some strong emotions given the world we live in currently. All questions were approved by university IRB prior to their use. 
+
+Our purpose in using this instrument is to provide a context that we all may find relevant as many of these conspiracy theories are still prevalent today. 
+
+## Conspiracy Theory Questions 1-5
+
+Questions:
+
+1. The U.S. invasion of Iraq was not part of a campaign to fight terrorism, but was driven by oil companies and Jews in the U.S. and Israel.
+2. Certain U.S. government officials planned the attacks of September 11, 2001 because they wanted the United States to go to war in the Middle East.
+3. President Barack Obama was not really born in the United States and does not have an authentic Hawaiian birth certificate.
+4. The current financial crisis was secretly orchestrated by a small group of Wall Street bankers to extend the power of the Federal Reserve and further their control of the world's economy.
+5. Vapor trails left by aircraft are actually chemical agents deliberately sprayed in a clandestine program directed by government officials.
+
+## Conspiracy Theory Questions 6-10
+
+Questions: 
+
+6. Billionaire George Soros is behind a hidden plot to destabilize the American government, take control of the media, and put the world under his control.
+7. The U.S. government is mandating the switch to compact fluorescent light bulbs because such lights make people more obedient and easier to control.
+8. Government officials are covertly Building a 12-lane \"NAFTA superhighway\" that runs from Mexico to Canada through America's heartland.
+9. Government officials purposely developed and spread drugs like crack-cocaine and diseases like AIDS in order to destroy the African American community. 
+10. God sent Hurricane Katrina to punish America for its sins.
+
+## Model Setup Today
+
+Today, we will revert back to the CFA model assumptions to discuss the impact of different priors
+
+* I chose CFA as it is very clear from non-Bayesian analyses what minimal identification constraints are needed
+* Additionally, we will use a single latent variable/factor for this lecture
+
+For an item $i$ the model is:
+
+$$ 
+\begin{array}{cc}
+Y_{pi} = \mu_i + \lambda_i \theta_p  + e_{p,i}; & e_{p,i} \sim N\left(0, \psi_i^2 \right) \\ 
+\end{array}
+$$
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Empirical Priors for Item Parameters
+:::
+
+## Empirical Priors 
+
+In many Bayesian references, the use of so-called "empirical priors" for various model parameters is suggested
+
+* An empirical prior is one where the hyper parameters of the prior distribution are estimated and are not fixed
+* For example:
+  * $\lambda_i \sim N(\mu_\lambda, \sigma_\lambda)$; previously we specified $\lambda_i \sim N(0, \sqrt{1000})$
+  * $\mu_i \sim N(\mu_\mu, \sigma_\mu)$; previously we specified $\mu_i \sim N(0, \sqrt{1000})$
+  * $\psi_i \sim \text{exponential}(\text{rate}_\psi)$; previously we specified $\psi_i \sim \text{exponential}(.1)$
+* Note: we aren't including $\theta$ just yet...
+  * Scale identification discussion is needed
+
+## Empirical Priors in Psychometric Models
+  
+* For psychometric models, the choice of empirical priors can have several pitfalls:
+  * Not all model parameters can use empirical priors (see the last example and the next lecture on identification)
+  * The use of such priors can make some parameter estimates move toward values that would indicate more information for $\theta$ than what is present in the data
+  * Empirical priors may be inappropriate when some observed variables have widely different scales (or use different distributions)
+* Overall, I do not recommend the use of empirical priors in psychometric analyses
+  * I show them to sync class with other Bayesian texts
+  
+## Empirical Priors in Stan: Model Block
+
+```{r, eval=FALSE, echo=TRUE}
+model {
+  
+  meanLambda ~ normal(meanLambdaMean, meanLambdaSD);
+  sdLambda ~ exponential(sdLambdaRate);
+  lambda ~ normal(meanLambda, sdLambda);
+  
+  meanMu ~ normal(meanMuMean, meanMuSD);
+  sdMu ~ exponential(sdMuRate);
+  mu ~ normal(meanMu, sdMu); 
+  
+  psiRate ~ exponential(ratePsiRate);
+  psi ~ exponential(psiRate);            
+  
+  theta ~ normal(0, 1);                  
+  
+  for (item in 1:nItems){
+    Y[,item] ~ normal(mu[item] + lambda[item]*theta, psi[item]);
+  }
+  
+}
+```
+
+Notes:
+
+* $\lambda_i \sim N(\text{meanLambda}, \text{sdLambda})$ 
+  * ```meanLambda``` is the estimated hyperparameter for the mean of the factor loadings with prior distribution $N\left(\text{meanLambdaMean}, \text{meanLambdaSD} \right)$
+  * ```sdLambda`` is the estimated hyper parameter for the standard deviation of the factor loadings with prior distribution $\text{exponential}(\text{sdLambdaRate})$
+  
+## Additional Model Block Notes
+
+* $\mu_i \sim N(\text{meanMu}, \text{sdMu})$ 
+  * ```meanMu``` is the estimated hyperparameter for the mean of the factor loadings with prior distribution $N\left(\text{meanMuMean}, \text{meanMuSD} \right)$
+  * ```sdMu`` is the estimated hyper parameter for the standard deviation of the factor loadings with prior distribution $\text{exponential}(\text{sdMuRate})$
+* $\psi_i \sim \text{exponential}(\text{psiRate})$
+  * ```psiRate``` is the estimated rate parameter for the unique standard deviations with prior distribution $\text{exponential}(\text{ratePsiRate})$
+
+## Stan Parameters Block
+
+```{r, eval=FALSE, echo=TRUE}
+parameters {
+  vector[nObs] theta;                
+  vector[nItems] mu;                 
+  vector[nItems] lambda;            
+  vector<lower=0>[nItems] psi;      
+  real meanLambda;
+  real<lower=0> sdLambda;
+  
+  real meanMu;
+  real<lower=0> sdMu;
+  real<lower=0> psiRate;
+}
+```
+
+Notes:
+
+* The rate parameters are constrained to be positive (as needed for the PDF of the exponential distribution)
+
+## Stan Data Block
+
+```{r, echo=TRUE, eval=FALSE}
+data {
+  int<lower=0> nObs;                 // number of observations
+  int<lower=0> nItems;               // number of items
+  matrix[nObs, nItems] Y;            // item responses in a matrix
+
+  real meanLambdaMean;
+  real<lower=0> meanLambdaSD;
+  real<lower=0> sdLambdaRate;
+  
+  real meanMuMean;
+  real<lower=0> meanMuSD;
+  real<lower=0> sdMuRate;
+  
+  real<lower=0> ratePsiRate;
+}
+```
+
+
+Notes:
+
+* We can import values for the hyperparameters for the prior distributions of each
+
+## R Data List
+
+```{r, eval=FALSE, echo=TRUE}
+
+modelCFA2_data = list(
+  nObs = nObs,
+  nItems = nItems,
+  Y = conspiracyItems, 
+  meanLambdaMean = 0,
+  meanLambdaSD = 1,
+  sdLambdaRate = .1,
+  meanMuMean = 0,
+  meanMuSD = 1,
+  sdMuRate = .1,
+  ratePsiRate = .1
+)
+
+```
+
+Notes:
+
+* We are setting the hyperparameters for the loading mean and intercept mean to $N(0,1)$
+* The hyperparameters for each rate are set to .1
+
+## Connection of Empirical Priors to Multilevel Models
+
+The empirical priors on the parameters are similar to specifying multilevel models for each
+
+* $\lambda_i \sim N(\mu_\lambda, \sigma_\lambda)$ can be reparameterized as $\lambda^{*}_{i} = \mu_\lambda + e_{\lambda_i}$ with $e_{\lambda_i} \sim N(0, \sigma_\lambda)$
+* $\mu_i \sim N(\mu_\mu, \sigma_\mu)$ can be reparameterized as $\mu^{*}_{i} = \mu_\mu + e_{\mu_i}$ with $e_{\mu_i} \sim N(0, \sigma_\mu)$
+* The rate is a bit trickier, but also can be reparameterized similarly
+
+Moreover, these reparameterizations can lead to predicting what each parameter should be based on item-specific predictors
+
+* The basis of explanatory item response models 
+
+
+## Model Results
+
+```{r, echo=TRUE, cache=TRUE}
+# checking convergence
+max(modelCFA2_samples$summary()$rhat, na.rm = TRUE)
+
+# item parameter results
+print(
+  modelCFA2_samples$summary(
+    variables = c("mu", "meanMu", "sdMu", "lambda", "meanLambda", "sdLambda", "psi", "psiRate")
+    ), 
+  n=Inf
+)
+
+```
+
+## Comparisons with Non-Empirical Priors: $\lambda$
+
+```{r, cache=TRUE}
+# comparing lambda estimates: uninformative vs. empirical prior
+plot(x = modelCFA_samples$summary(variables = "lambda")$mean,
+     y = modelCFA2_samples$summary(variables = "lambda")$mean, 
+     ylab = "Empirical Prior", xlab = "Uninformative Prior", main = "Comparing EAPs for Lambda")
+
+```
+
+## Comparisons with Non-Empirical Priors: $\lambda$
+
+```{r, cache=TRUE}
+hist(modelCFA_samples$summary(variables = "lambda")$mean - modelCFA2_samples$summary(variables = "lambda")$mean,
+     xlab = "Lambda EAP Difference", main = "Uninformative Lambda Prior EAP(lambda) - Empirical Lambda Prior EAP(lambda)")
+```
+
+## Comparisons with Non-Empirical Priors: $\lambda$
+
+```{r, cache=TRUE}
+plot(x = modelCFA_samples$summary(variables = "lambda")$sd,
+     y = modelCFA2_samples$summary(variables = "lambda")$sd, 
+     ylab = "Empirical Prior", xlab = "Uninformative Prior", main = "Comparing Posterior SDs for Lambda")
+```
+
+
+## Comparisons with Non-Empirical Priors: $\lambda$
+
+```{r, cache=TRUE}
+hist(modelCFA_samples$summary(variables = "lambda")$sd - modelCFA2_samples$summary(variables = "lambda")$sd,
+     xlab = "Lambda SD Difference", main = "Uninformative Lambda Prior SD(lambda) - Empirical Lambda Prior SD(lambda)")
+```
+
+
+## Comparisons with Non-Empirical Priors: $\mu$
+
+```{r, cache=TRUE}
+# comparing lambda estimates: uninformative vs. empirical prior
+plot(x = modelCFA_samples$summary(variables = "mu")$mean,
+     y = modelCFA2_samples$summary(variables = "mu")$mean, 
+     ylab = "Empirical Prior", xlab = "Uninformative Prior", main = "Comparing EAPs for Mu")
+
+```
+
+## Comparisons with Non-Empirical Priors: $\mu$
+
+```{r, cache=TRUE}
+hist(modelCFA_samples$summary(variables = "mu")$mean - modelCFA2_samples$summary(variables = "mu")$mean,
+     xlab = "Mu EAP Difference", main = "Uninformative Mu Prior EAP(Mu) - Empirical Mu Prior EAP(Mu)")
+```
+
+## Comparisons with Non-Empirical Priors: $\mu$
+
+```{r, cache=TRUE}
+plot(x = modelCFA_samples$summary(variables = "mu")$sd,
+     y = modelCFA2_samples$summary(variables = "mu")$sd, 
+     ylab = "Empirical Prior", xlab = "Uninformative Prior", main = "Comparing Posterior SDs for Mu")
+```
+
+
+## Comparisons with Non-Empirical Priors: $\mu$
+
+```{r, cache=TRUE}
+hist(modelCFA_samples$summary(variables = "mu")$sd - modelCFA2_samples$summary(variables = "mu")$sd,
+     xlab = "Mu SD Difference", main = "Uninformative Mu Prior SD(Mu) - Empirical Mu Prior SD(Mu)")
+```
+
+
+
+## Comparisons with Non-Empirical Priors: $\psi$
+
+```{r, cache=TRUE}
+# comparing lambda estimates: uninformative vs. empirical prior
+plot(x = modelCFA_samples$summary(variables = "psi")$mean,
+     y = modelCFA2_samples$summary(variables = "psi")$mean, 
+     ylab = "Empirical Prior", xlab = "Uninformative Prior", main = "Comparing EAPs for Psi")
+
+```
+
+## Comparisons with Non-Empirical Priors: $\psi$
+
+```{r, cache=TRUE}
+hist(modelCFA_samples$summary(variables = "psi")$mean - modelCFA2_samples$summary(variables = "psi")$mean,
+     xlab = "Psi EAP Difference", main = "Uninformative Psi Prior EAP(Psi) - Empirical Psi Prior EAP(Psi)")
+```
+
+## Comparisons with Non-Empirical Priors: $\psi$
+
+```{r, cache=TRUE}
+plot(x = modelCFA_samples$summary(variables = "psi")$sd,
+     y = modelCFA2_samples$summary(variables = "psi")$sd, 
+     ylab = "Empirical Prior", xlab = "Uninformative Prior", main = "Comparing Posterior SDs for Psi")
+```
+
+
+## Comparisons with Non-Empirical Priors: $\psi$
+
+```{r, cache=TRUE}
+hist(modelCFA_samples$summary(variables = "psi")$sd - modelCFA2_samples$summary(variables = "psi")$sd,
+     xlab = "Psi SD Difference", main = "Uninformative Psi Prior SD(Psi) - Empirical Psi Prior SD(Psi)")
+```
+
+## Comparisons with Non-Empirical Priors: $\theta$
+
+```{r}
+plot(x = modelCFA_samples$summary(variables = "theta")$mean,
+     y = modelCFA2_samples$summary(variables = "theta")$mean, 
+     ylab = "Theta Empirical Prior", xlab = "Theta Uninformative Prior", main = "Comparing EAP Estimates for Theta")
+```
+
+## Comparisons with Non-Empirical Priors: $\theta$
+
+```{r}
+hist(modelCFA_samples$summary(variables = "theta")$mean - modelCFA2_samples$summary(variables = "theta")$mean,
+     xlab = "Theta EAP Difference", main = "Uninformative Theta Prior EAP(theta) - Empirical Thets Prior EAP(theta)")
+```
+
+## Comparisons with Non-Empirical Priors: $\theta$
+
+```{r}
+plot(x = modelCFA_samples$summary(variables = "theta")$sd,
+     y = modelCFA2_samples$summary(variables = "theta")$sd, 
+     ylab = "Theta Empirical Prior", xlab = "Theta Uninformative Prior", main = "Comparing SDs for Theta")
+```
+
+## Comparisons with Non-Empirical Priors: $\theta$
+
+```{r}
+hist(modelCFA_samples$summary(variables = "theta")$sd - modelCFA2_samples$summary(variables = "theta")$sd,
+     xlab = "Theta SD Difference", main = "Uninformative Theta Prior SD(theta) - Empirical Theta Prior SD(theta)")
+```
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Empirical Priors for $\theta$ (?)
+:::
+
+
+## Empirical Priors for $\theta$
+
+If empirical priors can work for the item parameters, can we use empirical priors to estimate the mean/standard deviation of the latent variable $\theta$?
+
+* In short: No!
+  
+* The reason: Empirical priors for $\theta$ change the mean/standard deviation of the latent variable
+  * These quantities have to be set for identification
+  
+* We've set them to mean = 0 and standard deviation =1 (standardized factor) throughout this class
+  * We would have to fix other parameters to estimate these values (see next lecture)
+
+* For now, let me show you what would happen
+  * No syntax here, just results
+
+## First Attempt: Everything Empirical
+
+```{r, cache=TRUE, echo=TRUE}
+# checking convergence
+max(modelCFA3_samples$summary()$rhat, na.rm = TRUE)
+
+# item parameter results
+print(
+  modelCFA3_samples$summary(
+    variables = c("meanTheta", "sdTheta", "mu", "meanMu", "sdMu", "lambda", "meanLambda", "sdLambda", "psi", "psiRate")
+  ), 
+  n=Inf
+)
+```
+
+## First Attempt: Everything Empirical
+
+```{r, cache=TRUE}
+mcmc_trace(modelCFA3_samples$draws(variables = c("meanTheta", "sdTheta")))
+```
+
+## Second Attempt: Only Empirical for $\theta$
+
+Here, I set the prior distributions for each type of parameter to be much more informative:
+
+* $\lambda_i \sim N(0, 1)$
+* $\mu_i \sim N(0, 1)$
+* $\psi_i \sim \text{exponential}{1}$
+
+Then, I set the prior values for the mean and SD of $\theta$:
+
+* $\mu_\theta \sim N(0,1)$
+* $\sigma_\theta \sim \text{exponential}{1}$
+
+
+## Second Attempt: Only Empirical for $\theta$
+
+```{r, cache=TRUE, echo=TRUE}
+# checking convergence
+max(modelCFA4_samples$summary()$rhat, na.rm = TRUE)
+
+# item parameter results
+print(modelCFA4_samples$summary(variables = c("meanTheta", "sdTheta", "mu", "lambda", "psi")) ,n=Inf)
+```
+
+## Second Attempt: Everything Empirical
+
+```{r, cache=TRUE}
+mcmc_trace(modelCFA4_samples$draws(variables = c("meanTheta", "sdTheta")))
+```
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Wrapping Up
+:::
+
+## Wrapping Up
+
+Empirical priors tend to be somewhat common in Bayesian analyses
+
+* But, they can be difficult to implement fully in psychometric models
+  * Item parameters can work fine -- but may end up putting too much weight on some parameters
+  * Different types of models will have differing results
+* Empirical priors for $\theta$ require more work
+  * Need more constraints to identify the model
+  
+
+
+
+
+
+
