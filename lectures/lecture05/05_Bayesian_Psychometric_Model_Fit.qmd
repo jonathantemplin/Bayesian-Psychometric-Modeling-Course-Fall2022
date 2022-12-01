@@ -1,0 +1,525 @@
+---
+title: "Bayesian Psychometric Model Fit Methods"
+author: "Lecture 5" 
+format: 
+  revealjs:
+    multiplex: false
+    footer: "[https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/](https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/)"
+    theme: ["pp.scss"]
+    slide-number: c/t
+    incremental: false
+editor: source
+---
+
+
+```{r, include=FALSE}
+load("lecture05.RData")
+needed_packages = c("ggplot2", "cmdstanr", "HDInterval", "bayesplot", "loo", "networkD3")
+for(i in 1:length(needed_packages)){
+  haspackage = require(needed_packages[i], character.only = TRUE)
+  if(haspackage == FALSE){
+    install.packages(needed_packages[i])
+  }
+  library(needed_packages[i], character.only = TRUE)
+}
+
+conspiracyData = read.csv("conspiracies.csv")
+conspiracyItems = conspiracyData[,1:10]
+
+```
+
+
+## Today's Lecture Objectives
+
+1. Show how to use PPMC to evaluate absolute model fit in Bayesian psychometric models
+2. Show how to use LOO and WAIC for relative model fit in Bayesian psychometric models
+
+## Example Data: Conspiracy Theories
+
+Today's example is from a bootstrap resample of 177 undergraduate students at a large state university in the Midwest. The
+survey was a measure of 10 questions about their beliefs in various conspiracy theories that were being passed around
+the internet in the early 2010s. Additionally, gender was included in the survey. All items responses were on a 5-
+point Likert scale with:
+
+1. Strongly Disagree
+2. Disagree
+3. Neither Agree or Disagree
+4. Agree 
+5. Strongly Agree
+
+#### Please note, the purpose of this survey was to study individual beliefs regarding conspiracies. The questions can provoke some strong emotions given the world we live in currently. All questions were approved by university IRB prior to their use. 
+
+Our purpose in using this instrument is to provide a context that we all may find relevant as many of these conspiracy theories are still prevalent today. 
+
+## Conspiracy Theory Questions 1-5
+
+Questions:
+
+1. The U.S. invasion of Iraq was not part of a campaign to fight terrorism, but was driven by oil companies and Jews in the U.S. and Israel.
+2. Certain U.S. government officials planned the attacks of September 11, 2001 because they wanted the United States to go to war in the Middle East.
+3. President Barack Obama was not really born in the United States and does not have an authentic Hawaiian birth certificate.
+4. The current financial crisis was secretly orchestrated by a small group of Wall Street bankers to extend the power of the Federal Reserve and further their control of the world's economy.
+5. Vapor trails left by aircraft are actually chemical agents deliberately sprayed in a clandestine program directed by government officials.
+
+## Conspiracy Theory Questions 6-10
+
+Questions: 
+
+6. Billionaire George Soros is behind a hidden plot to destabilize the American government, take control of the media, and put the world under his control.
+7. The U.S. government is mandating the switch to compact fluorescent light bulbs because such lights make people more obedient and easier to control.
+8. Government officials are covertly Building a 12-lane \"NAFTA superhighway\" that runs from Mexico to Canada through America's heartland.
+9. Government officials purposely developed and spread drugs like crack-cocaine and diseases like AIDS in order to destroy the African American community. 
+10. God sent Hurricane Katrina to punish America for its sins.
+
+## Model Setup Today
+
+Today, we will revert back to the graded response model assumptions to discuss how to estimate the latent variable standard deviation
+
+$$P\left(Y_{ic } = c \mid \theta_p \right) = \left\{ 
+\begin{array}{lr}
+1-P\left(Y_{i1} \gt 1 \mid \theta_p \right) & \text{if } c=1 \\
+P\left(Y_{i{c-1}} \gt c-1 \mid \theta_p \right) - P\left(Y_{i{c}} \gt c \mid \theta_p \right) & \text{if } 1<c<C_i \\
+P\left(Y_{i{C_i -1} } \gt C_i-1 \mid \theta_p \right) & \text{if } c=C_i \\
+\end{array} \right.$$
+
+Where:
+
+$$ P\left(Y_{i{c}} > c \mid \theta \right) = \frac{\exp(-\tau_{ic}+\lambda_i\theta_p)}{1+\exp(-\tau_{ic}+\lambda_i\theta_p)}$$
+
+With:
+
+* $C_i-1$ Ordered thresholds: $\tau_1 < \tau_2 < \ldots < \tau_{C_i-1}$
+
+We can convert thresholds to intercepts by multiplying by negative one: $\mu_c = -\tau_c$
+
+## Model Comparisons: One vs. Two Dimensions
+
+We will fit two models to the data:
+
+1. A unidimensional model [(see Lecture 4d here)](https://jonathantemplin.github.io/Bayesian-Psychometric-Modeling-Course-Fall2022/lectures/lecture04d/04d_Modeling_Observed_Polytomous_Data#/title-slide)
+2. A two-dimensionsal model [(see Lecture 4e here)](https://jonathantemplin.github.io/Bayesian-Psychometric-Modeling-Course-Fall2022/lectures/lecture04e/04e_Modeling_Multidimensional_Latent_Variables#/title-slide)
+
+We know from previous lectures that the two-dimensional model had a correlation very close to one
+
+* Such a high correlation made it seem implausible there were two dimensions
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Posterior Predictive Model Checking for Absolute Fit in Bayesian Psychometric Models
+:::
+
+## Psychometric Model PPMC
+
+Psychometric models can use posterior predictive model checking (PPMC) to assess how well they fit the data in an absolute sense
+
+* Each iteration of the chain, each item is simulated using model parameter values from that iteration
+* Summary statistics are used to evaluate model fit
+  * Univariate measures (each item, separately): 
+    * Item mean
+    * Item $\chi^2$ (comparing observed data with each simulated data set)
+  * Not very useful unless:
+    * Parameters have "obscenely" informative priors
+    * There are cross-item constraints on some parameters (such as all loadings are equal)
+  * Bivariate measures (each pair of items)
+    * For binary data: Tetrachoric correlations
+    * For polytomous data: Polychoric correlations (but difficult to estimate with small samples), pearson correlations
+    * For other types of data: Pearson correlations
+    
+## Problems with PPMC
+
+Problems with PPMC include
+
+* No uniform standard for which statistics to use
+  * Tetrachoric correlations? Pearson correlations?
+* No uniform standard by which data should fit, absolutely
+  * Jihong Zhang has some work on this topic, though:
+    * Paper in [*Structural Equation Modeling*](https://www.tandfonline.com/doi/abs/10.1080/10705511.2021.2012682)
+    * Dissertation on PPMC with M2 statistics (working on publishing)
+* No way to determine if a model is overparameterized (too complicated)
+  * Fit only improves to a limit
+
+## Implementing PPMC in Stan (one $\theta$)
+
+```{r, eval=FALSE, echo=TRUE}
+generated quantities{
+
+  // for PPMC:
+  array[nItems, nObs] int<lower=0> simY;
+  
+  for (item in 1:nItems){
+    for (obs in 1:nObs){
+      // generate data based on distribution and model
+      simY[item, obs] = ordered_logistic_rng(lambda[item]*theta[obs], thr[item]);
+      
+    }
+  }
+}
+
+```
+
+Notes:
+
+* Generated quantities block is where to implement PPMC
+* Each type of distribution also has a random number generator
+  * Here, ```ordered_logistic_rng``` goes with ```ordered_logistic```
+* Each may have some issue in types of inputs (had to go person-by-person in this block)
+* Rather than have Stan calculate statistics, I will do so in R
+
+## Implementing PPMC in Stan (two $\theta$s)
+
+```{r, eval=FALSE, echo=TRUE}
+generated quantities{ 
+  // for PPMC:
+  array[nItems, nObs] int<lower=0> simY;
+
+  for (item in 1:nItems){
+    for (obs in 1:nObs){
+      // generate data based on distribution and model
+      simY[item, obs] = ordered_logistic_rng(thetaMatrix[obs,]*lambdaMatrix[item,1:nFactors]', thr[item]);
+      
+    }
+  }  
+}
+
+```
+
+Notes:
+
+* Very similar to one dimension--just using the syntax from the model block within the ```ordered_logistic_rng``` function
+
+## PPMC Processing
+
+Stan generated a lot of data--but now we must take it from the format of Stan and process it:
+
+```{r, eval=FALSE, echo=TRUE}
+# setting up PPMC
+simData = modelOrderedLogit_samples$draws(variables = "simY", format = "draws_matrix")
+colnames(simData)
+dim(simData)
+
+
+# set up object for storing each iteration's PPMC data
+nPairs = choose(10, 2)
+pairNames = NULL
+for (col in 1:(nItems-1)){
+  for (row in (col+1):nItems){
+    pairNames = c(pairNames, paste0("item", row, "_item", col))
+  }
+}
+
+```
+
+## PPMC Calculating in R
+
+```{r, eval=FALSE, echo=TRUE}
+
+PPMCsamples = list()
+
+PPMCsamples$correlation = NULL
+PPMCsamples$mean = NULL
+
+# loop over each posterior sample's simulated data
+
+for (sample in 1:nrow(simData)){
+  
+  # create data frame that has observations (rows) by items (columns)
+  sampleData = data.frame(matrix(data = NA, nrow = nObs, ncol = nItems))
+  
+  for (item in 1:nItems){
+    itemColumns = colnames(simData)[grep(pattern = paste0("simY\\[", item, "\\,"), x = colnames(simData))] 
+    sampleData[,item] = t(simData[sample, itemColumns])
+  }
+  # with data frame created, apply functions of the data:
+  
+  # calculate item means
+  PPMCsamples$mean = rbind(PPMCsamples$mean, apply(X = sampleData, MARGIN = 2, FUN = mean))
+  
+  # calculate pearson correlations  
+  temp=cor(sampleData)
+  PPMCsamples$correlation = rbind(PPMCsamples$correlation, temp[lower.tri(temp)])
+  
+  
+}
+
+```
+
+## PPMC Results Tabulation in R (Mean)
+
+```{r, eval=FALSE, echo=TRUE}
+
+# next, build distributions for each type of statistic
+meanSummary = NULL
+
+# for means
+for (item in 1:nItems){
+  
+  tempDist = ecdf(PPMCsamples$mean[,item])
+  ppmcMean = mean(PPMCsamples$mean[,item])
+  observedMean = mean(conspiracyItems[,item])
+  meanSummary = rbind(
+    meanSummary,
+    data.frame(
+      item = paste0("Item", item),
+      ppmcMean = ppmcMean,
+      observedMean = observedMean,
+      residual = observedMean - ppmcMean,
+      observedMeanPCT = tempDist(observedMean)
+    )
+  )
+  
+}
+```
+
+## PPMC Results Tabulation in R (Correlation)
+
+```{r, eval=FALSE, echo=TRUE}
+# for pearson correlations
+corrSummary = NULL
+
+# for means
+for (column in 1:ncol(PPMCsamples$correlation)){
+  
+  # get item numbers from items
+  items = unlist(strsplit(x = colnames(PPMCsamples$correlation)[column], split = "_"))
+  item1num = as.numeric(substr(x = items[1], start = 5, stop = nchar(items[1])))
+  item2num = as.numeric(substr(x = items[2], start = 5, stop = nchar(items[2])))
+  
+  tempDist = ecdf(PPMCsamples$correlation[,column])
+  ppmcCorr = mean(PPMCsamples$correlation[,column])
+  observedCorr = cor(conspiracyItems[,c(item1num, item2num)])[1,2]
+  pct = tempDist(observedCorr)
+  if (pct > .975 | pct < .025){
+    inTail = TRUE
+  } else {
+    inTail = FALSE
+  }
+  corrSummary = rbind(
+    corrSummary,
+    data.frame(
+      item1 = paste0("Item", item1num),
+      item2 = paste0("Item", item2num),
+      ppmcCorr = ppmcCorr,
+      observedCorr = observedCorr,
+      residual = observedCorr - ppmcCorr,
+      observedCorrPCT = pct, 
+      inTail = inTail
+    )
+  )
+  
+}
+
+View(corrSummary)
+
+```
+
+
+## PPMC Mean Results: Example Item (One $\theta$)
+
+```{r, cache=TRUE}
+
+# example densities of some statistics
+plot(density(PPMCsamples$mean[,1]), main = "Posterior Predictive Distribution: Item 1 Mean")
+lines(x = c(mean(conspiracyItems$PolConsp1),mean(conspiracyItems$PolConsp1)), y = c(0,10),
+      lty = 2, col=2, lwd=3)
+
+```
+
+
+
+## PPMC Mean Results: Example Item (Two $\theta$s)
+
+```{r, cache=TRUE}
+
+# example densities of some statistics
+plot(density(PPMCsamples2$mean[,1]), main = "Posterior Predictive Distribution: Item 1 Mean")
+lines(x = c(mean(conspiracyItems$PolConsp1),mean(conspiracyItems$PolConsp1)), y = c(0,10),
+      lty = 2, col=2, lwd=3)
+
+```
+
+
+## PPMC Mean Results
+
+One $\theta$
+```{r, eval=TRUE, echo=FALSE}
+meanSummary
+```
+
+Two $\theta$s
+```{r, eval=TRUE, echo=FALSE}
+meanSummary2
+```
+
+## PPMC Correlation Results: Example Item Pair (One $\theta$)
+
+```{r}
+
+plot(density(PPMCsamples$correlation[,1]), main = "Item 1 Item 2 Pearson Correlation")
+lines(x = c(cor(conspiracyItems[,1:2])[1,2],
+            cor(conspiracyItems[,1:2])[1,2]),
+      y = c(0,10),
+      lty = 2, col=2, lwd=3)
+
+```
+
+
+## PPMC Correlation Results: Example Item Pair (Two $\theta$s)
+
+```{r}
+
+plot(density(PPMCsamples2$correlation[,1]), main = "Item 1 Item 2 Pearson Correlation")
+lines(x = c(cor(conspiracyItems[,1:2])[1,2],
+            cor(conspiracyItems[,1:2])[1,2]),
+      y = c(0,10),
+      lty = 2, col=2, lwd=3)
+
+```
+
+
+## PPMC Correlation Results
+
+```{r, eval=TRUE, echo=FALSE}
+corrSummaryBoth
+```
+
+## Count of Items in Misfitting Pairs
+
+One $\theta$
+```{r}
+table(badItems)[order(table(badItems), decreasing = TRUE)]
+```
+
+
+Two $\theta$s
+```{r}
+table(badItems2)[order(table(badItems2), decreasing = TRUE)]
+```
+
+
+## Plotting Misfitting Items (One $\theta$)
+
+```{r}
+simpleNetwork(corrSummary[ corrSummary$inTail, c(1,2)])
+```
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Relative Model Fit in Bayesian Psychometric Models
+:::
+
+## Relative Model Fit in Bayesian Psychometric Models
+
+As with other Bayesian models, we can use WAIC and LOO to compare the model fit of two Bayesian models
+
+* Of note: There is some debate as to whether or not we should marginalize across the latent variables
+  * We won't do that here as that would involve a numeric integral
+  
+* What is needed: The conditional log likelihood for each observation at each step of the chain
+  * Here, we have to sum the log likelihood across all items
+  * There are built-in functions in Stan to do this
+  
+## Implementing ELPD in Stan (one $\theta$)
+
+```{r, eval=FALSE, echo=TRUE}
+generated quantities{
+  
+  // for LOO/WAIC:
+  vector[nObs] personLike = rep_vector(0.0, nObs);
+  
+  for (item in 1:nItems){
+    for (obs in 1:nObs){
+      // calculate conditional data likelihood for LOO/WAIC
+      personLike[obs] = personLike[obs] + ordered_logistic_lpmf(Y[item, obs] | lambda[item]*theta[obs], thr[item]);
+    }
+  }
+}
+
+```
+
+Notes: 
+
+* ```ordered_logistic_lpmf``` needs the observed data to work (first argument)
+* ```vector[nObs] personLike = rep_vector(0.0, nObs);``` is needed to set the values to zero at each iteration
+
+## Implementing ELPD in Stan (two $\theta$s)
+
+```{r, eval=FALSE, echo=TRUE}
+
+generated quantities{ 
+ 
+  // for LOO/WAIC:
+  vector[nObs] personLike = rep_vector(0.0, nObs);
+  
+  for (item in 1:nItems){
+    for (obs in 1:nObs){
+      // calculate conditional data likelihood for LOO/WAIC
+      personLike[obs] = personLike[obs] + ordered_logistic_lpmf(Y[item, obs] | thetaMatrix[obs,]*lambdaMatrix[item,1:nFactors]', thr[item]);
+    }
+  }  
+}
+
+```
+
+Notes: 
+
+* ```ordered_logistic_lpmf``` needs the observed data to work (first argument)
+* ```vector[nObs] personLike = rep_vector(0.0, nObs);``` is needed to set the values to zero at each iteration
+
+## Comparing WAIC Values
+
+
+```{r, echo=TRUE}
+# model comparisons
+waic(x = modelOrderedLogit_samples$draws("personLike"))
+waic(x = modelOrderedLogit2D_samples$draws("personLike"))
+
+```
+
+Smaller is better, so the unidimensional model wins (but very high SE for both)
+
+## Comparing LOO Values
+
+
+```{r, echo=TRUE}
+modelOrderedLogit_samples$loo(variables = "personLike")
+modelOrderedLogit2D_samples$loo(variables = "personLike")
+
+
+
+```
+LOO seems to (slightly) prefer the two-dimensional model (but by warnings about bad PSIS)
+
+## Comparing LOO Values
+
+
+```{r, echo=TRUE}
+
+loo_compare(list(unidimensional = modelOrderedLogit_samples$loo(variables = "personLike"), 
+                 twodimensional = modelOrderedLogit2D_samples$loo(variables = "personLike")))
+
+
+```
+
+Again, both models are very close in fit
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Wrapping Up
+:::
+
+
+## Wrapping Up
+
+Model fit is complicated for psychometric models
+
+* Bayesian model fit methods are even more complicated than non-Bayesian methods
+* Open area for research!
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Thank you for a great semester
+:::
