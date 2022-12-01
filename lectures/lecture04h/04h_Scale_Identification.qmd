@@ -1,0 +1,584 @@
+---
+title: "Latent Variable Scale Identification Methods"
+author: "Lecture 4h" 
+format: 
+  revealjs:
+    multiplex: false
+    footer: "[https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/](https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/)"
+    theme: ["pp.scss"]
+    slide-number: c/t
+    incremental: false
+editor: source
+---
+
+
+```{r, include=FALSE}
+load("lecture04h.RData")
+needed_packages = c("ggplot2", "cmdstanr", "HDInterval", "bayesplot", "loo")
+for(i in 1:length(needed_packages)){
+  haspackage = require(needed_packages[i], character.only = TRUE)
+  if(haspackage == FALSE){
+    install.packages(needed_packages[i])
+  }
+  library(needed_packages[i], character.only = TRUE)
+}
+
+conspiracyData = read.csv("conspiracies.csv")
+conspiracyItems = conspiracyData[,1:10]
+
+```
+
+
+## Today's Lecture Objectives
+
+1. Show how to estimate the standard deviation of the latent variable
+
+## Example Data: Conspiracy Theories
+
+Today's example is from a bootstrap resample of 177 undergraduate students at a large state university in the Midwest. The
+survey was a measure of 10 questions about their beliefs in various conspiracy theories that were being passed around
+the internet in the early 2010s. Additionally, gender was included in the survey. All items responses were on a 5-
+point Likert scale with:
+
+1. Strongly Disagree
+2. Disagree
+3. Neither Agree or Disagree
+4. Agree 
+5. Strongly Agree
+
+#### Please note, the purpose of this survey was to study individual beliefs regarding conspiracies. The questions can provoke some strong emotions given the world we live in currently. All questions were approved by university IRB prior to their use. 
+
+Our purpose in using this instrument is to provide a context that we all may find relevant as many of these conspiracy theories are still prevalent today. 
+
+## Conspiracy Theory Questions 1-5
+
+Questions:
+
+1. The U.S. invasion of Iraq was not part of a campaign to fight terrorism, but was driven by oil companies and Jews in the U.S. and Israel.
+2. Certain U.S. government officials planned the attacks of September 11, 2001 because they wanted the United States to go to war in the Middle East.
+3. President Barack Obama was not really born in the United States and does not have an authentic Hawaiian birth certificate.
+4. The current financial crisis was secretly orchestrated by a small group of Wall Street bankers to extend the power of the Federal Reserve and further their control of the world's economy.
+5. Vapor trails left by aircraft are actually chemical agents deliberately sprayed in a clandestine program directed by government officials.
+
+## Conspiracy Theory Questions 6-10
+
+Questions: 
+
+6. Billionaire George Soros is behind a hidden plot to destabilize the American government, take control of the media, and put the world under his control.
+7. The U.S. government is mandating the switch to compact fluorescent light bulbs because such lights make people more obedient and easier to control.
+8. Government officials are covertly Building a 12-lane \"NAFTA superhighway\" that runs from Mexico to Canada through America's heartland.
+9. Government officials purposely developed and spread drugs like crack-cocaine and diseases like AIDS in order to destroy the African American community. 
+10. God sent Hurricane Katrina to punish America for its sins.
+
+## Model Setup Today
+
+Today, we will revert back to the graded response model assumptions to discuss how to estimate the latent variable standard deviation
+
+$$P\left(Y_{ic } = c \mid \theta_p \right) = \left\{ 
+\begin{array}{lr}
+1-P\left(Y_{i1} \gt 1 \mid \theta_p \right) & \text{if } c=1 \\
+P\left(Y_{i{c-1}} \gt c-1 \mid \theta_p \right) - P\left(Y_{i{c}} \gt c \mid \theta_p \right) & \text{if } 1<c<C_i \\
+P\left(Y_{i{C_i -1} } \gt C_i-1 \mid \theta_p \right) & \text{if } c=C_i \\
+\end{array} \right.$$
+
+Where:
+
+$$ P\left(Y_{i{c}} > c \mid \theta \right) = \frac{\exp(-\tau_{ic}+\lambda_i\theta_p)}{1+\exp(-\tau_{ic}+\lambda_i\theta_p)}$$
+
+With:
+
+* $C_i-1$ Ordered thresholds: $\tau_1 < \tau_2 < \ldots < \tau_{C_i-1}$
+
+We can convert thresholds to intercepts by multiplying by negative one: $\mu_c = -\tau_c$
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Scale Identification Methods
+:::
+
+
+## Identification of Latent Traits, Part 1
+
+Psychometric models require two types of identification to be valid:
+
+1. Empirical Identification
+
+  * The minimum number of items that must measure each latent variable
+  * From CFA: three observed variables for each latent variable (or two if the latent variable is correlated with another latent variable)
+
+Bayesian priors can help to make models with fewer items than these criteria suggest estimable
+
+* The parameter estimates (item parameters and latent variable estimates) often have MCMC convergence issues and should not be trusted
+* Use the CFA standard in your work
+
+## Identification of Latent Traits, Part 2
+
+Psychometric models require two types of identification to be valid:
+
+2. Scale Identification (i.e., what the mean/variance is for each latent variable)
+
+  * The additional set of constraints needed to set the mean and standard deviation (variance) of the latent variables
+  * Two main methods to set the scale:
+    * Marker item parameters
+      * For variances: Set the loading/slope to one for one observed variable per latent variable
+        * Can estimate the latent variable's variance (the diagonal of $\boldsymbol{\Sigma}_\theta$)
+      * For means: Set the item intercept to one for one observed variable perlatent variable
+        * Can estimate the latent variable's mean (in $\boldsymbol{\mu}_\theta$)
+    * Standardized factors
+      * Set the variance for all latent variables to one
+      * Set the mean for all latent variables to zero
+      * Estimate all unique off-diagonal correlations (covariances) in $\boldsymbol{\Sigma}_\theta$
+
+## Marker Items for $\theta$ Standard Deviations
+
+To estimate the standard deviation of $\theta$ (a type of empirical prior)
+  * Set one loading/discrimination parameter to one
+  
+To estimate the mean of $\theta$:
+  * Set one threshold parameter to zero
+  * A bit more difficult to implement in Stan
+  * Skipped for today
+  
+Under both of these cases, the model/data likelihood is identified
+  * This provides what I call "strong identification" of the posterior distribution
+
+I begin with a single $\theta$ as it is easier to show
+  * Multidimensional $\Theta$ comes after
+
+## Stan's Model Block
+
+```{r, eval=FALSE, echo=TRUE}
+model {
+  
+  initLambda ~ multi_normal(meanLambda, covLambda); // Prior for estimated item discrimination/factor loadings
+  thetaSD ~ lognormal(thetaSDmean,thetaSDsd);               // Prior for theta standard deviation
+  theta ~ normal(0, thetaSD);                       // Prior for latent variable (with sd specified)
+  
+  for (item in 1:nItems){
+    thr[item] ~ multi_normal(meanThr[item], covThr[item]);             // Prior for item thresholds
+    Y[item] ~ ordered_logistic(lambda[item]*theta, thr[item]);         // Item repsonse model (model/data likelihood)
+  }
+  
+  
+}
+```
+
+Notes: 
+
+* Here, we are only estimating the standard deviation of $\theta$
+  * We will leave the mean at zero
+  * We will use a log normal distribution for the SD (needs a mean and SD for hyperparameters)
+* ```lambda`` in ```ordered_logistic()``` function is different from ```initLambda``` 
+  * We need a ```transformed parameters``` block to set one loading to one
+
+## Stan's Parameters Block
+
+```{r, eval=FALSE, echo=TRUE}
+parameters {
+  vector[nObs] theta;                // the latent variables (one for each person)
+  real<lower=0> thetaSD;
+  
+  array[nItems] ordered[maxCategory-1] thr; // the item thresholds (one for each item category minus one)
+  vector[nItems-1] initLambda;             // the estimated factor loadings (number of items-1 for one marker item)
+}
+```
+
+Notes:
+  
+* ```thetaSD``` has lower bound of zero
+* ```initLambda``` is length ```nItems-1``` (one less as we set that one to one)
+  
+
+## Stan's Transformed Parameters Block
+
+```{r, eval=FALSE, echo=TRUE}
+transformed parameters{
+  vector[nItems] lambda;   // the loadings that go into the model itself
+  
+  lambda[1] = 1.0;         // first loading on the factor is set to one for identification (marker item)
+  lambda[2:(nItems)] = initLambda[1:(nItems-1)]; // rest of loadings are set to estimated values in initLambda
+}
+```
+
+Notes:
+
+* We set the first loading to one
+  * All others are estimated
+* Technically, any loading can be set to one
+  * All are equivalent models based on likelihood
+* If an item has very little relation to the latent variable, setting that item's loading to one can cause estimation problems
+  * Difficult to tell which item may have problems before the analysis
+
+## Stan's Data Block
+
+```{r, eval=FALSE, echo=TRUE}
+data {
+  int<lower=0> nObs;                            // number of observations
+  int<lower=0> nItems;                          // number of items
+  int<lower=0> maxCategory;                     // maximum category across all items
+  
+  array[nItems, nObs] int<lower=1, upper=5>  Y; // item responses in an array
+
+  array[nItems] vector[maxCategory-1] meanThr;                    // prior mean vector for intercept parameters
+  array[nItems] matrix[maxCategory-1, maxCategory-1] covThr;      // prior covariance matrix for intercept parameters
+  
+  vector[nItems-1] meanLambda;         // prior mean vector for discrimination parameters
+  matrix[nItems-1, nItems-1] covLambda;  // prior covariance matrix for discrimination parameters
+  
+  real thetaSDmean;  // prior mean hyperparameter for theta standard deviation (log normal distribution)
+  real thetaSDsd; // prior sd hyperparameter for theta standard deviation (log normal distribution)
+}
+
+```
+
+Notes:
+  
+  * Here, we need to set mean/sd hyperparameters for the standard deviation of $\theta$
+  
+## R Data List
+
+
+```{r, eval=FALSE, echo=TRUE}
+modelGRM_markerItem_data = list(
+  nObs = nObs,
+  nItems = nItems,
+  maxCategory = maxCategory,
+  Y = t(conspiracyItems), 
+  meanThr = thrMeanMatrix,
+  covThr = thrCovArray,
+  meanLambda = lambdaMeanVecHP,
+  covLambda = lambdaCovarianceMatrixHP, 
+  thetaSDmean = 0,
+  thetaSDsd = 2
+)
+```
+
+Notes:
+
+* Hyperparameter for location ($\mu$) of lognormal distribution is 0
+* Hyperparameter for scale ($\sigma$) of lognormal distribution is 2
+
+* Lognormal mean is: 
+
+$$\exp \left(\mu +\frac{\sigma^2}{2} \right) = 7.39  $$
+  
+* Lognormal SD is:
+
+$$ \sqrt{ \left[ \exp \left( \sigma^2 \right) -1 \right] \exp \left(2\mu + \sigma^2 \right) }  = 54.1 $$ 
+
+
+## Stan Results
+
+```{r, cache=TRUE}
+# checking convergence
+max(modelGRM_markerItem_samples$summary()$rhat, na.rm = TRUE)
+
+# item parameter results
+print(modelGRM_markerItem_samples$summary(variables = c("thetaSD", "lambda", "mu")) ,n=Inf)
+
+```
+
+## SD $\theta$ Results
+
+```{r, cache=TRUE}
+mcmc_trace(x = modelGRM_markerItem_samples$draws(variables = c("thetaSD")))
+```
+
+## SD $\theta$ Results
+
+```{r, cache=TRUE}
+mcmc_dens(x = modelGRM_markerItem_samples$draws(variables = c("thetaSD")))
+```
+
+## Comparing $\theta$ EAP Estimates
+
+```{r, cache=TRUE}
+
+plot(density(modelGRM_markerItem_samples$summary(variables = "theta")$mean),
+     ylim = c(0, max(density(modelGRM_standardizedFactor_samples$summary(variables = "theta")$mean)$y)),
+     col = 2, lwd=3, main="Comparing Theta EAP Densities")
+lines(density(modelGRM_standardizedFactor_samples$summary(variables = "theta")$mean),
+      col=3, lwd =3)
+legend(x = 4, y = .4, legend = c("Marker Item", "Standardized Factor"), col=c(2, 3), lwd=c(2,3), lty=c(1,1))
+
+```
+
+## Comparing $\theta$ EAP Estimates
+
+```{r, cache=TRUE}
+plot(x = modelGRM_markerItem_samples$summary(variables = "theta")$mean,
+     y = modelGRM_standardizedFactor_samples$summary(variables = "theta")$mean, 
+     ylab = "Standardized Factor", xlab = "Marker Item", main = "Comparing Theta EAP Estimates")
+
+```
+
+## Comparing $\theta$ SD Estimates
+
+```{r, cache=TRUE}
+plot(x = modelGRM_markerItem_samples$summary(variables = "theta")$sd,
+     y = modelGRM_standardizedFactor_samples$summary(variables = "theta")$sd, 
+     ylab = "Standardized Factor", xlab = "Marker Item", main = "Comparing Theta SD Estimates")
+```
+
+## Comparing $\lambda$ EAP Estimates
+
+```{r, cache=TRUE}
+plot(x = modelGRM_markerItem_samples$summary(variables = "lambda")$mean,
+     y = modelGRM_standardizedFactor_samples$summary(variables = "lambda")$mean, 
+     ylab = "Standardized Factor", xlab = "Marker Item", main = "Comparing Lambda EAP Estimates")
+```
+
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Marker Items for Multidimensional Models
+:::
+
+## Marker Items for Multidimensional Models
+
+We can also build marker items into multidimensional models
+
+* A bit more tricky--we need to estimate the covariance matrix of $\theta$ now ($\Sigma_\theta$)
+  * We accomplish this by pre- and post-multiplying the correlation matrix of $\theta$ by a diagonal matrix of the standard deviations of $\theta$
+  
+  
+## Stan's Model Block
+
+```{r, eval=FALSE, echo=TRUE}
+
+model {
+  
+  matrix[nFactors, nFactors] thetaCovL;
+  initLambda ~ multi_normal(meanLambda, covLambda); 
+  
+  thetaCorrL ~ lkj_corr_cholesky(1.0);
+  thetaSD ~ lognormal(sdThetaLocation,sdThetaScale);
+  
+  thetaCovL = diag_pre_multiply(thetaSD, thetaCorrL);
+  theta ~ multi_normal_cholesky(meanTheta, thetaCovL);    
+  
+  
+  for (item in 1:nItems){
+    thr[item] ~ multi_normal(meanThr[item], covThr[item]);            
+    Y[item] ~ ordered_logistic(thetaMatrix*lambdaMatrix[item,1:nFactors]', thr[item]);
+  }
+  
+  
+}
+
+```
+
+Notes: 
+
+* The ```multi_normal_cholesky``` function now uses the covariance matrix
+* We calculate the covariance matrix using the ```thetaCovL = diag_pre_multiply(thetaSD, thetaCorrL);;``` line
+* The SDs have a lognormal prior distribution for each
+
+## Stan's Parameters Block
+
+```{r, eval=FALSE, echo=TRUE}
+parameters {
+  array[nObs] vector[nFactors] theta;                // the latent variables (one for each person)
+  array[nItems] ordered[maxCategory-1] thr; // the item thresholds (one for each item category minus one)
+  vector[nLoadings-nFactors] initLambda;             // the factor loadings/item discriminations (one for each item)
+  
+  cholesky_factor_corr[nFactors] thetaCorrL;
+  vector<lower=0>[nFactors] thetaSD;
+}
+```
+
+Notes:
+
+* We still have a correlation matrix estimated
+* Now adding a vector of SDs
+
+
+## Stan's Transformed Data Block
+
+```{r, eval=FALSE, echo=TRUE}
+transformed data{
+  int<lower=0> nLoadings = 0;                                      // number of loadings in model
+  array[nFactors] int<lower=0> markerItem = rep_array(0, nFactors);
+  
+  for (factor in 1:nFactors){
+    nLoadings = nLoadings + sum(Qmatrix[1:nItems, factor]);
+  }
+
+  array[nLoadings, 4] int loadingLocation;                     // the row/column positions of each loading, plus marker switch
+  
+  int loadingNum=1;
+  int lambdaNum=1;
+  for (item in 1:nItems){
+    for (factor in 1:nFactors){       
+      if (Qmatrix[item, factor] == 1){
+        loadingLocation[loadingNum, 1] = item;
+        loadingLocation[loadingNum, 2] = factor;
+        if (markerItem[factor] == 0){
+          loadingLocation[loadingNum, 3] = 1;     // ==1 if marker item, ==0 otherwise
+          loadingLocation[loadingNum, 4] = 0;     // ==0 if not one of estimated lambdas
+          markerItem[factor] = item;
+        } else {
+          loadingLocation[loadingNum, 3] = 0;
+          loadingLocation[loadingNum, 4] = lambdaNum;
+          lambdaNum = lambdaNum + 1;
+        }
+        loadingNum = loadingNum + 1;
+      }
+    }
+  }
+
+
+}
+```
+
+## Stan's Transformed Data Block Notes
+
+* Loading location now lists two additional columns
+  * An indicator of whether or not to set value to one
+  * An indicator of which loading in the loading vector is needed if loading is being estimated
+
+## Stan's Transformed Parameters Block
+
+```{r, eval=FALSE, echo=TRUE}
+transformed parameters{
+  matrix[nItems, nFactors] lambdaMatrix = rep_matrix(0.0, nItems, nFactors);
+  matrix[nObs, nFactors] thetaMatrix;
+  
+  // build matrix for lambdas to multiply theta matrix
+  
+  for (loading in 1:nLoadings){  
+    if (loadingLocation[loading,3] == 1){
+      lambdaMatrix[loadingLocation[loading,1], loadingLocation[loading,2]] = 1.0;
+    } else {
+      lambdaMatrix[loadingLocation[loading,1], loadingLocation[loading,2]] = initLambda[loadingLocation[loading,4]];
+    }
+  }
+  
+  for (factor in 1:nFactors){
+    thetaMatrix[,factor] = to_vector(theta[,factor]);
+  }
+  
+}
+```
+
+Notes:
+
+* Here, we set the first item's loading to one for each dimension
+* We determine the location of each loading using the results from the transformed data block sorting the Q-matrix
+
+
+## Stan's Generated Quantities Block
+
+```{r, eval=FALSE, echo=TRUE}
+
+generated quantities{ 
+  array[nItems] vector[maxCategory-1] mu;
+  corr_matrix[nFactors] thetaCorr;
+  cholesky_factor_cov[nFactors] thetaCov_pre;
+  cov_matrix[nFactors] thetaCov; 
+  
+  for (item in 1:nItems){
+    mu[item] = -1*thr[item];
+  }
+  
+  thetaCorr = multiply_lower_tri_self_transpose(thetaCorrL);
+  thetaCov_pre = diag_pre_multiply(thetaSD, thetaCorrL);
+  thetaCov = multiply_lower_tri_self_transpose(thetaCov_pre);
+}
+
+```
+
+Notes: 
+
+* Now we calculate the covariance matrix here, too
+
+## Stan's Data Block
+
+```{r, eval=FALSE, echo=TRUE}
+data {
+  
+  // data specifications  =============================================================
+  int<lower=0> nObs;                            // number of observations
+  int<lower=0> nItems;                          // number of items
+  int<lower=0> maxCategory;                     // number of categories for each item
+  
+  // input data  =============================================================
+  array[nItems, nObs] int<lower=1, upper=5>  Y; // item responses in an array
+
+  // loading specifications  =============================================================
+  int<lower=1> nFactors;                                       // number of loadings in the model
+  array[nItems, nFactors] int<lower=0, upper=1> Qmatrix;
+  
+  // prior specifications =============================================================
+  array[nItems] vector[maxCategory-1] meanThr;                // prior mean vector for intercept parameters
+  array[nItems] matrix[maxCategory-1, maxCategory-1] covThr;  // prior covariance matrix for intercept parameters
+  
+  vector[nItems-nFactors] meanLambda;         // prior mean vector for discrimination parameters
+  matrix[nItems-nFactors, nItems-nFactors] covLambda;  // prior covariance matrix for discrimination parameters
+  
+  vector[nFactors] meanTheta; 
+  vector[nFactors] sdThetaLocation;
+  vector[nFactors] sdThetaScale;
+}
+
+```
+
+Notes: 
+
+* Adding hyperparameters for the SDs of $theta$
+* No other differences from previous multidimensional model code
+
+## R Data List
+
+```{r, eval=FALSE, echo=TRUE}
+thetaMean = rep(0, nFactors)
+sdThetaLocation = rep(0, nFactors)
+sdThetaScale = rep(.5, nFactors)
+
+modelMultidimensionalGRM_markerItem_data = list(
+  nObs = nObs,
+  nItems = nItems,
+  maxCategory = maxCategory,
+  Y = t(conspiracyItems), 
+  nFactors = nFactors,
+  Qmatrix = Qmatrix,
+  meanThr = thrMeanMatrix,
+  covThr = thrCovArray,
+  meanLambda = lambdaMeanVecHP,
+  covLambda = lambdaCovarianceMatrixHP,
+  meanTheta = thetaMean,
+  sdThetaLocation = sdThetaLocation,
+  sdThetaScale = sdThetaScale
+)
+```
+
+## Stan Results
+
+```{r, echo=TRUE, cache=TRUE}
+ # checking convergence
+max(modelMultidimensionalGRM_markerItem_samples$summary()$rhat, na.rm = TRUE)
+
+# parameter results
+print(modelMultidimensionalGRM_markerItem_samples$summary(variables = c("thetaSD", "thetaCov", "thetaCorr", "lambdaMatrix", "mu")) ,n=Inf)
+
+```
+
+## {auto-animate=true, visibility="uncounted"}
+
+::: {style="margin-top: 200px; font-size: 3em; color: red;"}
+Wrapping Up
+:::
+
+
+## Wrapping Up
+
+This lecture showed how to set additional constraints to estimate the standard deviation of the latent variable(s)
+
+* This is often called the structural model in psychometrics
+* Bayesians call this an empirical prior
+* We need parameter constraints to provide strong identification for the model/data likelihood
+
+
+

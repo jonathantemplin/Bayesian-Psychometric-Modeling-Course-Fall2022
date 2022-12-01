@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script src="04h_Scale_Identification_files/libs/clipboard/clipboard.min.js"></script>
+<script src="04h_Scale_Identification_files/libs/quarto-html/tabby.min.js"></script>
+<script src="04h_Scale_Identification_files/libs/quarto-html/popper.min.js"></script>
+<script src="04h_Scale_Identification_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="04h_Scale_Identification_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="04h_Scale_Identification_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="04h_Scale_Identification_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.2.269">
+
+  <meta name="author" content="Lecture 4h">
+  <title>Latent Variable Scale Identification Methods</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="04h_Scale_Identification_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="04h_Scale_Identification_files/libs/revealjs/dist/reveal.css">
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      { color: #003b4f; background-color: #f1f3f5; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #003b4f; } /* Normal */
+    code span.al { color: #ad0000; } /* Alert */
+    code span.an { color: #5e5e5e; } /* Annotation */
+    code span.at { color: #657422; } /* Attribute */
+    code span.bn { color: #ad0000; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #003b4f; } /* ControlFlow */
+    code span.ch { color: #20794d; } /* Char */
+    code span.cn { color: #8f5902; } /* Constant */
+    code span.co { color: #5e5e5e; } /* Comment */
+    code span.cv { color: #5e5e5e; font-style: italic; } /* CommentVar */
+    code span.do { color: #5e5e5e; font-style: italic; } /* Documentation */
+    code span.dt { color: #ad0000; } /* DataType */
+    code span.dv { color: #ad0000; } /* DecVal */
+    code span.er { color: #ad0000; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #ad0000; } /* Float */
+    code span.fu { color: #4758ab; } /* Function */
+    code span.im { color: #00769e; } /* Import */
+    code span.in { color: #5e5e5e; } /* Information */
+    code span.kw { color: #003b4f; } /* Keyword */
+    code span.op { color: #5e5e5e; } /* Operator */
+    code span.ot { color: #003b4f; } /* Other */
+    code span.pp { color: #ad0000; } /* Preprocessor */
+    code span.sc { color: #5e5e5e; } /* SpecialChar */
+    code span.ss { color: #20794d; } /* SpecialString */
+    code span.st { color: #20794d; } /* String */
+    code span.va { color: #111111; } /* Variable */
+    code span.vs { color: #20794d; } /* VerbatimString */
+    code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="04h_Scale_Identification_files/libs/revealjs/dist/theme/quarto.css" id="theme">
+  <link href="04h_Scale_Identification_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="04h_Scale_Identification_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="04h_Scale_Identification_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="04h_Scale_Identification_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <style type="text/css">
+
+  .callout {
+    margin-top: 1em;
+    margin-bottom: 1em;  
+    border-radius: .25rem;
+  }
+
+  .callout.callout-style-simple { 
+    padding: 0em 0.5em;
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+    display: flex;
+  }
+
+  .callout.callout-style-default {
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+  }
+
+  .callout .callout-body-container {
+    flex-grow: 1;
+  }
+
+  .callout.callout-style-simple .callout-body {
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-style-default .callout-body {
+    font-size: 0.9rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-captioned.callout-style-simple .callout-body {
+    margin-top: 0.2em;
+  }
+
+  .callout:not(.callout-captioned) .callout-body {
+      display: flex;
+  }
+
+  .callout:not(.no-icon).callout-captioned.callout-style-simple .callout-content {
+    padding-left: 1.6em;
+  }
+
+  .callout.callout-captioned .callout-header {
+    padding-top: 0.2em;
+    margin-bottom: -0.2em;
+  }
+
+  .callout.callout-captioned .callout-caption  p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+    
+  .callout.callout-captioned.callout-style-simple .callout-content  p {
+    margin-top: 0;
+  }
+
+  .callout.callout-captioned.callout-style-default .callout-content  p {
+    margin-top: 0.7em;
+  }
+
+  .callout.callout-style-simple div.callout-caption {
+    border-bottom: none;
+    font-size: .9rem;
+    font-weight: 600;
+    opacity: 75%;
+  }
+
+  .callout.callout-style-default  div.callout-caption {
+    border-bottom: none;
+    font-weight: 600;
+    opacity: 85%;
+    font-size: 0.9rem;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-default div.callout-content {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-simple .callout-icon::before {
+    height: 1rem;
+    width: 1rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 1rem 1rem;
+  }
+
+  .callout.callout-style-default .callout-icon::before {
+    height: 0.9rem;
+    width: 0.9rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 0.9rem 0.9rem;
+  }
+
+  .callout-caption {
+    display: flex
+  }
+    
+  .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  .callout.no-icon::before {
+    display: none !important;
+  }
+
+  .callout.callout-captioned .callout-body > .callout-content > :last-child {
+    margin-bottom: 0.5rem;
+  }
+
+  .callout.callout-captioned .callout-icon::before {
+    margin-top: .5rem;
+    padding-right: .5rem;
+  }
+
+  .callout:not(.callout-captioned) .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  /* Callout Types */
+
+  div.callout-note {
+    border-left-color: #4582ec !important;
+  }
+
+  div.callout-note .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEU0lEQVRYCcVXTWhcVRQ+586kSUMMxkyaElstCto2SIhitS5Ek8xUKV2poatCcVHtUlFQk8mbaaziwpWgglJwVaquitBOfhQXFlqlzSJpFSpIYyXNjBNiTCck7x2/8/LeNDOZxDuEkgOXe++553zfefee+/OYLOXFk3+1LLrRdiO81yNqZ6K9cG0P3MeFaMIQjXssE8Z1JzLO9ls20MBZX7oG8w9GxB0goaPrW5aNMp1yOZIa7Wv6o2ykpLtmAPs/vrG14Z+6d4jpbSKuhdcSyq9wGMPXjonwmESXrriLzFGOdDBLB8Y6MNYBu0dRokSygMA/mrun8MGFN3behm6VVAwg4WR3i6FvYK1T7MHo9BK7ydH+1uurECoouk5MPRyVSBrBHMYwVobG2aOXM07sWrn5qgB60rc6mcwIDJtQrnrEr44kmy+UO9r0u9O5/YbkS9juQckLed3DyW2XV/qWBBB3ptvI8EUY3I9p/67OW+g967TNr3Sotn3IuVlfMLVnsBwH4fsnebJvyGm5GeIUA3jljERmrv49SizPYuq+z7c2H/jlGC+Ghhupn/hcapqmcudB9jwJ/3jvnvu6vu5lVzF1fXyZuZZ7U8nRmVzytvT+H3kilYvH09mLWrQdwFSsFEsxFVs5fK7A0g8gMZjbif4ACpKbjv7gNGaD8bUrlk8x+KRflttr22JEMRUbTUwwDQScyzPgedQHZT0xnx7ujw2jfVfExwYHwOsDTjLdJ2ebmeQIlJ7neo41s/DrsL3kl+W2lWvAga0tR3zueGr6GL78M3ifH0rGXrBC2aAR8uYcIA5gwV8zIE8onoh8u0Fca/ciF7j1uOzEnqcIm59sEXoGc0+z6+H45V1CvAvHcD7THztu669cnp+L0okAeIc6zjbM/24LgGM1gZk7jnRu1aQWoU9sfUOuhrmtaPIO3YY1KLLWZaEO5TKUbMY5zx8W9UJ6elpLwKXbsaZ4EFl7B4bMtDv0iRipKoDQT2sNQI9b1utXFdYisi+wzZ/ri/1m7QfDgEuvgUUEIJPq3DhX/5DWNqIXDOweC2wvIR90Oq3lDpdMIgD2r0dXvGdsEW5H6x6HLRJYU7C69VefO1x8Gde1ZFSJLfWS1jbCnhtOPxmpfv2LXOA2Xk2tvnwKKPFuZ/oRmwBwqRQDcKNeVQkYcOjtWVBuM/JuYw5b6isojIkYxyYAFn5K7ZBF10fea52y8QltAg6jnMqNHFBmGkQ1j+U43HMi2xMar1Nv0zGsf1s8nUsmUtPOOrbFIR8bHFDMB5zL13Gmr/kGlCkUzedTzzmzsaJXhYawnA3UmARpiYj5ooJZiUoxFRtK3X6pgNPv+IZVPcnwbOl6f+aBaO1CNvPW9n9LmCp01nuSaTRF2YxHqZ8DYQT6WsXT+RD6eUztwYLZ8rM+rcPxamv1VQzFUkzFXvkiVrySGQgJNvXHJAxiU3/NwiC03rSf05VBaPtu/Z7/B8Yn/w7eguloAAAAAElFTkSuQmCC');
+  }
+
+  div.callout-note.callout-style-default .callout-caption {
+    background-color: #dae6fb
+  }
+
+  div.callout-important {
+    border-left-color: #d9534f !important;
+  }
+
+  div.callout-important .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEKklEQVRYCcVXTWhcVRS+575MJym48A+hSRFr00ySRQhURRfd2HYjk2SSTokuBCkU2o0LoSKKraKIBTcuFCoidGFD08nkBzdREbpQ1EDNIv8qSGMFUboImMSZd4/f9zJv8ibJMC8xJQfO3HPPPef7zrvvvnvviIkpC9nsw0UttFunbUhpFzFtarSd6WJkStVMw5xyVqYTvkwfzuf/5FgtkVoB0729j1rjXwThS7Vio+Mo6DNnvLfahoZ+i/o32lULuJ3NNiz7q6+pyAUkJaFF6JwaM2lUJlV0MlnQn5aTRbEu0SEqHUa0A4AdiGuB1kFXRfVyg5d87+Dg4DL6m2TLAub60ilj7A1Ec4odSAc8X95sHh7+ZRPCFo6Fnp7HfU/fBng/hi10CjCnWnJjsxvDNxWw0NfV6Rv5GgP3I3jGWXumdTD/3cbEOP2ZbOZp69yniG3FQ9z1jD7bnBu9Fc2tKGC2q+uAJOQHBDRiZX1x36o7fWBs7J9ownbtO+n0/qWkvW7UPIfc37WgT6ZGR++EOJyeQDSb9UB+DZ1G6DdLDzyS+b/kBCYGsYgJbSQHuThGKRcw5xdeQf8YdNHsc6ePXrlSYMBuSIAFTGAtQo+VuALo4BX83N190NWZWbynBjhOHsmNfFWLeL6v+ynsA58zDvvAC8j5PkbOcXCMg2PZFk3q8MjI7WAG/Dp9AwP7jdGBOOQkAvlFUB+irtm16I1Zw9YBcpGTGXYmk3kQIC/Cds55l+iMI3jqhjAuaoe+am2Jw5GT3Nbz3CkE12NavmzN5+erJW7046n/CH1RO/RVa8lBLozXk9uqykkGAyRXLWlLv5jyp4RFsG5vGVzpDLnIjTWgnRy2Rr+tDKvRc7Y8AyZq10jj8DqXdnIRNtFZb+t/ZRtXcDiVnzpqx8mPcDWxgARUqx0W1QB9MeUZiNrV4qP+Ehc+BpNgATsTX8ozYKL2NtFYAHc84fG7ndxUPr+AR/iQSns7uSUufAymwDOb2+NjK27lEFocm/EE2WpyIy/Hi66MWuMKJn8RvxIcj87IM5Vh9663ziW36kR0HNenXuxmfaD8JC7tfKbrhFr7LiZCrMjrzTeGx+PmkosrkNzW94ObzwocJ7A1HokLolY+AvkTiD/q1H0cN48c5EL8Crkttsa/AXQVDmutfyku0E7jShx49XqV3MFK8IryDhYVbj7Sj2P2eBxwcXoe8T8idsKKPRcnZw1b+slFTubwUwhktrfnAt7J++jwQtLZcm3sr9LQrjRzz6cfMv9aLvgmnAGvpoaGLxM4mAEaLV7iAzQ3oU0IvD5x9ix3yF2RAAuYAOO2f7PEFWCXZ4C9Pb2UsgDeVnFSpbFK7/IWu7TPTvBqzbGdCHOJQSxiEjt6IyZmxQyEJHv6xyQsYk//moVFsN2zP6fRImjfq7/n/wFDguUQFNEwugAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-important.callout-style-default .callout-caption {
+    background-color: #f7dddc
+  }
+
+  div.callout-warning {
+    border-left-color: #f0ad4e !important;
+  }
+
+  div.callout-warning .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAETklEQVRYCeVWW2gcVRg+58yaTUnizqbipZeX4uWhBEniBaoUX1Ioze52t7sRq6APio9V9MEaoWlVsFasRq0gltaAPuxms8lu0gcviE/FFOstVbSIxgcv6SU7EZqmdc7v9+9mJtNks51NTUH84ed889/PP+cmxP+d5FIbMJmNbpREu4WUkiTtCicKny0l1pIKmBzovF2S+hIJHX8iEu3hZJ5lNZGqyRrGSIQpq15AzF28jgpeY6yk6GVdrfFqdrD6Iw+QlB8g0YS2g7dyQmXM/IDhBhT0UCiRf59lfqmmDvzRt6kByV/m4JjtzuaujMUM2c5Z2d6JdKrRb3K2q6mA+oYVz8JnDdKPmmNthzkAk/lN63sYPgevrguc72aZX/L9C6x09GYyxBgCX4NlvyGUHOKELlm5rXeR1kchuChJt4SSwyddZRXgvwMGvYo4QSlk3/zkHD8UHxwVJA6zjZZqP8v8kK8OWLnIZtLyCAJagYC4rTGW/9Pqj92N/c+LUaAj27movwbi19tk/whRCIE7Q9vyI6yvRpftAKVTdUjOW40X3h5OXsKCdmFcx0xlLJoSuQngnrJe7Kcjm4OMq9FlC7CMmScQANuNvjfP3PjGXDBaUQmbp296S5L4DrpbrHN1T87ZVEZVCzg1FF0Ft+dKrlLukI+/c9ENo+TvlTDbYFvuKPtQ9+l052rXrgKoWkDAFnvh0wTOmYn8R5f4k/jN/fZiCM1tQx9jQQ4ANhqG4hiL0qIFTGViG9DKB7GYzgubnpofgYRwO+DFjh0Zin2m4b/97EDkXkc+f6xYAPX0KK2I/7fUQuwzuwo/L3AkcjugPNixC8cHf0FyPjWlItmLxWw4Ou9YsQCr5fijMGoD/zpdRy95HRysyXA74MWOnscpO4j2y3HAVisw85hX5+AFBRSHt4ShfLFkIMXTqyKFc46xdzQM6XbAi702a7sy04J0+feReMFKp5q9esYLCqAZYw/k14E/xcLLsFElaornTuJB0svMuJINy8xkIYuL+xPAlWRceH6+HX7THJ0djLUom46zREu7tTkxwmf/FdOZ/sh6Q8qvEAiHpm4PJ4a/doJe0gH1t+aHRgCzOvBvJedEK5OFE5jpm4AGP2a8Dxe3gGJ/pAutug9Gp6he92CsSsWBaEcxGx0FHytmIpuqGkOpldqNYQK8cSoXvd+xLxXADw0kf6UkJNFtdo5MOgaLjiQOQHcn+A6h5NuL2s0qsC2LOM75PcF3yr5STuBSAcGG+meA14K/CI21HcS4LBT6tv0QAh8Dr5l93AhZzG5ZJ4VxAqdZUEl9z7WJ4aN+svMvwHHL21UKTd1mqvChH7/Za5xzXBBKrUcB0TQ+Ulgkfbi/H/YT5EptrGzsEK7tR1B7ln9BBwckYfMiuSqklSznIuoIIOM42MQO+QnduCoFCI0bpkzjCjddHPN/F+2Yu+sd9bKNpVwHhbS3LluK/0zgfwD0xYI5dXuzlQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-warning.callout-style-default .callout-caption {
+    background-color: #fcefdc
+  }
+
+  div.callout-tip {
+    border-left-color: #02b875 !important;
+  }
+
+  div.callout-tip .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAADr0lEQVRYCe1XTWgTQRj9ZjZV8a9SPIkKgj8I1bMHsUWrqYLVg4Ue6v9BwZOxSYsIerFao7UiUryIqJcqgtpimhbBXoSCVxUFe9CTiogUrUp2Pt+3aUI2u5vdNh4dmMzOzHvvezuz8xNFM0mjnbXaNu1MvFWRXkXEyE6aYOYJpdW4IXuA4r0fo8qqSMDBU0v1HJUgVieAXxzCsdE/YJTdFcVIZQNMyhruOMJKXYFoLfIfIvVIMWdsrd+Rpd86ZmyzzjJmLStqRn0v8lzkb4rVIXvnpScOJuAn2ACC65FkPzEdEy4TPWRLJ2h7z4cArXzzaOdKlbOvKKX25Wl00jSnrwVxAg3o4dRxhO13RBSdNvH0xSARv3adTXbBdTf64IWO2vH0LT+cv4GR1DJt+DUItaQogeBX/chhbTBxEiZ6gftlDNXTrvT7co4ub5A6gp9HIcHvzTa46OS5fBeP87Qm0fQkr4FsYgVQ7Qg+ZayaDg9jhg1GkWj8RG6lkeSacrrHgDaxdoBiZPg+NXV/KifMuB6//JmYH4CntVEHy/keA6x4h4CU5oFy8GzrBS18cLJMXcljAKB6INjWsRcuZBWVaS3GDrqB7rdapVIeA+isQ57Eev9eCqzqOa81CY05VLd6SamW2wA2H3SiTbnbSxmzfp7WtKZkqy4mdyAlGx7ennghYf8voqp9cLSgKdqNfa6RdRsAAkPwRuJZNbpByn+RrJi1RXTwdi8RQF6ymDwGMAtZ6TVE+4uoKh+MYkcLsT0Hk8eAienbiGdjJHZTpmNjlbFJNKDVAp2fJlYju6IreQxQ08UJDNYdoLSl6AadO+fFuCQqVMB1NJwPm69T04Wv5WhfcWyfXQB+wXRs1pt+nCknRa0LVzSA/2B+a9+zQJadb7IyyV24YAxKp2Jqs3emZTuNnKxsah+uabKbMk7CbTgJx/zIgQYErIeTKRQ9yD9wxVof5YolPHqaWo7TD6tJlh7jQnK5z2n3+fGdggIOx2kaa2YI9QWarc5Ce1ipNWMKeSG4DysFF52KBmTNMmn5HqCFkwy34rDg05gDwgH3bBi+sgFhN/e8QvRn8kbamCOhgrZ9GJhFDgfcMHzFb6BAtjKpFhzTjwv1KCVuxHvCbsSiEz4CANnj84cwHdFXAbAOJ4LTSAawGWFn5tDhLMYz6nWeU2wJfIhmIJBefcd/A5FWQWGgrWzyORZ3Q6HuV+Jf0Bj+BTX69fm1zWgK7By1YTXchFDORywnfQ7GpzOo6S+qECrsx2ifVQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-tip.callout-style-default .callout-caption {
+    background-color: #ccf1e3
+  }
+
+  div.callout-caution {
+    border-left-color: #fd7e14 !important;
+  }
+
+  div.callout-caution .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAACV0lEQVRYCdVWzWoUQRCuqp2ICBLJXgITZL1EfQDBW/bkzUMUD7klD+ATSHBEfAIfQO+iXsWDxJsHL96EHAwhgzlkg8nBg25XWb0zIb0zs9muYYWkoKeru+vn664fBqElyZNuyh167NXJ8Ut8McjbmEraKHkd7uAnAFku+VWdb3reSmRV8PKSLfZ0Gjn3a6Xlcq9YGb6tADjn+lUfTXtVmaZ1KwBIvFI11rRXlWlatwIAAv2asaa9mlB9wwygiDX26qaw1yYPzFXg2N1GgG0FMF8Oj+VIx7E/03lHx8UhvYyNZLN7BwSPgekXXLribw7w5/c8EF+DBK5idvDVYtEEwMeYefjjLAdEyQ3M9nfOkgnPTEkYU+sxMq0BxNR6jExrAI31H1rzvLEfRIdgcv1XEdj6QTQAS2wtstEALLG1yEZ3QhH6oDX7ExBSFEkFINXH98NTrme5IOaaA7kIfiu2L8A3qhH9zRbukdCqdsA98TdElyeMe5BI8Rs2xHRIsoTSSVFfCFCWGPn9XHb4cdobRIWABNf0add9jakDjQJpJ1bTXOJXnnRXHRf+dNL1ZV1MBRCXhMbaHqGI1JkKIL7+i8uffuP6wVQAzO7+qVEbF6NbS0LJureYcWXUUhH66nLR5rYmva+2tjRFtojkM2aD76HEGAD3tPtKM309FJg5j/K682ywcWJ3PASCcycH/22u+Bh7Aa0ehM2Fu4z0SAE81HF9RkB21c5bEn4Dzw+/qNOyXr3DCTQDMBOdhi4nAgiFDGCinIa2owCEChUwD8qzd03PG+qdW/4fDzjUMcE1ZpIAAAAASUVORK5CYII=');
+  }
+
+  div.callout-caution.callout-style-default .callout-caption {
+    background-color: #ffe5d0
+  }
+
+  </style>
+  <style type="text/css">
+    .reveal div.sourceCode {
+      margin: 0;
+      overflow: auto;
+    }
+    .reveal div.hanging-indent {
+      margin-left: 1em;
+      text-indent: -1em;
+    }
+    .reveal .slide:not(.center) {
+      height: 100%;
+    }
+    .reveal .slide.scrollable {
+      overflow-y: auto;
+    }
+    .reveal .footnotes {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reveal .slide .absolute {
+      position: absolute;
+      display: block;
+    }
+    .reveal .footnotes ol {
+      counter-reset: ol;
+      list-style-type: none; 
+      margin-left: 0;
+    }
+    .reveal .footnotes ol li:before {
+      counter-increment: ol;
+      content: counter(ol) ". "; 
+    }
+    .reveal .footnotes ol li > p:first-child {
+      display: inline-block;
+    }
+    .reveal .slide ul,
+    .reveal .slide ol {
+      margin-bottom: 0.5em;
+    }
+    .reveal .slide ul li,
+    .reveal .slide ol li {
+      margin-top: 0.4em;
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide ul[role="tablist"] li {
+      margin-bottom: 0;
+    }
+    .reveal .slide ul li > *:first-child,
+    .reveal .slide ol li > *:first-child {
+      margin-block-start: 0;
+    }
+    .reveal .slide ul li > *:last-child,
+    .reveal .slide ol li > *:last-child {
+      margin-block-end: 0;
+    }
+    .reveal .slide .columns:nth-child(3) {
+      margin-block-start: 0.8em;
+    }
+    .reveal blockquote {
+      box-shadow: none;
+    }
+    .reveal .tippy-content>* {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    .reveal .tippy-content>*:last-child {
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide > img.stretch.quarto-figure-center,
+    .reveal .slide > img.r-stretch.quarto-figure-center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-left,
+    .reveal .slide > img.r-stretch.quarto-figure-left  {
+      display: block;
+      margin-left: 0;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-right,
+    .reveal .slide > img.r-stretch.quarto-figure-right  {
+      display: block;
+      margin-left: auto;
+      margin-right: 0; 
+    }
+  </style>
+</head>
+<body class="quarto-light">
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide" class="quarto-title-block center">
+  <h1 class="title">Latent Variable Scale Identification Methods</h1>
+
+<div class="quarto-title-authors">
+<div class="quarto-title-author">
+<div class="quarto-title-author-name">
+Lecture 4h 
+</div>
+</div>
+</div>
+
+</section>
+<section id="todays-lecture-objectives" class="slide level2">
+<h2>Today’s Lecture Objectives</h2>
+<ol type="1">
+<li>Show how to estimate the standard deviation of the latent variable</li>
+</ol>
+</section>
+<section id="example-data-conspiracy-theories" class="slide level2">
+<h2>Example Data: Conspiracy Theories</h2>
+<p>Today’s example is from a bootstrap resample of 177 undergraduate students at a large state university in the Midwest. The survey was a measure of 10 questions about their beliefs in various conspiracy theories that were being passed around the internet in the early 2010s. Additionally, gender was included in the survey. All items responses were on a 5- point Likert scale with:</p>
+<ol type="1">
+<li>Strongly Disagree</li>
+<li>Disagree</li>
+<li>Neither Agree or Disagree</li>
+<li>Agree</li>
+<li>Strongly Agree</li>
+</ol>
+<h4 id="please-note-the-purpose-of-this-survey-was-to-study-individual-beliefs-regarding-conspiracies.-the-questions-can-provoke-some-strong-emotions-given-the-world-we-live-in-currently.-all-questions-were-approved-by-university-irb-prior-to-their-use.">Please note, the purpose of this survey was to study individual beliefs regarding conspiracies. The questions can provoke some strong emotions given the world we live in currently. All questions were approved by university IRB prior to their use.</h4>
+<p>Our purpose in using this instrument is to provide a context that we all may find relevant as many of these conspiracy theories are still prevalent today.</p>
+</section>
+<section id="conspiracy-theory-questions-1-5" class="slide level2">
+<h2>Conspiracy Theory Questions 1-5</h2>
+<p>Questions:</p>
+<ol type="1">
+<li>The U.S. invasion of Iraq was not part of a campaign to fight terrorism, but was driven by oil companies and Jews in the U.S. and Israel.</li>
+<li>Certain U.S. government officials planned the attacks of September 11, 2001 because they wanted the United States to go to war in the Middle East.</li>
+<li>President Barack Obama was not really born in the United States and does not have an authentic Hawaiian birth certificate.</li>
+<li>The current financial crisis was secretly orchestrated by a small group of Wall Street bankers to extend the power of the Federal Reserve and further their control of the world’s economy.</li>
+<li>Vapor trails left by aircraft are actually chemical agents deliberately sprayed in a clandestine program directed by government officials.</li>
+</ol>
+</section>
+<section id="conspiracy-theory-questions-6-10" class="slide level2">
+<h2>Conspiracy Theory Questions 6-10</h2>
+<p>Questions:</p>
+<ol start="6" type="1">
+<li>Billionaire George Soros is behind a hidden plot to destabilize the American government, take control of the media, and put the world under his control.</li>
+<li>The U.S. government is mandating the switch to compact fluorescent light bulbs because such lights make people more obedient and easier to control.</li>
+<li>Government officials are covertly Building a 12-lane "NAFTA superhighway" that runs from Mexico to Canada through America’s heartland.</li>
+<li>Government officials purposely developed and spread drugs like crack-cocaine and diseases like AIDS in order to destroy the African American community.</li>
+<li>God sent Hurricane Katrina to punish America for its sins.</li>
+</ol>
+</section>
+<section id="model-setup-today" class="slide level2">
+<h2>Model Setup Today</h2>
+<p>Today, we will revert back to the graded response model assumptions to discuss how to estimate the latent variable standard deviation</p>
+<p><span class="math display">\[P\left(Y_{ic } = c \mid \theta_p \right) = \left\{
+\begin{array}{lr}
+1-P\left(Y_{i1} \gt 1 \mid \theta_p \right) &amp; \text{if } c=1 \\
+P\left(Y_{i{c-1}} \gt c-1 \mid \theta_p \right) - P\left(Y_{i{c}} \gt c \mid \theta_p \right) &amp; \text{if } 1&lt;c&lt;C_i \\
+P\left(Y_{i{C_i -1} } \gt C_i-1 \mid \theta_p \right) &amp; \text{if } c=C_i \\
+\end{array} \right.\]</span></p>
+<p>Where:</p>
+<p><span class="math display">\[ P\left(Y_{i{c}} &gt; c \mid \theta \right) = \frac{\exp(-\tau_{ic}+\lambda_i\theta_p)}{1+\exp(-\tau_{ic}+\lambda_i\theta_p)}\]</span></p>
+<p>With:</p>
+<ul>
+<li><span class="math inline">\(C_i-1\)</span> Ordered thresholds: <span class="math inline">\(\tau_1 &lt; \tau_2 &lt; \ldots &lt; \tau_{C_i-1}\)</span></li>
+</ul>
+<p>We can convert thresholds to intercepts by multiplying by negative one: <span class="math inline">\(\mu_c = -\tau_c\)</span></p>
+</section>
+<section id="section" class="slide level2" data-auto-animate="true," data-visibility="uncounted">
+<h2 data-id="quarto-animate-title"></h2>
+<div style="margin-top: 200px; font-size: 3em; color: red;">
+<p>Scale Identification Methods</p>
+</div>
+</section>
+<section id="identification-of-latent-traits-part-1" class="slide level2">
+<h2>Identification of Latent Traits, Part 1</h2>
+<p>Psychometric models require two types of identification to be valid:</p>
+<ol type="1">
+<li>Empirical Identification</li>
+</ol>
+<ul>
+<li>The minimum number of items that must measure each latent variable</li>
+<li>From CFA: three observed variables for each latent variable (or two if the latent variable is correlated with another latent variable)</li>
+</ul>
+<p>Bayesian priors can help to make models with fewer items than these criteria suggest estimable</p>
+<ul>
+<li>The parameter estimates (item parameters and latent variable estimates) often have MCMC convergence issues and should not be trusted</li>
+<li>Use the CFA standard in your work</li>
+</ul>
+</section>
+<section id="identification-of-latent-traits-part-2" class="slide level2">
+<h2>Identification of Latent Traits, Part 2</h2>
+<p>Psychometric models require two types of identification to be valid:</p>
+<ol start="2" type="1">
+<li>Scale Identification (i.e., what the mean/variance is for each latent variable)</li>
+</ol>
+<ul>
+<li>The additional set of constraints needed to set the mean and standard deviation (variance) of the latent variables</li>
+<li>Two main methods to set the scale:
+<ul>
+<li>Marker item parameters
+<ul>
+<li>For variances: Set the loading/slope to one for one observed variable per latent variable
+<ul>
+<li>Can estimate the latent variable’s variance (the diagonal of <span class="math inline">\(\boldsymbol{\Sigma}_\theta\)</span>)</li>
+</ul></li>
+<li>For means: Set the item intercept to one for one observed variable perlatent variable
+<ul>
+<li>Can estimate the latent variable’s mean (in <span class="math inline">\(\boldsymbol{\mu}_\theta\)</span>)</li>
+</ul></li>
+</ul></li>
+<li>Standardized factors
+<ul>
+<li>Set the variance for all latent variables to one</li>
+<li>Set the mean for all latent variables to zero</li>
+<li>Estimate all unique off-diagonal correlations (covariances) in <span class="math inline">\(\boldsymbol{\Sigma}_\theta\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+</section>
+<section id="marker-items-for-theta-standard-deviations" class="slide level2">
+<h2>Marker Items for <span class="math inline">\(\theta\)</span> Standard Deviations</h2>
+<p>To estimate the standard deviation of <span class="math inline">\(\theta\)</span> (a type of empirical prior) * Set one loading/discrimination parameter to one</p>
+<p>To estimate the mean of <span class="math inline">\(\theta\)</span>: * Set one threshold parameter to zero * A bit more difficult to implement in Stan * Skipped for today</p>
+<p>Under both of these cases, the model/data likelihood is identified * This provides what I call “strong identification” of the posterior distribution</p>
+<p>I begin with a single <span class="math inline">\(\theta\)</span> as it is easier to show * Multidimensional <span class="math inline">\(\Theta\)</span> comes after</p>
+</section>
+<section id="stans-model-block" class="slide level2">
+<h2>Stan’s Model Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>model {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  </span>
+<span id="cb1-3"><a href="#cb1-3"></a>  initLambda <span class="sc">~</span> <span class="fu">multi_normal</span>(meanLambda, covLambda); <span class="sc">/</span><span class="er">/</span> Prior <span class="cf">for</span> estimated item discrimination<span class="sc">/</span>factor loadings</span>
+<span id="cb1-4"><a href="#cb1-4"></a>  thetaSD <span class="sc">~</span> <span class="fu">lognormal</span>(thetaSDmean,thetaSDsd);               <span class="sc">/</span><span class="er">/</span> Prior <span class="cf">for</span> theta standard deviation</span>
+<span id="cb1-5"><a href="#cb1-5"></a>  theta <span class="sc">~</span> <span class="fu">normal</span>(<span class="dv">0</span>, thetaSD);                       <span class="sc">/</span><span class="er">/</span> Prior <span class="cf">for</span> latent <span class="fu">variable</span> (with sd specified)</span>
+<span id="cb1-6"><a href="#cb1-6"></a>  </span>
+<span id="cb1-7"><a href="#cb1-7"></a>  <span class="cf">for</span> (item <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nItems){</span>
+<span id="cb1-8"><a href="#cb1-8"></a>    thr[item] <span class="sc">~</span> <span class="fu">multi_normal</span>(meanThr[item], covThr[item]);             <span class="sc">/</span><span class="er">/</span> Prior <span class="cf">for</span> item thresholds</span>
+<span id="cb1-9"><a href="#cb1-9"></a>    Y[item] <span class="sc">~</span> <span class="fu">ordered_logistic</span>(lambda[item]<span class="sc">*</span>theta, thr[item]);         <span class="sc">/</span><span class="er">/</span> Item repsonse <span class="fu">model</span> (model<span class="sc">/</span>data likelihood)</span>
+<span id="cb1-10"><a href="#cb1-10"></a>  }</span>
+<span id="cb1-11"><a href="#cb1-11"></a>  </span>
+<span id="cb1-12"><a href="#cb1-12"></a>  </span>
+<span id="cb1-13"><a href="#cb1-13"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notes:</p>
+<ul>
+<li>Here, we are only estimating the standard deviation of <span class="math inline">\(\theta\)</span>
+<ul>
+<li>We will leave the mean at zero</li>
+<li>We will use a log normal distribution for the SD (needs a mean and SD for hyperparameters)</li>
+</ul></li>
+<li><code>lambda`` in</code>ordered_logistic()<code>function is different from</code>initLambda```
+<ul>
+<li>We need a <code>transformed parameters</code> block to set one loading to one</li>
+</ul></li>
+</ul>
+</section>
+<section id="stans-parameters-block" class="slide level2">
+<h2>Stan’s Parameters Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>parameters {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>  vector[nObs] theta;                <span class="sc">/</span><span class="er">/</span> the latent <span class="fu">variables</span> (one <span class="cf">for</span> each person)</span>
+<span id="cb2-3"><a href="#cb2-3"></a>  real<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> thetaSD;</span>
+<span id="cb2-4"><a href="#cb2-4"></a>  </span>
+<span id="cb2-5"><a href="#cb2-5"></a>  array[nItems] ordered[maxCategory<span class="dv">-1</span>] thr; <span class="sc">/</span><span class="er">/</span> the item <span class="fu">thresholds</span> (one <span class="cf">for</span> each item category minus one)</span>
+<span id="cb2-6"><a href="#cb2-6"></a>  vector[nItems<span class="dv">-1</span>] initLambda;             <span class="sc">/</span><span class="er">/</span> the estimated factor <span class="fu">loadings</span> (number of items<span class="dv">-1</span> <span class="cf">for</span> one marker item)</span>
+<span id="cb2-7"><a href="#cb2-7"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notes:</p>
+<ul>
+<li><code>thetaSD</code> has lower bound of zero</li>
+<li><code>initLambda</code> is length <code>nItems-1</code> (one less as we set that one to one)</li>
+</ul>
+</section>
+<section id="stans-transformed-parameters-block" class="slide level2">
+<h2>Stan’s Transformed Parameters Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>transformed parameters{</span>
+<span id="cb3-2"><a href="#cb3-2"></a>  vector[nItems] lambda;   <span class="sc">/</span><span class="er">/</span> the loadings that go into the model itself</span>
+<span id="cb3-3"><a href="#cb3-3"></a>  </span>
+<span id="cb3-4"><a href="#cb3-4"></a>  lambda[<span class="dv">1</span>] <span class="ot">=</span> <span class="fl">1.0</span>;         <span class="sc">/</span><span class="er">/</span> first loading on the factor is set to one <span class="cf">for</span> <span class="fu">identification</span> (marker item)</span>
+<span id="cb3-5"><a href="#cb3-5"></a>  lambda[<span class="dv">2</span><span class="sc">:</span>(nItems)] <span class="ot">=</span> initLambda[<span class="dv">1</span><span class="sc">:</span>(nItems<span class="dv">-1</span>)]; <span class="sc">/</span><span class="er">/</span> rest of loadings are set to estimated values <span class="cf">in</span> initLambda</span>
+<span id="cb3-6"><a href="#cb3-6"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notes:</p>
+<ul>
+<li>We set the first loading to one
+<ul>
+<li>All others are estimated</li>
+</ul></li>
+<li>Technically, any loading can be set to one
+<ul>
+<li>All are equivalent models based on likelihood</li>
+</ul></li>
+<li>If an item has very little relation to the latent variable, setting that item’s loading to one can cause estimation problems
+<ul>
+<li>Difficult to tell which item may have problems before the analysis</li>
+</ul></li>
+</ul>
+</section>
+<section id="stans-data-block" class="slide level2">
+<h2>Stan’s Data Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>data {</span>
+<span id="cb4-2"><a href="#cb4-2"></a>  int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> nObs;                            <span class="sc">/</span><span class="er">/</span> number of observations</span>
+<span id="cb4-3"><a href="#cb4-3"></a>  int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> nItems;                          <span class="sc">/</span><span class="er">/</span> number of items</span>
+<span id="cb4-4"><a href="#cb4-4"></a>  int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> maxCategory;                     <span class="sc">/</span><span class="er">/</span> maximum category across all items</span>
+<span id="cb4-5"><a href="#cb4-5"></a>  </span>
+<span id="cb4-6"><a href="#cb4-6"></a>  array[nItems, nObs] int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">1</span>, upper<span class="ot">=</span><span class="dv">5</span><span class="sc">&gt;</span>  Y; <span class="sc">/</span><span class="er">/</span> item responses <span class="cf">in</span> an array</span>
+<span id="cb4-7"><a href="#cb4-7"></a></span>
+<span id="cb4-8"><a href="#cb4-8"></a>  array[nItems] vector[maxCategory<span class="dv">-1</span>] meanThr;                    <span class="sc">/</span><span class="er">/</span> prior mean vector <span class="cf">for</span> intercept parameters</span>
+<span id="cb4-9"><a href="#cb4-9"></a>  array[nItems] matrix[maxCategory<span class="dv">-1</span>, maxCategory<span class="dv">-1</span>] covThr;      <span class="sc">/</span><span class="er">/</span> prior covariance matrix <span class="cf">for</span> intercept parameters</span>
+<span id="cb4-10"><a href="#cb4-10"></a>  </span>
+<span id="cb4-11"><a href="#cb4-11"></a>  vector[nItems<span class="dv">-1</span>] meanLambda;         <span class="sc">/</span><span class="er">/</span> prior mean vector <span class="cf">for</span> discrimination parameters</span>
+<span id="cb4-12"><a href="#cb4-12"></a>  matrix[nItems<span class="dv">-1</span>, nItems<span class="dv">-1</span>] covLambda;  <span class="sc">/</span><span class="er">/</span> prior covariance matrix <span class="cf">for</span> discrimination parameters</span>
+<span id="cb4-13"><a href="#cb4-13"></a>  </span>
+<span id="cb4-14"><a href="#cb4-14"></a>  real thetaSDmean;  <span class="sc">/</span><span class="er">/</span> prior mean hyperparameter <span class="cf">for</span> theta standard <span class="fu">deviation</span> (log normal distribution)</span>
+<span id="cb4-15"><a href="#cb4-15"></a>  real thetaSDsd; <span class="sc">/</span><span class="er">/</span> prior sd hyperparameter <span class="cf">for</span> theta standard <span class="fu">deviation</span> (log normal distribution)</span>
+<span id="cb4-16"><a href="#cb4-16"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notes:</p>
+<ul>
+<li>Here, we need to set mean/sd hyperparameters for the standard deviation of <span class="math inline">\(\theta\)</span></li>
+</ul>
+</section>
+<section id="r-data-list" class="slide level2">
+<h2>R Data List</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>modelGRM_markerItem_data <span class="ot">=</span> <span class="fu">list</span>(</span>
+<span id="cb5-2"><a href="#cb5-2"></a>  <span class="at">nObs =</span> nObs,</span>
+<span id="cb5-3"><a href="#cb5-3"></a>  <span class="at">nItems =</span> nItems,</span>
+<span id="cb5-4"><a href="#cb5-4"></a>  <span class="at">maxCategory =</span> maxCategory,</span>
+<span id="cb5-5"><a href="#cb5-5"></a>  <span class="at">Y =</span> <span class="fu">t</span>(conspiracyItems), </span>
+<span id="cb5-6"><a href="#cb5-6"></a>  <span class="at">meanThr =</span> thrMeanMatrix,</span>
+<span id="cb5-7"><a href="#cb5-7"></a>  <span class="at">covThr =</span> thrCovArray,</span>
+<span id="cb5-8"><a href="#cb5-8"></a>  <span class="at">meanLambda =</span> lambdaMeanVecHP,</span>
+<span id="cb5-9"><a href="#cb5-9"></a>  <span class="at">covLambda =</span> lambdaCovarianceMatrixHP, </span>
+<span id="cb5-10"><a href="#cb5-10"></a>  <span class="at">thetaSDmean =</span> <span class="dv">0</span>,</span>
+<span id="cb5-11"><a href="#cb5-11"></a>  <span class="at">thetaSDsd =</span> <span class="dv">2</span></span>
+<span id="cb5-12"><a href="#cb5-12"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notes:</p>
+<ul>
+<li><p>Hyperparameter for location (<span class="math inline">\(\mu\)</span>) of lognormal distribution is 0</p></li>
+<li><p>Hyperparameter for scale (<span class="math inline">\(\sigma\)</span>) of lognormal distribution is 2</p></li>
+<li><p>Lognormal mean is:</p></li>
+</ul>
+<p><span class="math display">\[\exp \left(\mu +\frac{\sigma^2}{2} \right) = 7.39  \]</span></p>
+<ul>
+<li>Lognormal SD is:</li>
+</ul>
+<p><span class="math display">\[ \sqrt{ \left[ \exp \left( \sigma^2 \right) -1 \right] \exp \left(2\mu + \sigma^2 \right) }  = 54.1 \]</span></p>
+</section>
+<section id="stan-results" class="slide level2">
+<h2>Stan Results</h2>
+<div class="cell" data-hash="04h_Scale_Identification_cache/revealjs/unnamed-chunk-7_f98e7c9af8414d99709142d6d5899956">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.004561</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 51 × 10
+   variable       mean   median    sd   mad      q5     q95  rhat ess_bulk
+   &lt;chr&gt;         &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;
+ 1 thetaSD      1.73     1.72   0.263 0.258   1.31   2.18    1.00     668.
+ 2 lambda[1]    1        1      0     0       1      1      NA         NA 
+ 3 lambda[2]    1.72     1.68   0.315 0.296   1.26   2.28    1.00    1022.
+ 4 lambda[3]    1.48     1.45   0.303 0.286   1.05   2.03    1.00     969.
+ 5 lambda[4]    1.75     1.72   0.328 0.314   1.28   2.34    1.00     957.
+ 6 lambda[5]    2.82     2.75   0.561 0.529   2.03   3.82    1.00    1002.
+ 7 lambda[6]    2.85     2.79   0.571 0.535   2.04   3.88    1.00     939.
+ 8 lambda[7]    1.84     1.79   0.378 0.349   1.30   2.53    1.00     967.
+ 9 lambda[8]    3.02     2.93   0.628 0.587   2.14   4.15    1.00    1033.
+10 lambda[9]    1.78     1.74   0.360 0.335   1.26   2.43    1.00    1027.
+11 lambda[10]   1.52     1.48   0.341 0.323   1.03   2.14    1.00    1243.
+12 mu[1,1]      1.40     1.39   0.256 0.256   0.987  1.83    1.00    4432.
+13 mu[2,1]      0.213    0.216  0.317 0.310  -0.310  0.731   1.00    2901.
+14 mu[3,1]     -0.428   -0.421  0.293 0.290  -0.922  0.0386  1.00    3460.
+15 mu[4,1]      0.378    0.378  0.326 0.318  -0.162  0.910   1.00    3088.
+16 mu[5,1]      0.391    0.392  0.476 0.460  -0.394  1.18    1.00    2359.
+17 mu[6,1]      0.0218   0.0260 0.481 0.467  -0.780  0.799   1.00    2484.
+18 mu[7,1]     -0.782   -0.769  0.349 0.341  -1.37  -0.228   1.00    2927.
+19 mu[8,1]     -0.313   -0.294  0.513 0.499  -1.18   0.490   1.00    2353.
+20 mu[9,1]     -0.708   -0.699  0.343 0.334  -1.29  -0.168   1.00    3026.
+21 mu[10,1]    -1.96    -1.93   0.387 0.381  -2.63  -1.36    1.00    4827.
+22 mu[1,2]     -0.557   -0.554  0.231 0.226  -0.944 -0.184   1.00    2516.
+23 mu[2,2]     -2.16    -2.15   0.377 0.369  -2.81  -1.57    1.00    3884.
+24 mu[3,2]     -1.66    -1.65   0.324 0.324  -2.21  -1.15    1.00    4102.
+25 mu[4,2]     -1.76    -1.75   0.358 0.356  -2.37  -1.20    1.00    3504.
+26 mu[5,2]     -3.12    -3.09   0.607 0.595  -4.17  -2.20    1.00    3407.
+27 mu[6,2]     -3.20    -3.16   0.595 0.575  -4.25  -2.30    1.00    3566.
+28 mu[7,2]     -2.70    -2.68   0.427 0.420  -3.44  -2.04    1.00    4187.
+29 mu[8,2]     -3.20    -3.16   0.634 0.629  -4.31  -2.25    1.00    3378.
+30 mu[9,2]     -2.64    -2.61   0.425 0.418  -3.38  -1.97    1.00    4357.
+31 mu[10,2]    -3.24    -3.21   0.459 0.451  -4.04  -2.54    1.00    6382.
+32 mu[1,3]     -2.30    -2.29   0.292 0.288  -2.80  -1.84    1.00    1626.
+33 mu[2,3]     -4.08    -4.06   0.484 0.479  -4.91  -3.32    1.00    5592.
+34 mu[3,3]     -4.36    -4.33   0.509 0.508  -5.24  -3.57    1.00    8283.
+35 mu[4,3]     -4.56    -4.53   0.526 0.524  -5.46  -3.74    1.00    7005.
+36 mu[5,3]     -5.97    -5.91   0.840 0.823  -7.43  -4.70    1.00    5392.
+37 mu[6,3]     -7.43    -7.34   0.997 0.970  -9.20  -5.94    1.00    7548.
+38 mu[7,3]     -5.09    -5.06   0.632 0.626  -6.18  -4.11    1.00    7356.
+39 mu[8,3]     -8.95    -8.84   1.30  1.27  -11.3   -7.03    1.00    8882.
+40 mu[9,3]     -3.97    -3.94   0.510 0.501  -4.86  -3.18    1.00    5870.
+41 mu[10,3]    -4.47    -4.44   0.562 0.552  -5.45  -3.60    1.00    8536.
+42 mu[1,4]     -4.24    -4.21   0.476 0.471  -5.06  -3.50    1.00    2416.
+43 mu[2,4]     -5.68    -5.66   0.654 0.649  -6.82  -4.67    1.00    9069.
+44 mu[3,4]     -5.54    -5.50   0.656 0.654  -6.67  -4.52    1.00   11569.
+45 mu[4,4]     -5.52    -5.49   0.617 0.616  -6.58  -4.56    1.00    8879.
+46 mu[5,4]     -8.53    -8.44   1.15  1.11  -10.6   -6.81    1.00    8679.
+47 mu[6,4]    -10.4    -10.3    1.43  1.42  -12.9   -8.26    1.00   11443.
+48 mu[7,4]     -6.86    -6.81   0.866 0.865  -8.35  -5.52    1.00   10947.
+49 mu[8,4]    -12.0    -11.8    1.90  1.85  -15.4   -9.18    1.00   12431.
+50 mu[9,4]     -5.76    -5.71   0.699 0.688  -6.96  -4.67    1.00    9320.
+51 mu[10,4]    -4.74    -4.70   0.591 0.584  -5.77  -3.83    1.00    9196.
+# … with 1 more variable: ess_tail &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="sd-theta-results" class="slide level2">
+<h2>SD <span class="math inline">\(\theta\)</span> Results</h2>
+
+<img data-src="04h_Scale_Identification_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"></section>
+<section id="sd-theta-results-1" class="slide level2">
+<h2>SD <span class="math inline">\(\theta\)</span> Results</h2>
+
+<img data-src="04h_Scale_Identification_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"></section>
+<section id="comparing-theta-eap-estimates" class="slide level2">
+<h2>Comparing <span class="math inline">\(\theta\)</span> EAP Estimates</h2>
+
+<img data-src="04h_Scale_Identification_files/figure-revealjs/unnamed-chunk-10-1.png" width="960" class="r-stretch"></section>
+<section id="comparing-theta-eap-estimates-1" class="slide level2">
+<h2>Comparing <span class="math inline">\(\theta\)</span> EAP Estimates</h2>
+
+<img data-src="04h_Scale_Identification_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
+<section id="comparing-theta-sd-estimates" class="slide level2">
+<h2>Comparing <span class="math inline">\(\theta\)</span> SD Estimates</h2>
+
+<img data-src="04h_Scale_Identification_files/figure-revealjs/unnamed-chunk-12-1.png" width="960" class="r-stretch"></section>
+<section id="comparing-lambda-eap-estimates" class="slide level2">
+<h2>Comparing <span class="math inline">\(\lambda\)</span> EAP Estimates</h2>
+
+<img data-src="04h_Scale_Identification_files/figure-revealjs/unnamed-chunk-13-1.png" width="960" class="r-stretch"></section>
+<section id="section-1" class="slide level2" data-auto-animate="true," data-visibility="uncounted">
+<h2 data-id="quarto-animate-title"></h2>
+<div style="margin-top: 200px; font-size: 3em; color: red;">
+<p>Marker Items for Multidimensional Models</p>
+</div>
+</section>
+<section id="marker-items-for-multidimensional-models" class="slide level2">
+<h2>Marker Items for Multidimensional Models</h2>
+<p>We can also build marker items into multidimensional models</p>
+<ul>
+<li>A bit more tricky–we need to estimate the covariance matrix of <span class="math inline">\(\theta\)</span> now (<span class="math inline">\(\Sigma_\theta\)</span>)
+<ul>
+<li>We accomplish this by pre- and post-multiplying the correlation matrix of <span class="math inline">\(\theta\)</span> by a diagonal matrix of the standard deviations of <span class="math inline">\(\theta\)</span></li>
+</ul></li>
+</ul>
+</section>
+<section id="stans-model-block-1" class="slide level2">
+<h2>Stan’s Model Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>model {</span>
+<span id="cb8-2"><a href="#cb8-2"></a>  </span>
+<span id="cb8-3"><a href="#cb8-3"></a>  matrix[nFactors, nFactors] thetaCovL;</span>
+<span id="cb8-4"><a href="#cb8-4"></a>  initLambda <span class="sc">~</span> <span class="fu">multi_normal</span>(meanLambda, covLambda); </span>
+<span id="cb8-5"><a href="#cb8-5"></a>  </span>
+<span id="cb8-6"><a href="#cb8-6"></a>  thetaCorrL <span class="sc">~</span> <span class="fu">lkj_corr_cholesky</span>(<span class="fl">1.0</span>);</span>
+<span id="cb8-7"><a href="#cb8-7"></a>  thetaSD <span class="sc">~</span> <span class="fu">lognormal</span>(sdThetaLocation,sdThetaScale);</span>
+<span id="cb8-8"><a href="#cb8-8"></a>  </span>
+<span id="cb8-9"><a href="#cb8-9"></a>  thetaCovL <span class="ot">=</span> <span class="fu">diag_pre_multiply</span>(thetaSD, thetaCorrL);</span>
+<span id="cb8-10"><a href="#cb8-10"></a>  theta <span class="sc">~</span> <span class="fu">multi_normal_cholesky</span>(meanTheta, thetaCovL);    </span>
+<span id="cb8-11"><a href="#cb8-11"></a>  </span>
+<span id="cb8-12"><a href="#cb8-12"></a>  </span>
+<span id="cb8-13"><a href="#cb8-13"></a>  <span class="cf">for</span> (item <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nItems){</span>
+<span id="cb8-14"><a href="#cb8-14"></a>    thr[item] <span class="sc">~</span> <span class="fu">multi_normal</span>(meanThr[item], covThr[item]);            </span>
+<span id="cb8-15"><a href="#cb8-15"></a>    Y[item] <span class="sc">~</span> <span class="fu">ordered_logistic</span>(thetaMatrix<span class="sc">*</span>lambdaMatrix[item,<span class="dv">1</span><span class="sc">:</span>nFactors]<span class="st">', thr[item]);</span></span>
+<span id="cb8-16"><a href="#cb8-16"></a><span class="st">  }</span></span>
+<span id="cb8-17"><a href="#cb8-17"></a><span class="st">  </span></span>
+<span id="cb8-18"><a href="#cb8-18"></a><span class="st">  </span></span>
+<span id="cb8-19"><a href="#cb8-19"></a><span class="st">}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notes:</p>
+<ul>
+<li>The <code>multi_normal_cholesky</code> function now uses the covariance matrix</li>
+<li>We calculate the covariance matrix using the <code>thetaCovL = diag_pre_multiply(thetaSD, thetaCorrL);;</code> line</li>
+<li>The SDs have a lognormal prior distribution for each</li>
+</ul>
+</section>
+<section id="stans-parameters-block-1" class="slide level2">
+<h2>Stan’s Parameters Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>parameters {</span>
+<span id="cb9-2"><a href="#cb9-2"></a>  array[nObs] vector[nFactors] theta;                <span class="sc">/</span><span class="er">/</span> the latent <span class="fu">variables</span> (one <span class="cf">for</span> each person)</span>
+<span id="cb9-3"><a href="#cb9-3"></a>  array[nItems] ordered[maxCategory<span class="dv">-1</span>] thr; <span class="sc">/</span><span class="er">/</span> the item <span class="fu">thresholds</span> (one <span class="cf">for</span> each item category minus one)</span>
+<span id="cb9-4"><a href="#cb9-4"></a>  vector[nLoadings<span class="sc">-</span>nFactors] initLambda;             <span class="sc">/</span><span class="er">/</span> the factor loadings<span class="sc">/</span>item <span class="fu">discriminations</span> (one <span class="cf">for</span> each item)</span>
+<span id="cb9-5"><a href="#cb9-5"></a>  </span>
+<span id="cb9-6"><a href="#cb9-6"></a>  cholesky_factor_corr[nFactors] thetaCorrL;</span>
+<span id="cb9-7"><a href="#cb9-7"></a>  vector<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span>[nFactors] thetaSD;</span>
+<span id="cb9-8"><a href="#cb9-8"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notes:</p>
+<ul>
+<li>We still have a correlation matrix estimated</li>
+<li>Now adding a vector of SDs</li>
+</ul>
+</section>
+<section id="stans-transformed-data-block" class="slide level2">
+<h2>Stan’s Transformed Data Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>transformed data{</span>
+<span id="cb10-2"><a href="#cb10-2"></a>  int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> nLoadings <span class="ot">=</span> <span class="dv">0</span>;                                      <span class="sc">/</span><span class="er">/</span> number of loadings <span class="cf">in</span> model</span>
+<span id="cb10-3"><a href="#cb10-3"></a>  array[nFactors] int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> markerItem <span class="ot">=</span> <span class="fu">rep_array</span>(<span class="dv">0</span>, nFactors);</span>
+<span id="cb10-4"><a href="#cb10-4"></a>  </span>
+<span id="cb10-5"><a href="#cb10-5"></a>  <span class="cf">for</span> (factor <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nFactors){</span>
+<span id="cb10-6"><a href="#cb10-6"></a>    nLoadings <span class="ot">=</span> nLoadings <span class="sc">+</span> <span class="fu">sum</span>(Qmatrix[<span class="dv">1</span><span class="sc">:</span>nItems, factor]);</span>
+<span id="cb10-7"><a href="#cb10-7"></a>  }</span>
+<span id="cb10-8"><a href="#cb10-8"></a></span>
+<span id="cb10-9"><a href="#cb10-9"></a>  array[nLoadings, <span class="dv">4</span>] int loadingLocation;                     <span class="sc">/</span><span class="er">/</span> the row<span class="sc">/</span>column positions of each loading, plus marker <span class="cf">switch</span></span>
+<span id="cb10-10"><a href="#cb10-10"></a>  </span>
+<span id="cb10-11"><a href="#cb10-11"></a>  int loadingNum<span class="ot">=</span><span class="dv">1</span>;</span>
+<span id="cb10-12"><a href="#cb10-12"></a>  int lambdaNum<span class="ot">=</span><span class="dv">1</span>;</span>
+<span id="cb10-13"><a href="#cb10-13"></a>  <span class="cf">for</span> (item <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nItems){</span>
+<span id="cb10-14"><a href="#cb10-14"></a>    <span class="cf">for</span> (factor <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nFactors){       </span>
+<span id="cb10-15"><a href="#cb10-15"></a>      <span class="cf">if</span> (Qmatrix[item, factor] <span class="sc">==</span> <span class="dv">1</span>){</span>
+<span id="cb10-16"><a href="#cb10-16"></a>        loadingLocation[loadingNum, <span class="dv">1</span>] <span class="ot">=</span> item;</span>
+<span id="cb10-17"><a href="#cb10-17"></a>        loadingLocation[loadingNum, <span class="dv">2</span>] <span class="ot">=</span> factor;</span>
+<span id="cb10-18"><a href="#cb10-18"></a>        <span class="cf">if</span> (markerItem[factor] <span class="sc">==</span> <span class="dv">0</span>){</span>
+<span id="cb10-19"><a href="#cb10-19"></a>          loadingLocation[loadingNum, <span class="dv">3</span>] <span class="ot">=</span> <span class="dv">1</span>;     <span class="sc">/</span><span class="er">/</span> <span class="er">==</span><span class="dv">1</span> <span class="cf">if</span> marker item, <span class="sc">==</span><span class="dv">0</span> otherwise</span>
+<span id="cb10-20"><a href="#cb10-20"></a>          loadingLocation[loadingNum, <span class="dv">4</span>] <span class="ot">=</span> <span class="dv">0</span>;     <span class="sc">/</span><span class="er">/</span> <span class="er">==</span><span class="dv">0</span> <span class="cf">if</span> not one of estimated lambdas</span>
+<span id="cb10-21"><a href="#cb10-21"></a>          markerItem[factor] <span class="ot">=</span> item;</span>
+<span id="cb10-22"><a href="#cb10-22"></a>        } <span class="cf">else</span> {</span>
+<span id="cb10-23"><a href="#cb10-23"></a>          loadingLocation[loadingNum, <span class="dv">3</span>] <span class="ot">=</span> <span class="dv">0</span>;</span>
+<span id="cb10-24"><a href="#cb10-24"></a>          loadingLocation[loadingNum, <span class="dv">4</span>] <span class="ot">=</span> lambdaNum;</span>
+<span id="cb10-25"><a href="#cb10-25"></a>          lambdaNum <span class="ot">=</span> lambdaNum <span class="sc">+</span> <span class="dv">1</span>;</span>
+<span id="cb10-26"><a href="#cb10-26"></a>        }</span>
+<span id="cb10-27"><a href="#cb10-27"></a>        loadingNum <span class="ot">=</span> loadingNum <span class="sc">+</span> <span class="dv">1</span>;</span>
+<span id="cb10-28"><a href="#cb10-28"></a>      }</span>
+<span id="cb10-29"><a href="#cb10-29"></a>    }</span>
+<span id="cb10-30"><a href="#cb10-30"></a>  }</span>
+<span id="cb10-31"><a href="#cb10-31"></a></span>
+<span id="cb10-32"><a href="#cb10-32"></a></span>
+<span id="cb10-33"><a href="#cb10-33"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="stans-transformed-data-block-notes" class="slide level2">
+<h2>Stan’s Transformed Data Block Notes</h2>
+<ul>
+<li>Loading location now lists two additional columns
+<ul>
+<li>An indicator of whether or not to set value to one</li>
+<li>An indicator of which loading in the loading vector is needed if loading is being estimated</li>
+</ul></li>
+</ul>
+</section>
+<section id="stans-transformed-parameters-block-1" class="slide level2">
+<h2>Stan’s Transformed Parameters Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>transformed parameters{</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  matrix[nItems, nFactors] lambdaMatrix <span class="ot">=</span> <span class="fu">rep_matrix</span>(<span class="fl">0.0</span>, nItems, nFactors);</span>
+<span id="cb11-3"><a href="#cb11-3"></a>  matrix[nObs, nFactors] thetaMatrix;</span>
+<span id="cb11-4"><a href="#cb11-4"></a>  </span>
+<span id="cb11-5"><a href="#cb11-5"></a>  <span class="sc">/</span><span class="er">/</span> build matrix <span class="cf">for</span> lambdas to multiply theta matrix</span>
+<span id="cb11-6"><a href="#cb11-6"></a>  </span>
+<span id="cb11-7"><a href="#cb11-7"></a>  <span class="cf">for</span> (loading <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nLoadings){  </span>
+<span id="cb11-8"><a href="#cb11-8"></a>    <span class="cf">if</span> (loadingLocation[loading,<span class="dv">3</span>] <span class="sc">==</span> <span class="dv">1</span>){</span>
+<span id="cb11-9"><a href="#cb11-9"></a>      lambdaMatrix[loadingLocation[loading,<span class="dv">1</span>], loadingLocation[loading,<span class="dv">2</span>]] <span class="ot">=</span> <span class="fl">1.0</span>;</span>
+<span id="cb11-10"><a href="#cb11-10"></a>    } <span class="cf">else</span> {</span>
+<span id="cb11-11"><a href="#cb11-11"></a>      lambdaMatrix[loadingLocation[loading,<span class="dv">1</span>], loadingLocation[loading,<span class="dv">2</span>]] <span class="ot">=</span> initLambda[loadingLocation[loading,<span class="dv">4</span>]];</span>
+<span id="cb11-12"><a href="#cb11-12"></a>    }</span>
+<span id="cb11-13"><a href="#cb11-13"></a>  }</span>
+<span id="cb11-14"><a href="#cb11-14"></a>  </span>
+<span id="cb11-15"><a href="#cb11-15"></a>  <span class="cf">for</span> (factor <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nFactors){</span>
+<span id="cb11-16"><a href="#cb11-16"></a>    thetaMatrix[,factor] <span class="ot">=</span> <span class="fu">to_vector</span>(theta[,factor]);</span>
+<span id="cb11-17"><a href="#cb11-17"></a>  }</span>
+<span id="cb11-18"><a href="#cb11-18"></a>  </span>
+<span id="cb11-19"><a href="#cb11-19"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notes:</p>
+<ul>
+<li>Here, we set the first item’s loading to one for each dimension</li>
+<li>We determine the location of each loading using the results from the transformed data block sorting the Q-matrix</li>
+</ul>
+</section>
+<section id="stans-generated-quantities-block" class="slide level2">
+<h2>Stan’s Generated Quantities Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>generated quantities{ </span>
+<span id="cb12-2"><a href="#cb12-2"></a>  array[nItems] vector[maxCategory<span class="dv">-1</span>] mu;</span>
+<span id="cb12-3"><a href="#cb12-3"></a>  corr_matrix[nFactors] thetaCorr;</span>
+<span id="cb12-4"><a href="#cb12-4"></a>  cholesky_factor_cov[nFactors] thetaCov_pre;</span>
+<span id="cb12-5"><a href="#cb12-5"></a>  cov_matrix[nFactors] thetaCov; </span>
+<span id="cb12-6"><a href="#cb12-6"></a>  </span>
+<span id="cb12-7"><a href="#cb12-7"></a>  <span class="cf">for</span> (item <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nItems){</span>
+<span id="cb12-8"><a href="#cb12-8"></a>    mu[item] <span class="ot">=</span> <span class="sc">-</span><span class="dv">1</span><span class="sc">*</span>thr[item];</span>
+<span id="cb12-9"><a href="#cb12-9"></a>  }</span>
+<span id="cb12-10"><a href="#cb12-10"></a>  </span>
+<span id="cb12-11"><a href="#cb12-11"></a>  thetaCorr <span class="ot">=</span> <span class="fu">multiply_lower_tri_self_transpose</span>(thetaCorrL);</span>
+<span id="cb12-12"><a href="#cb12-12"></a>  thetaCov_pre <span class="ot">=</span> <span class="fu">diag_pre_multiply</span>(thetaSD, thetaCorrL);</span>
+<span id="cb12-13"><a href="#cb12-13"></a>  thetaCov <span class="ot">=</span> <span class="fu">multiply_lower_tri_self_transpose</span>(thetaCov_pre);</span>
+<span id="cb12-14"><a href="#cb12-14"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notes:</p>
+<ul>
+<li>Now we calculate the covariance matrix here, too</li>
+</ul>
+</section>
+<section id="stans-data-block-1" class="slide level2">
+<h2>Stan’s Data Block</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>data {</span>
+<span id="cb13-2"><a href="#cb13-2"></a>  </span>
+<span id="cb13-3"><a href="#cb13-3"></a>  <span class="sc">/</span><span class="er">/</span> data specifications  <span class="sc">==</span><span class="er">===========================================================</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>  int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> nObs;                            <span class="sc">/</span><span class="er">/</span> number of observations</span>
+<span id="cb13-5"><a href="#cb13-5"></a>  int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> nItems;                          <span class="sc">/</span><span class="er">/</span> number of items</span>
+<span id="cb13-6"><a href="#cb13-6"></a>  int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span><span class="sc">&gt;</span> maxCategory;                     <span class="sc">/</span><span class="er">/</span> number of categories <span class="cf">for</span> each item</span>
+<span id="cb13-7"><a href="#cb13-7"></a>  </span>
+<span id="cb13-8"><a href="#cb13-8"></a>  <span class="sc">/</span><span class="er">/</span> input data  <span class="sc">==</span><span class="er">===========================================================</span></span>
+<span id="cb13-9"><a href="#cb13-9"></a>  array[nItems, nObs] int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">1</span>, upper<span class="ot">=</span><span class="dv">5</span><span class="sc">&gt;</span>  Y; <span class="sc">/</span><span class="er">/</span> item responses <span class="cf">in</span> an array</span>
+<span id="cb13-10"><a href="#cb13-10"></a></span>
+<span id="cb13-11"><a href="#cb13-11"></a>  <span class="sc">/</span><span class="er">/</span> loading specifications  <span class="sc">==</span><span class="er">===========================================================</span></span>
+<span id="cb13-12"><a href="#cb13-12"></a>  int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">1</span><span class="sc">&gt;</span> nFactors;                                       <span class="sc">/</span><span class="er">/</span> number of loadings <span class="cf">in</span> the model</span>
+<span id="cb13-13"><a href="#cb13-13"></a>  array[nItems, nFactors] int<span class="sc">&lt;</span>lower<span class="ot">=</span><span class="dv">0</span>, upper<span class="ot">=</span><span class="dv">1</span><span class="sc">&gt;</span> Qmatrix;</span>
+<span id="cb13-14"><a href="#cb13-14"></a>  </span>
+<span id="cb13-15"><a href="#cb13-15"></a>  <span class="sc">/</span><span class="er">/</span> prior specifications <span class="sc">==</span><span class="er">===========================================================</span></span>
+<span id="cb13-16"><a href="#cb13-16"></a>  array[nItems] vector[maxCategory<span class="dv">-1</span>] meanThr;                <span class="sc">/</span><span class="er">/</span> prior mean vector <span class="cf">for</span> intercept parameters</span>
+<span id="cb13-17"><a href="#cb13-17"></a>  array[nItems] matrix[maxCategory<span class="dv">-1</span>, maxCategory<span class="dv">-1</span>] covThr;  <span class="sc">/</span><span class="er">/</span> prior covariance matrix <span class="cf">for</span> intercept parameters</span>
+<span id="cb13-18"><a href="#cb13-18"></a>  </span>
+<span id="cb13-19"><a href="#cb13-19"></a>  vector[nItems<span class="sc">-</span>nFactors] meanLambda;         <span class="sc">/</span><span class="er">/</span> prior mean vector <span class="cf">for</span> discrimination parameters</span>
+<span id="cb13-20"><a href="#cb13-20"></a>  matrix[nItems<span class="sc">-</span>nFactors, nItems<span class="sc">-</span>nFactors] covLambda;  <span class="sc">/</span><span class="er">/</span> prior covariance matrix <span class="cf">for</span> discrimination parameters</span>
+<span id="cb13-21"><a href="#cb13-21"></a>  </span>
+<span id="cb13-22"><a href="#cb13-22"></a>  vector[nFactors] meanTheta; </span>
+<span id="cb13-23"><a href="#cb13-23"></a>  vector[nFactors] sdThetaLocation;</span>
+<span id="cb13-24"><a href="#cb13-24"></a>  vector[nFactors] sdThetaScale;</span>
+<span id="cb13-25"><a href="#cb13-25"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notes:</p>
+<ul>
+<li>Adding hyperparameters for the SDs of <span class="math inline">\(theta\)</span></li>
+<li>No other differences from previous multidimensional model code</li>
+</ul>
+</section>
+<section id="r-data-list-1" class="slide level2">
+<h2>R Data List</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>thetaMean <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">0</span>, nFactors)</span>
+<span id="cb14-2"><a href="#cb14-2"></a>sdThetaLocation <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">0</span>, nFactors)</span>
+<span id="cb14-3"><a href="#cb14-3"></a>sdThetaScale <span class="ot">=</span> <span class="fu">rep</span>(.<span class="dv">5</span>, nFactors)</span>
+<span id="cb14-4"><a href="#cb14-4"></a></span>
+<span id="cb14-5"><a href="#cb14-5"></a>modelMultidimensionalGRM_markerItem_data <span class="ot">=</span> <span class="fu">list</span>(</span>
+<span id="cb14-6"><a href="#cb14-6"></a>  <span class="at">nObs =</span> nObs,</span>
+<span id="cb14-7"><a href="#cb14-7"></a>  <span class="at">nItems =</span> nItems,</span>
+<span id="cb14-8"><a href="#cb14-8"></a>  <span class="at">maxCategory =</span> maxCategory,</span>
+<span id="cb14-9"><a href="#cb14-9"></a>  <span class="at">Y =</span> <span class="fu">t</span>(conspiracyItems), </span>
+<span id="cb14-10"><a href="#cb14-10"></a>  <span class="at">nFactors =</span> nFactors,</span>
+<span id="cb14-11"><a href="#cb14-11"></a>  <span class="at">Qmatrix =</span> Qmatrix,</span>
+<span id="cb14-12"><a href="#cb14-12"></a>  <span class="at">meanThr =</span> thrMeanMatrix,</span>
+<span id="cb14-13"><a href="#cb14-13"></a>  <span class="at">covThr =</span> thrCovArray,</span>
+<span id="cb14-14"><a href="#cb14-14"></a>  <span class="at">meanLambda =</span> lambdaMeanVecHP,</span>
+<span id="cb14-15"><a href="#cb14-15"></a>  <span class="at">covLambda =</span> lambdaCovarianceMatrixHP,</span>
+<span id="cb14-16"><a href="#cb14-16"></a>  <span class="at">meanTheta =</span> thetaMean,</span>
+<span id="cb14-17"><a href="#cb14-17"></a>  <span class="at">sdThetaLocation =</span> sdThetaLocation,</span>
+<span id="cb14-18"><a href="#cb14-18"></a>  <span class="at">sdThetaScale =</span> sdThetaScale</span>
+<span id="cb14-19"><a href="#cb14-19"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="stan-results-1" class="slide level2">
+<h2>Stan Results</h2>
+<div class="cell" data-hash="04h_Scale_Identification_cache/revealjs/unnamed-chunk-21_980cc038ad3b7a13d10d8f9e5899efe5">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a> <span class="co"># checking convergence</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="fu">max</span>(modelMultidimensionalGRM_markerItem_samples<span class="sc">$</span><span class="fu">summary</span>()<span class="sc">$</span>rhat, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.080386</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="co"># parameter results</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="fu">print</span>(modelMultidimensionalGRM_markerItem_samples<span class="sc">$</span><span class="fu">summary</span>(<span class="at">variables =</span> <span class="fu">c</span>(<span class="st">"thetaSD"</span>, <span class="st">"thetaCov"</span>, <span class="st">"thetaCorr"</span>, <span class="st">"lambdaMatrix"</span>, <span class="st">"mu"</span>)) ,<span class="at">n=</span><span class="cn">Inf</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 70 × 10
+   variable         mean   median      sd     mad      q5     q95  rhat ess_bulk
+   &lt;chr&gt;           &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;
+ 1 thetaSD[1]     2.44     2.42   0.345   0.354     1.93   3.02    1.01    296. 
+ 2 thetaSD[2]     1.75     1.74   0.247   0.250     1.36   2.17    1.00    505. 
+ 3 thetaCov[1,…   6.07     5.87   1.72    1.72      3.71   9.13    1.01    296. 
+ 4 thetaCov[2,…   4.23     4.13   0.925   0.864     2.89   5.93    1.00    513. 
+ 5 thetaCov[1,…   4.23     4.13   0.925   0.864     2.89   5.93    1.00    513. 
+ 6 thetaCov[2,…   3.11     3.02   0.882   0.855     1.85   4.71    1.00    505. 
+ 7 thetaCorr[1…   1        1      0       0         1      1      NA        NA  
+ 8 thetaCorr[2…   0.989    0.992  0.00973 0.00778   0.969  0.999   1.07     41.5
+ 9 thetaCorr[1…   0.989    0.992  0.00973 0.00778   0.969  0.999   1.07     41.5
+10 thetaCorr[2…   1        1      0       0         1      1      NA        NA  
+11 lambdaMatri…   0        0      0       0         0      0      NA        NA  
+12 lambdaMatri…   1        1      0       0         1      1      NA        NA  
+13 lambdaMatri…   0        0      0       0         0      0      NA        NA  
+14 lambdaMatri…   0        0      0       0         0      0      NA        NA  
+15 lambdaMatri…   1.96     1.91   0.380   0.348     1.43   2.64    1.01    828. 
+16 lambdaMatri…   0        0      0       0         0      0      NA        NA  
+17 lambdaMatri…   1.27     1.25   0.245   0.241     0.914  1.70    1.01    401. 
+18 lambdaMatri…   2.11     2.07   0.434   0.392     1.50   2.90    1.00    900. 
+19 lambdaMatri…   1.23     1.21   0.228   0.223     0.895  1.62    1.01    489. 
+20 lambdaMatri…   0        0      0       0         0      0      NA        NA  
+21 lambdaMatri…   1        1      0       0         1      1      NA        NA  
+22 lambdaMatri…   0        0      0       0         0      0      NA        NA  
+23 lambdaMatri…   1.46     1.44   0.278   0.262     1.05   1.95    1.00    768. 
+24 lambdaMatri…   1.71     1.69   0.304   0.311     1.27   2.24    1.00    669. 
+25 lambdaMatri…   0        0      0       0         0      0      NA        NA  
+26 lambdaMatri…   2.85     2.80   0.580   0.531     2.04   3.87    1.00    775. 
+27 lambdaMatri…   0        0      0       0         0      0      NA        NA  
+28 lambdaMatri…   0        0      0       0         0      0      NA        NA  
+29 lambdaMatri…   0        0      0       0         0      0      NA        NA  
+30 lambdaMatri…   1.48     1.44   0.317   0.296     1.02   2.06    1.00    899. 
+31 mu[1,1]        1.42     1.42   0.259   0.267     0.996  1.85    1.00    767. 
+32 mu[2,1]        0.248    0.254  0.282   0.280    -0.227  0.702   1.00    742. 
+33 mu[3,1]       -0.442   -0.430  0.293   0.305    -0.941  0.0165  1.00    798. 
+34 mu[4,1]        0.379    0.375  0.320   0.316    -0.147  0.908   1.00    739. 
+35 mu[5,1]        0.397    0.412  0.456   0.432    -0.365  1.14    1.01    643. 
+36 mu[6,1]        0.0324   0.0238 0.482   0.473    -0.754  0.819   1.01    684. 
+37 mu[7,1]       -0.776   -0.755  0.349   0.354    -1.39  -0.237   1.00    658. 
+38 mu[8,1]       -0.285   -0.258  0.509   0.485    -1.15   0.483   1.00    501. 
+39 mu[9,1]       -0.700   -0.701  0.343   0.341    -1.27  -0.173   1.01    453. 
+40 mu[10,1]      -1.99    -1.96   0.388   0.360    -2.69  -1.41    1.00   1338. 
+41 mu[1,2]       -0.571   -0.561  0.235   0.229    -0.961 -0.200   1.00    674. 
+42 mu[2,2]       -1.94    -1.93   0.339   0.351    -2.51  -1.42    1.01    358. 
+43 mu[3,2]       -1.69    -1.69   0.321   0.314    -2.24  -1.18    1.00   1114. 
+44 mu[4,2]       -1.80    -1.78   0.365   0.373    -2.39  -1.23    1.01    467. 
+45 mu[5,2]       -3.16    -3.13   0.622   0.622    -4.24  -2.26    1.00    618. 
+46 mu[6,2]       -3.35    -3.31   0.639   0.614    -4.46  -2.37    1.01    789. 
+47 mu[7,2]       -2.71    -2.67   0.420   0.400    -3.46  -2.08    1.00   1044. 
+48 mu[8,2]       -3.23    -3.18   0.654   0.658    -4.38  -2.30    1.00    593. 
+49 mu[9,2]       -2.63    -2.62   0.436   0.422    -3.37  -1.89    1.01    420. 
+50 mu[10,2]      -3.28    -3.24   0.460   0.442    -4.10  -2.60    1.00   1586. 
+51 mu[1,3]       -2.34    -2.32   0.285   0.273    -2.84  -1.89    1.00    833. 
+52 mu[2,3]       -3.71    -3.71   0.490   0.480    -4.50  -2.87    1.02    217. 
+53 mu[3,3]       -4.42    -4.39   0.510   0.488    -5.31  -3.60    1.01   1661. 
+54 mu[4,3]       -4.61    -4.60   0.530   0.550    -5.49  -3.76    1.00    897. 
+55 mu[5,3]       -6.06    -5.97   0.886   0.889    -7.62  -4.83    1.00    860. 
+56 mu[6,3]       -7.64    -7.58   1.10    1.02     -9.54  -6.02    1.01   1500. 
+57 mu[7,3]       -5.14    -5.09   0.639   0.606    -6.25  -4.17    1.00   2016. 
+58 mu[8,3]       -9.16    -9.04   1.42    1.39    -11.7   -7.17    1.00   1070. 
+59 mu[9,3]       -3.98    -3.96   0.513   0.530    -4.84  -3.20    1.00    733. 
+60 mu[10,3]      -4.56    -4.53   0.564   0.541    -5.54  -3.69    1.00   1702. 
+61 mu[1,4]       -4.28    -4.26   0.470   0.470    -5.09  -3.55    1.00    810. 
+62 mu[2,4]       -5.29    -5.30   0.614   0.605    -6.33  -4.32    1.01    636. 
+63 mu[3,4]       -5.58    -5.52   0.659   0.636    -6.76  -4.56    1.00   1637. 
+64 mu[4,4]       -5.58    -5.55   0.632   0.664    -6.62  -4.59    1.00    841. 
+65 mu[5,4]       -8.70    -8.55   1.21    1.17    -10.9   -6.94    1.00   1101. 
+66 mu[6,4]      -10.7    -10.5    1.59    1.46    -13.5   -8.34    1.01   1584. 
+67 mu[7,4]       -6.94    -6.91   0.874   0.846    -8.45  -5.61    1.00   2497. 
+68 mu[8,4]      -12.1    -12.0    2.06    1.99    -15.8   -8.86    1.00    517. 
+69 mu[9,4]       -5.77    -5.74   0.689   0.716    -6.96  -4.74    1.00   1410. 
+70 mu[10,4]      -4.83    -4.81   0.593   0.566    -5.86  -3.93    1.00   1835. 
+# … with 1 more variable: ess_tail &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="section-2" class="slide level2" data-auto-animate="true," data-visibility="uncounted">
+<h2 data-id="quarto-animate-title"></h2>
+<div style="margin-top: 200px; font-size: 3em; color: red;">
+<p>Wrapping Up</p>
+</div>
+</section>
+<section id="wrapping-up" class="slide level2">
+<h2>Wrapping Up</h2>
+<p>This lecture showed how to set additional constraints to estimate the standard deviation of the latent variable(s)</p>
+<ul>
+<li>This is often called the structural model in psychometrics</li>
+<li>Bayesians call this an empirical prior</li>
+<li>We need parameter constraints to provide strong identification for the model/data likelihood</li>
+</ul>
+<div class="footer footer-default">
+<p><a href="https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/">https://jonathantemplin.com/bayesian-psychometric-modeling-fall-2022/</a></p>
+</div>
+</section>
+    </div>
+  </div>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script>
+  <script src="04h_Scale_Identification_files/libs/revealjs/dist/reveal.js"></script>
+  <!-- reveal.js plugins -->
+  <script src="04h_Scale_Identification_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="04h_Scale_Identification_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="04h_Scale_Identification_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="04h_Scale_Identification_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="04h_Scale_Identification_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  
+
+  <script src="04h_Scale_Identification_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="04h_Scale_Identification_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="04h_Scale_Identification_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="04h_Scale_Identification_files/libs/revealjs/plugin/math/math.js"></script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+'controlsAuto': true,
+'previewLinksAuto': false,
+'smaller': false,
+'pdfSeparateFragments': false,
+'autoAnimateEasing': "ease",
+'autoAnimateDuration': 1,
+'autoAnimateUnmatched': true,
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'smaller': false,
+ 
+        // Display controls in the bottom right corner
+        controls: false,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: false,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'edges',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: 'c/t',
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: true,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: false,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'linear',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: false,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'none',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'none',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: 1050,
+
+        height: 700,
+
+        // Factor of the display size that should remain empty around the content
+        margin: 0.1,
+
+        math: {
+          mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
+
+          RevealMath,
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    
+    <script>
+      // htmlwidgets need to know to resize themselves when slides are shown/hidden.
+      // Fire the "slideenter" event (handled by htmlwidgets.js) when the current
+      // slide changes (different for each slide format).
+      (function () {
+        // dispatch for htmlwidgets
+        function fireSlideEnter() {
+          const event = window.document.createEvent("Event");
+          event.initEvent("slideenter", true, true);
+          window.document.dispatchEvent(event);
+        }
+
+        function fireSlideChanged(previousSlide, currentSlide) {
+          fireSlideEnter();
+
+          // dispatch for shiny
+          if (window.jQuery) {
+            if (previousSlide) {
+              window.jQuery(previousSlide).trigger("hidden");
+            }
+            if (currentSlide) {
+              window.jQuery(currentSlide).trigger("shown");
+            }
+          }
+        }
+
+        // hookup for slidy
+        if (window.w3c_slidy) {
+          window.w3c_slidy.add_observer(function (slide_num) {
+            // slide_num starts at position 1
+            fireSlideChanged(null, w3c_slidy.slides[slide_num - 1]);
+          });
+        }
+
+      })();
+    </script>
+
+    <script id="quarto-html-after-body" type="application/javascript">
+    window.document.addEventListener("DOMContentLoaded", function (event) {
+      const toggleBodyColorMode = (bsSheetEl) => {
+        const mode = bsSheetEl.getAttribute("data-mode");
+        const bodyEl = window.document.querySelector("body");
+        if (mode === "dark") {
+          bodyEl.classList.add("quarto-dark");
+          bodyEl.classList.remove("quarto-light");
+        } else {
+          bodyEl.classList.add("quarto-light");
+          bodyEl.classList.remove("quarto-dark");
+        }
+      }
+      const toggleBodyColorPrimary = () => {
+        const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+        if (bsSheetEl) {
+          toggleBodyColorMode(bsSheetEl);
+        }
+      }
+      toggleBodyColorPrimary();  
+      const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+      tabsets.forEach(function(tabset) {
+        const tabby = new Tabby('#' + tabset.id);
+      });
+      const clipboard = new window.ClipboardJS('.code-copy-button', {
+        target: function(trigger) {
+          return trigger.previousElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        // button target
+        const button = e.trigger;
+        // don't keep focus
+        button.blur();
+        // flash "checked"
+        button.classList.add('code-copy-button-checked');
+        var currentTitle = button.getAttribute("title");
+        button.setAttribute("title", "Copied!");
+        let tooltip;
+        if (window.bootstrap) {
+          button.setAttribute("data-bs-toggle", "tooltip");
+          button.setAttribute("data-bs-placement", "left");
+          button.setAttribute("data-bs-title", "Copied!");
+          tooltip = new bootstrap.Tooltip(button, 
+            { trigger: "manual", 
+              customClass: "code-copy-button-tooltip",
+              offset: [0, -8]});
+          tooltip.show();    
+        }
+        setTimeout(function() {
+          if (tooltip) {
+            tooltip.hide();
+            button.removeAttribute("data-bs-title");
+            button.removeAttribute("data-bs-toggle");
+            button.removeAttribute("data-bs-placement");
+          }
+          button.setAttribute("title", currentTitle);
+          button.classList.remove('code-copy-button-checked');
+        }, 1000);
+        // clear code selection
+        e.clearSelection();
+      });
+      function tippyHover(el, contentFn) {
+        const config = {
+          allowHTML: true,
+          content: contentFn,
+          maxWidth: 500,
+          delay: 100,
+          arrow: false,
+          appendTo: function(el) {
+              return el.closest('section.slide') || el.parentElement;
+          },
+          interactive: true,
+          interactiveBorder: 10,
+          theme: 'quarto-reveal',
+          placement: 'bottom-start'
+        };
+          config['offset'] = [0,0];
+          config['maxWidth'] = 700;
+        window.tippy(el, config); 
+      }
+      const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+      for (var i=0; i<noterefs.length; i++) {
+        const ref = noterefs[i];
+        tippyHover(ref, function() {
+          // use id or data attribute instead here
+          let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+          try { href = new URL(href).hash; } catch {}
+          const id = href.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          return note.innerHTML;
+        });
+      }
+      const findCites = (el) => {
+        const parentEl = el.parentElement;
+        if (parentEl) {
+          const cites = parentEl.dataset.cites;
+          if (cites) {
+            return {
+              el,
+              cites: cites.split(' ')
+            };
+          } else {
+            return findCites(el.parentElement)
+          }
+        } else {
+          return undefined;
+        }
+      };
+      var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+      for (var i=0; i<bibliorefs.length; i++) {
+        const ref = bibliorefs[i];
+        const citeInfo = findCites(ref);
+        if (citeInfo) {
+          tippyHover(citeInfo.el, function() {
+            var popup = window.document.createElement('div');
+            citeInfo.cites.forEach(function(cite) {
+              var citeDiv = window.document.createElement('div');
+              citeDiv.classList.add('hanging-indent');
+              citeDiv.classList.add('csl-entry');
+              var biblioDiv = window.document.getElementById('ref-' + cite);
+              if (biblioDiv) {
+                citeDiv.innerHTML = biblioDiv.innerHTML;
+              }
+              popup.appendChild(citeDiv);
+            });
+            return popup.innerHTML;
+          });
+        }
+      }
+    });
+    </script>
+    
+
+</body></html>
