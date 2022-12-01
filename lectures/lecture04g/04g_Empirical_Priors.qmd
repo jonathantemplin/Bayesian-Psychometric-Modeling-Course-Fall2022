@@ -1,6 +1,6 @@
 ---
 title: "Empirical Priors for Measurement Model Parameters"
-author: "Lecture 4f" 
+author: "Lecture 4g" 
 format: 
   revealjs:
     multiplex: false
